@@ -1,0 +1,11 @@
+.*
+!.gitignore
+!.gitattributes
+!.travis.yml
+*.pyc
+*.log
+./data
+build/
+naampy.egg-info/
+lit/
+dist/
