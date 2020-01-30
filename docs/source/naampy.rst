@@ -1,177 +1,144 @@
+naampy: Infer Sociodemographic Characteristics from Indian Names
+--------------------------------------
 
-.. image:: https://travis-ci.org/naampy/ethnicolr.svg?branch=master
-    :target: https://travis-ci.org/naampy/naampy
-.. image:: https://ci.appveyor.com/api/projects/status/qfvbu8h99ymtw2ub?svg=true
+.. image:: https://travis-ci.org/appeler/naampy.svg?branch=master
+    :target: https://travis-ci.org/appeler/naampy
+.. image:: https://ci.appveyor.com/api/projects/status/q4wr4clilf4samlk?svg=true
     :target: https://ci.appveyor.com/project/soodoku/naampy
 .. image:: https://img.shields.io/pypi/v/naampy.svg
     :target: https://pypi.python.org/pypi/naampy
+.. image:: https://pepy.tech/badge/naampy
+    :target: https://pepy.tech/project/naampy
 
-\
 
-naampy: Infer Gender from Indian Names 
---------------------------------------------
+The ability to programmatically reliably infer social attributes of a person from their name can be useful for a broad set of tasks, from estimating bias in coverage of women in the media to estimating bias in lending against certain social groups. But unlike the American Census Bureau, which produces a list of last names and first names, which can (and are) used to infer the gender, race, ethnicity, etc. from names, the Indian government produces no such commensurate datasets. And hence inferring the relationship between gender, ethnicity, language group, etc. and names has generally been done with small datasets constructed in an ad-hoc manner.
 
-A name reveals much, especially in India. And learning important social 
-attributes of a person from their name can be useful for a broad set of tasks, 
-from estimating to what extent women are covered in news compared to men, 
-to estimating whether there is bias in lending against certain social groups. 
+We fill this yawning gap. Using data from the `Indian Electoral Rolls <https://github.com/in-rolls/electoral_rolls>`__ (parsed data `here <https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/MUEGDT>`__), we estimate the proportion female, male, and `third sex` (see `here <https://en.wikipedia.org/wiki/Third_gender>`__) for a particular `first name, year, and state.`
 
-Unlike the American Census Bureau, which produces list of last names and first names, 
-which can (and have been) used to infer the gender and race from names, India produces 
-no such commensurate datasets. And learning the relationship between gender, ethnicity, 
-language group, etc. and name has generally been done with small datasets constructed 
-in an adhoc manner.
+Data
+~~~~
 
-We fix this yawning gap in this paper, making three novel contributions. We first assemble 
-a large novel dataset of Indian names. We scrape the electoral rolls that are public to build 
-the first big comprehensive representative dataset of all adult Indians. We then we use it to 
-build a variety of classifiers, learning relationships between names and gender, and language group. 
-We show how biased the estimates can be from other smaller datasets. Lastly, we use the classifiers 
-to estimate the coverage of women in major Indian newspapers.
+How is the underlying data produced?
+====================================
 
-Caveats and Notes
-===================
+We split name into first name and last name and then aggregated per state `first_name, prop_female, n_female, n_male`
 
+This is used to provide the base prediction.
+
+Given the association between prop_female and first_name may change over time, we exploited the age. Given the data were collected in 2017, we calculate the year each person was born and then do a group by year to create `first_name, prop_female, n_female, n_male, year`
+
+We group across the 12 states to provide the aggregated view.
+
+
+Issues with underlying data
+==============================
+
+Concerns:
+
+* Voting registration lists may not be accurate, systematically underrepresenting the poor, minorities, etc.
+* Voting registrations lists at best reflect the adult citizens. But to the extent that prejudice against women, etc., prevents some kinds of people to reach adulthood, the data bakes those biased in.
+* Indian names are complicated. We do not have good parsers for them yet. We have gone for the default arrangement. Please go through the notebook to look at the judgments we make. We plan to improve the underlying data over time.
+
+Gender Classifier
+~~~~~~~~~~~~~~~~~
+
+We start by providing a base model for first\_name that gives the Bayes
+optimal solution providing the proportion of women with that name who
+are women. We also provide a series of base models where the state of
+residence is known. In the future, we plan to use LSTM to learn the relationship between
+sequences of characters in the first name and gender.
 
 Installation
---------------
+~~~~~~~~~~~~~~
+
+We strongly recommend installing `naampy` inside a Python virtual environment (see `venv documentation <https://docs.python.org/3/library/venv.html#creating-virtual-environments>`__)
 
 ::
 
     pip install naampy
 
-**Note**: If you are installing the package on Windows, Theano installation typically needs admin. privileges. 
 
-General API
-----------------
-
-To see the available command line options for any function, please type in 
-``<function-name> --help``
+Usage
+~~~~~
 
 ::
 
-   # _name --help
-   usage: naampy_name [-h] [-y {2017}] [-o OUTPUT] -l LAST input
+  usage: in_rolls_fn_gender [-h] -f FIRST_NAME [-s STATE] [-y YEAR] [-o OUTPUT]
+                            input
 
-   Appends Census columns by last name
+  Appends Electoral roll columns for prop_female, n_female, n_male
+  n_third_gender by first name
 
-   positional arguments:
-     input                 Input file
+  positional arguments:
+    input                 Input file
 
-   optional arguments:
-     -h, --help            show this help message and exit
-     -y {2000,2010}, --year {2000,2010}
-                           Year of Census data (default=2000)
-     -o OUTPUT, --output OUTPUT
-                           Output file with Census data columns
-     -l LAST, --last LAST  Name or index location of column contains the last
-                           name
+  optional arguments:
+    -h, --help            show this help message and exit
+    -f FIRST_NAME, --first-name FIRST_NAME
+                          Name or index location of column contains the first
+                          name
+    -s STATE, --state STATE
+                          State name of Indian electoral rolls data
+                          (default=all)
+    -y YEAR, --year YEAR  Birth year in Indian electoral rolls data
+                          (default=all)
+    -o OUTPUT, --output OUTPUT
+                          Output file with Indian electoral rolls data columns
 
-
-
-Functions
-----------
-
-We expose 2 functions, each of which either take a pandas DataFrame or a CSV. If the CSV doesn't have a header,
-we make some assumptions about where the data is
-
--  **bayes\_fn\_gender**
-
-   -  Input: pandas DataFrame or CSV and a string or list of name or
-      location of the column containing the first name.
-
-   -  What it does:
-
-      -  Removes extra space.
-      -  For names in the `votereg file <https://github.com/appeler/naampy/tree/master/naampy/data/votereg>`__, it appends relevant data.
-
-   -  Options:
-
-      -  year: 2017
-      -  if no year is given, data from the 2017 voting reg. files is appended
-
-   -  Output: Appends the following columns to the pandas DataFrame or CSV::
-
-        pctmale, pctfemale  
-
-
--  **pred\_fn\_gender**
-
-   -  Input: pandas DataFrame or CSV and string or list containing the name or
-      location of the column containing the first name, last name, middle
-      name, and suffix, if there. The first name and last name columns are
-      required. If no middle name of suffix columns are there, it is
-      assumed that there are no middle names or suffixes.
-
-   -  What it does:
-
-      -  Removes extra space.
-      -  Uses the `full name wiki
-         model <https://github.com/appeler/ethnicolr/tree/master/ethnicolr/models/ethnicolr_keras_lstm_wiki_name.ipynb>`__ to predict the
-         race and ethnicity.
-
-   -  Output: Appends the following columns to the pandas DataFrame or CSV::
-
-        race (categorical variable---category with the highest probability), 
-        "Asian,GreaterEastAsian,EastAsian", "Asian,GreaterEastAsian,Japanese", 
-        "Asian,IndianSubContinent", "GreaterAfrican,Africans", "GreaterAfrican,Muslim",
-        "GreaterEuropean,British", "GreaterEuropean,EastEuropean", 
-        "GreaterEuropean,Jewish", "GreaterEuropean,WestEuropean,French",
-        "GreaterEuropean,WestEuropean,Germanic", "GreaterEuropean,WestEuropean,Hispanic",
-        "GreaterEuropean,WestEuropean,Italian", "GreaterEuropean,WestEuropean,Nordic"
-
-Using ethnicolr
-----------------
+Using naampy
+~~~~~~~~~~~~
 
 ::
 
-   >>> import pandas as pd
+  >>> import pandas as pd
+  >>> from naampy import in_rolls_fn_gender
 
-   >>> from naampy import bayes_fn_gender, pred_fn_gender
-   Using TensorFlow backend.
+  >>> names = [{'name': 'yoga'},
+  ...          {'name': 'yasmin'},
+  ...          {'name': 'siri'},
+  ...          {'name': 'vivek'}]
 
-   >>> names = [{'name': 'smita'},
-   ...         {'name': 'ravi'},
-   ...         {'name': 'amit'}]
+  >>> df = pd.DataFrame(names)
 
-   >>> df = pd.DataFrame(names)
+  >>> in_rolls_fn_gender(df, 'name')
+      name  n_male  n_female  n_third_gender  prop_female
+  0    yoga     202       150               0     0.426136
+  1  yasmin      24      2635               0     0.990974
+  2    siri     115       556               0     0.828614
+  3   vivek    2252        13               0     0.005740
 
-   >>> df
-         name
-   0    smita
-   1     ravi
-   2     amit
+  >>> help(in_rolls_fn_gender)
+  Help on method in_rolls_fn_gender in module naampy.in_rolls_fn:
 
-   >>> bayes_fn_gender(df, 'name')
+  in_rolls_fn_gender(df, namecol, state=None, year=None) method of builtins.type instance
+      Appends additional columns from Female ratio data to the input DataFrame
+      based on the first name.
 
-   >>> pred_fn_gender(df, 'name')
+      Removes extra space. Checks if the name is the Indian electoral rolls data.
+      If it is, outputs data from that row.
 
-   >>> help(pred_fn_gender)
+      Args:
+          df (:obj:`DataFrame`): Pandas DataFrame containing the first name
+              column.
+          namecol (str or int): Column's name or location of the name in
+              DataFrame.
+          state (str): The state name of Indian electoral rolls data to be used.
+              (default is None for all states)
+          year (int): The year of Indian electoral rolls to be used.
+              (default is None for all years)
 
-Examples
-----------
+      Returns:
+          DataFrame: Pandas DataFrame with additional columns:-
+              'prop_female', 'n_female', 'n_male', 'n_third_gender' by first name
 
-Underlying Data
-------------------
-
-We capitalize on a novel `voting registration dataset <https://github.com/in-rolls/electoral_rolls/>`__
 
 Authors
-----------
+~~~~~~~
 
-Gaurav Sood and Atul Dhingra
-
-Contributor Code of Conduct
----------------------------------
-
-The project welcomes contributions from everyone! In fact, it depends on
-it. To maintain this welcoming atmosphere, and to collaborate in a fun
-and productive way, we expect contributors to the project to abide by
-the `Contributor Code of
-Conduct <http://contributor-covenant.org/version/1/0/0/>`__.
+Suriyan Laohaprapanon and Gaurav Sood
 
 License
-----------
+~~~~~~~
 
 The package is released under the `MIT
 License <https://opensource.org/licenses/MIT>`__.
