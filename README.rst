@@ -1,5 +1,5 @@
 naampy: Infer Sociodemographic Characteristics from Indian Names
---------------------------------------
+----------------------------------------------------------------
 
 .. image:: https://travis-ci.org/appeler/naampy.svg?branch=master
     :target: https://travis-ci.org/appeler/naampy
