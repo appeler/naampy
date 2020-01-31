@@ -7,8 +7,8 @@ naampy: Infer Sociodemographic Characteristics from Indian Names
     :target: https://ci.appveyor.com/project/soodoku/naampy
 .. image:: https://img.shields.io/pypi/v/naampy.svg
     :target: https://pypi.python.org/pypi/naampy
-.. image:: https://pepy.tech/badge/naampy
-    :target: https://pepy.tech/project/naampy
+.. image https://pepy.tech/badge/naampy
+..    :target: https://pepy.tech/project/naampy
 
 
 The ability to programmatically reliably infer social attributes of a person from their name can be useful for a broad set of tasks, from estimating bias in coverage of women in the media to estimating bias in lending against certain social groups. But unlike the American Census Bureau, which produces a list of last names and first names, which can (and are) used to infer the gender, race, ethnicity, etc. from names, the Indian government produces no such commensurate datasets. And hence inferring the relationship between gender, ethnicity, language group, etc. and names has generally been done with small datasets constructed in an ad-hoc manner.
