@@ -18,17 +18,28 @@ We fill this yawning gap. Using data from the `Indian Electoral Rolls <https://g
 Data
 ~~~~
 
+In all, we capitalize on information in the parsed electoral rolls from the following 12 states and union territories: 
+
+* Andaman
+* Andhra Pradesh
+* Dadra
+* Daman
+* Goa
+* Jammu and Kashmir
+* Manipur
+* Meghalaya
+* Mizoram
+* Nagaland
+* Puducherry
+
 How is the underlying data produced?
 ====================================
 
-We split name into first name and last name and then aggregated per state `first_name, prop_female, n_female, n_male`
+We split the name into first name and last name (see the python notebook for how we do this) and then aggregate per state and first_name, and tabulate `prop_male, prop_female, prop_third_gender, n_female, n_male, n_third_gender`
 
 This is used to provide the base prediction.
 
-Given the association between prop_female and first_name may change over time, we exploited the age. Given the data were collected in 2017, we calculate the year each person was born and then do a group by year to create `first_name, prop_female, n_female, n_male, year`
-
-We group across the 12 states to provide the aggregated view.
-
+Given the association between prop_female and first_name may change over time, we exploited the age. Given the data were collected in 2017, we calculate the year each person was born and then do a group by year to create `prop_male, prop_female, prop_third_gender, n_female, n_male, n_third_gender`
 
 Issues with underlying data
 ==============================
