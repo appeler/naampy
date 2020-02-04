@@ -79,6 +79,11 @@ class InRollsFnData():
 
         return rdf
 
+    @staticmethod
+    def list_states():
+        adf = pd.read_csv(IN_ROLLS_DATA, usecols=['state'])
+        return adf.state.unique()
+
 
 in_rolls_fn_gender = InRollsFnData.in_rolls_fn_gender
 
@@ -93,6 +98,7 @@ def main(argv=sys.argv[1:]):
                         help='Name or index location of column contains '
                              'the first name')
     parser.add_argument('-s', '--state', default=None,
+                        choices=InRollsFnData.list_states(),
                         help='State name of Indian electoral rolls data '
                              '(default=all)')
     parser.add_argument('-y', '--year', type=int, default=None,

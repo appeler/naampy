@@ -63,27 +63,31 @@ Usage
 
 ::
 
-  usage: in_rolls_fn_gender [-h] -f FIRST_NAME [-s STATE] [-y YEAR] [-o OUTPUT]
+    usage: in_rolls_fn_gender [-h] -f FIRST_NAME
+                            [-s {andaman,andhra,arunachal,dadra,daman,goa,jk,manipur,meghalaya,mizoram,nagaland,puducherry}]
+                            [-y YEAR] [-o OUTPUT]
                             input
 
-  Appends Electoral roll columns for prop_female, n_female, n_male
-  n_third_gender by first name
+    Appends Electoral roll columns for prop_female, n_female, n_male
+    n_third_gender by first name
 
-  positional arguments:
+    positional arguments:
     input                 Input file
 
-  optional arguments:
+    optional arguments:
     -h, --help            show this help message and exit
     -f FIRST_NAME, --first-name FIRST_NAME
-                          Name or index location of column contains the first
-                          name
-    -s STATE, --state STATE
-                          State name of Indian electoral rolls data
-                          (default=all)
+                            Name or index location of column contains the first
+                            name
+    -s {andaman,andhra,arunachal,dadra,daman,goa,jk,manipur,meghalaya,mizoram,nagaland,puducherry},
+    --state {andaman,andhra,arunachal,dadra,daman,goa,jk,manipur,meghalaya,mizoram,nagaland,puducherry}
+                            State name of Indian electoral rolls data
+                            (default=all)
     -y YEAR, --year YEAR  Birth year in Indian electoral rolls data
-                          (default=all)
+                            (default=all)
     -o OUTPUT, --output OUTPUT
-                          Output file with Indian electoral rolls data columns
+                            Output file with Indian electoral rolls data columns
+
 
 Using naampy
 ~~~~~~~~~~~~
