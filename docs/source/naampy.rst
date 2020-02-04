@@ -94,47 +94,47 @@ Using naampy
 
 ::
 
-  >>> import pandas as pd
-  >>> from naampy import in_rolls_fn_gender
+    >>> import pandas as pd
+    >>> from naampy import in_rolls_fn_gender
 
-  >>> names = [{'name': 'yoga'},
-  ...          {'name': 'yasmin'},
-  ...          {'name': 'siri'},
-  ...          {'name': 'vivek'}]
+    >>> names = [{'name': 'yoga'},
+    ...          {'name': 'yasmin'},
+    ...          {'name': 'siri'},
+    ...          {'name': 'vivek'}]
 
-  >>> df = pd.DataFrame(names)
+    >>> df = pd.DataFrame(names)
 
-  >>> in_rolls_fn_gender(df, 'name')
-      name  n_male  n_female  n_third_gender  prop_female
-  0    yoga     202       150               0     0.426136
-  1  yasmin      24      2635               0     0.990974
-  2    siri     115       556               0     0.828614
-  3   vivek    2252        13               0     0.005740
+    >>> in_rolls_fn_gender(df, 'name')
+        name  n_male  n_female  n_third_gender  prop_female  prop_male  prop_third_gender
+    0    yoga     202       150               0     0.426136   0.573864                0.0
+    1  yasmin      24      2635               0     0.990974   0.009026                0.0
+    2    siri     115       556               0     0.828614   0.171386                0.0
+    3   vivek    2252        13               0     0.005740   0.994260                0.0
+    
+    >>> help(in_rolls_fn_gender)
+    Help on method in_rolls_fn_gender in module naampy.in_rolls_fn:
 
-  >>> help(in_rolls_fn_gender)
-  Help on method in_rolls_fn_gender in module naampy.in_rolls_fn:
+    in_rolls_fn_gender(df, namecol, state=None, year=None) method of builtins.type instance
+        Appends additional columns from Female ratio data to the input DataFrame
+        based on the first name.
 
-  in_rolls_fn_gender(df, namecol, state=None, year=None) method of builtins.type instance
-      Appends additional columns from Female ratio data to the input DataFrame
-      based on the first name.
+        Removes extra space. Checks if the name is the Indian electoral rolls data.
+        If it is, outputs data from that row.
 
-      Removes extra space. Checks if the name is the Indian electoral rolls data.
-      If it is, outputs data from that row.
+        Args:
+            df (:obj:`DataFrame`): Pandas DataFrame containing the first name
+                column.
+            namecol (str or int): Column's name or location of the name in
+                DataFrame.
+            state (str): The state name of Indian electoral rolls data to be used.
+                (default is None for all states)
+            year (int): The year of Indian electoral rolls to be used.
+                (default is None for all years)
 
-      Args:
-          df (:obj:`DataFrame`): Pandas DataFrame containing the first name
-              column.
-          namecol (str or int): Column's name or location of the name in
-              DataFrame.
-          state (str): The state name of Indian electoral rolls data to be used.
-              (default is None for all states)
-          year (int): The year of Indian electoral rolls to be used.
-              (default is None for all years)
-
-      Returns:
-          DataFrame: Pandas DataFrame with additional columns:-
-              'prop_female', 'n_female', 'n_male', 'n_third_gender' by first name
-
+        Returns:
+            DataFrame: Pandas DataFrame with additional columns:-
+                'n_female', 'n_male', 'n_third_gender',
+                'prop_female', 'prop_male', 'prop_third_gender' by first name
 
 Authors
 ~~~~~~~

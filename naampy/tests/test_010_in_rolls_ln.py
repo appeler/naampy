@@ -14,7 +14,7 @@ from naampy.in_rolls_fn import in_rolls_fn_gender
 from . import capture
 
 
-class TestCensusLn(unittest.TestCase):
+class TestInRollsFn(unittest.TestCase):
 
     def setUp(self):
         names = [{'name': 'yasmin'},

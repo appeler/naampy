@@ -10,7 +10,7 @@ from pkg_resources import resource_filename
 from .utils import column_exists, fixup_columns
 
 IN_ROLLS_DATA = resource_filename(__name__, "data/in_rolls/in_rolls_state_year_fn_naampy.csv.gz")
-IN_ROLLS_COLS = ['n_male', 'n_female', 'n_third_gender', 'prop_female']
+IN_ROLLS_COLS = ['n_male', 'n_female', 'n_third_gender', 'prop_female', 'prop_male', 'prop_third_gender']
 
 
 class InRollsFnData():
@@ -38,7 +38,8 @@ class InRollsFnData():
 
         Returns:
             DataFrame: Pandas DataFrame with additional columns:-
-                'prop_female', 'n_female', 'n_male', 'n_third_gender' by first name
+                'n_female', 'n_male', 'n_third_gender',
+                'prop_female', 'prop_male', 'prop_third_gender' by first name
 
         """
 
@@ -51,7 +52,7 @@ class InRollsFnData():
 
         if cls.__df is None or cls.__state != state or cls.__year != year:
             adf = pd.read_csv(IN_ROLLS_DATA, usecols=['state', 'birth_year',
-                              'first_name'] + IN_ROLLS_COLS)
+                              'first_name', 'n_female', 'n_male', 'n_third_gender'])
             agg_dict = {'n_female': 'sum', 'n_male': 'sum', 'n_third_gender': 'sum'}
             if state and year:
                 adf = adf[(adf.state==state) & (adf.birth_year==year)].copy()
@@ -59,17 +60,18 @@ class InRollsFnData():
                 del adf['state']
             elif state:
                 adf = adf.groupby(['state', 'first_name']).agg(agg_dict).reset_index()
-                adf['prop_female'] = adf['n_female'] / (adf['n_female'] + adf['n_male'] + adf['n_third_gender'])
                 adf = adf[adf.state==state].copy()
                 del adf['state']
             elif year:
                 adf = adf.groupby(['birth_year', 'first_name']).agg(agg_dict).reset_index()
-                adf['prop_female'] = adf['n_female'] / (adf['n_female'] + adf['n_male'] + adf['n_third_gender'])
                 adf = adf[adf.birth_year==year].copy()
                 del adf['birth_year']
             else:
                 adf = adf.groupby(['first_name']).agg(agg_dict).reset_index()
-                adf['prop_female'] = adf['n_female'] / (adf['n_female'] + adf['n_male'] + adf['n_third_gender'])
+            n = adf['n_female'] + adf['n_male'] + adf['n_third_gender']
+            adf['prop_female'] = adf['n_female'] / n
+            adf['prop_male'] = adf['n_male'] / n
+            adf['prop_third_gender'] = adf['n_third_gender'] / n
             cls.__df = adf
             cls.__df = cls.__df[['first_name'] + IN_ROLLS_COLS]
             cls.__df.rename(columns={'first_name': '__first_name'}, inplace=True)

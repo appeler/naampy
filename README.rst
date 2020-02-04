@@ -116,12 +116,12 @@ Using naampy
     >>> df = pd.DataFrame(names)
 
     >>> in_rolls_fn_gender(df, 'name')
-        name  n_male  n_female  n_third_gender  prop_female
-    0    yoga     202       150               0     0.426136
-    1  yasmin      24      2635               0     0.990974
-    2    siri     115       556               0     0.828614
-    3   vivek    2252        13               0     0.005740
-
+        name  n_male  n_female  n_third_gender  prop_female  prop_male  prop_third_gender
+    0    yoga     202       150               0     0.426136   0.573864                0.0
+    1  yasmin      24      2635               0     0.990974   0.009026                0.0
+    2    siri     115       556               0     0.828614   0.171386                0.0
+    3   vivek    2252        13               0     0.005740   0.994260                0.0
+    
     >>> help(in_rolls_fn_gender)
     Help on method in_rolls_fn_gender in module naampy.in_rolls_fn:
 
@@ -144,8 +144,8 @@ Using naampy
 
         Returns:
             DataFrame: Pandas DataFrame with additional columns:-
-                'prop_female', 'n_female', 'n_male', 'n_third_gender' by first name
-
+                'n_female', 'n_male', 'n_third_gender',
+                'prop_female', 'prop_male', 'prop_third_gender' by first name
 
 Authors
 ~~~~~~~
