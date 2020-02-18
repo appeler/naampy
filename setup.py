@@ -68,8 +68,8 @@ setup(
     url='https://github.com/appeler/naampy',
 
     # Author details
-    author='Gaurav Sood, Atul Dhingra, Suriyan Laohaprapanon',
-    author_email='gsood07@gmail.com, dhingra.atul92@gmail.com, suriyant@gmail.com',
+    author='Gaurav Sood, Suriyan Laohaprapanon',
+    author_email='gsood07@gmail.com, suriyant@gmail.com',
 
     # Choose your license
     license='MIT',
