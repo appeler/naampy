@@ -114,6 +114,8 @@ setup(
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
         'pandas>=0.19.2',
+        'requests',
+        'tqdm',
     ],
 
     # List additional groups of dependencies here (e.g. development
