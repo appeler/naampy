@@ -59,7 +59,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.2.0',
+    version='0.3.0',
 
     description='Infer Gender from Indian Names',
     long_description=long_description,
@@ -90,8 +90,9 @@ setup(
 
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Topic :: Scientific/Engineering :: Information Analysis',
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: Utilities'
@@ -114,6 +115,8 @@ setup(
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
         'pandas>=0.19.2',
+        'requests',
+        'tqdm',
     ],
 
     # List additional groups of dependencies here (e.g. development
@@ -129,8 +132,7 @@ setup(
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
     package_data={
-        'naampy': ['data/in_rolls/in_rolls_state_year_fn_naampy.csv.gz',
-        ],
+        'naampy': [],
     },
 
     # Although 'package_data' is the preferred approach, in some case you may

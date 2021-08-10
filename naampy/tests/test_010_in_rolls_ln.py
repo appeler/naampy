@@ -42,6 +42,18 @@ class TestInRollsFn(unittest.TestCase):
         self.assertTrue(odf.iloc[0].prop_female > 0.9)
         self.assertTrue(odf.iloc[1].prop_female < 0.1)
 
+    def test_in_rolls_fn_state_year_v1(self):
+        odf = in_rolls_fn_gender(self.df, 'name', 'andhra', 1985, 'v1')
+        self.assertIn('prop_female', odf.columns)
+        self.assertTrue(odf.iloc[0].prop_female > 0.9)
+        self.assertTrue(odf.iloc[1].prop_female < 0.1)
+
+    def test_in_rolls_fn_state_year_v2(self):
+        odf = in_rolls_fn_gender(self.df, 'name', 'andhra', 1985, 'v2')
+        self.assertIn('prop_female', odf.columns)
+        self.assertTrue(odf.iloc[0].prop_female > 0.9)
+        self.assertTrue(odf.iloc[1].prop_female < 0.1)
+
 
 if __name__ == '__main__':
     unittest.main()

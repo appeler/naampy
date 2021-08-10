@@ -2,14 +2,20 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import os
 import argparse
 import pandas as pd
 
 from pkg_resources import resource_filename
 
-from .utils import column_exists, fixup_columns
+from .utils import column_exists, fixup_columns, get_app_file_path, download_file
 
-IN_ROLLS_DATA = resource_filename(__name__, "data/in_rolls/in_rolls_state_year_fn_naampy.csv.gz")
+
+IN_ROLLS_DATA = {'v1': 'https://dataverse.harvard.edu/api/v1/access/datafile/4967581',
+                 'v2': 'https://dataverse.harvard.edu/api/v1/access/datafile/4965696',
+                 'v2_1k': 'https://dataverse.harvard.edu/api/v1/access/datafile/4965695',
+                }
+
 IN_ROLLS_COLS = ['n_male', 'n_female', 'n_third_gender', 'prop_female', 'prop_male', 'prop_third_gender']
 
 
@@ -18,8 +24,23 @@ class InRollsFnData():
     __state = None
     __year = None
 
+    @staticmethod
+    def load_naampy_data(dataset):
+        data_fn = 'naampy_{0:s}.csv.gz'.format(dataset)
+        data_path = get_app_file_path('naampy', data_fn)
+        if not os.path.exists(data_path):
+            print("Downloading naampy data from the server ({0!s})..."
+                .format(data_fn))
+            if not download_file(IN_ROLLS_DATA[dataset], data_path):
+                print("ERROR: Cannot download naampy data file")
+                return None
+        else:
+            print("Using cached naampy data from local ({0!s})...".format(data_path))
+        return data_path
+
+
     @classmethod
-    def in_rolls_fn_gender(cls, df, namecol, state=None, year=None):
+    def in_rolls_fn_gender(cls, df, namecol, state=None, year=None, dataset='v2_1k'):
         """Appends additional columns from Female ratio data to the input DataFrame
         based on the first name.
 
@@ -51,7 +72,8 @@ class InRollsFnData():
         df['__first_name'] = df['__first_name'].str.lower()
 
         if cls.__df is None or cls.__state != state or cls.__year != year:
-            adf = pd.read_csv(IN_ROLLS_DATA, usecols=['state', 'birth_year',
+            data_path = InRollsFnData.load_naampy_data(dataset)
+            adf = pd.read_csv(data_path, usecols=['state', 'birth_year',
                               'first_name', 'n_female', 'n_male', 'n_third_gender'])
             agg_dict = {'n_female': 'sum', 'n_male': 'sum', 'n_third_gender': 'sum'}
             if state and year:
@@ -82,8 +104,9 @@ class InRollsFnData():
         return rdf
 
     @staticmethod
-    def list_states():
-        adf = pd.read_csv(IN_ROLLS_DATA, usecols=['state'])
+    def list_states(dataset='v2_1k'):
+        data_path = InRollsFnData.load_naampy_data(dataset)
+        adf = pd.read_csv(data_path, usecols=['state'])
         return adf.state.unique()
 
 
@@ -107,6 +130,12 @@ def main(argv=sys.argv[1:]):
                         help='Birth year in Indian electoral rolls data (default=all)')
     parser.add_argument('-o', '--output', default='in-rolls-output.csv',
                         help='Output file with Indian electoral rolls data columns')
+    parser.add_argument('-d', '--dataset', default='v2_1k',
+                        choices=['v1', 'v2', 'v2_1k'],
+                        help='Select the dataset v1 is 12 states,\n' +
+                             'v2 and v2_1k for 30 states with 100 and 1,000\n' +
+                             ' first name occurrences respectively'
+                             '(default=v2_1k)')
 
     args = parser.parse_args(argv)
 
@@ -121,7 +150,7 @@ def main(argv=sys.argv[1:]):
     if not column_exists(df, args.first_name):
         return -1
 
-    rdf = in_rolls_fn_gender(df, args.first_name, args.state, args.year)
+    rdf = in_rolls_fn_gender(df, args.first_name, args.state, args.year, args.dataset)
 
     print("Saving output to file: `{0:s}`".format(args.output))
     rdf.columns = fixup_columns(rdf.columns)
