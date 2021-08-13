@@ -20,17 +20,17 @@ Data
 
 In all, we capitalize on information in the parsed electoral rolls from the following 31 states and union territories: 
 
-|     &nbsp;        |    &nbsp;  |  &nbsp;               |   &nbsp;       |
-| -----------       | ---------------- | --------------- | -------------- |
-| Andaman           | Delhi            | Kerala          | Puducherry     |
-| Andhra Pradesh    | Goa              | Madhya Pradesh  | Punjab         |
-| Arunachal Pradesh | Gujarat          | Maharashtra     | Rajasthan      | 
-| Assam             | Haryana          | Manipur         | Sikkim         |
-| Bihar             | Himachal Pradesh | Meghalaya       | Tripura        | 
-| Chandigarh        | Jammu and Kashmir| Mizoram         | Uttar Pradesh  |   
-| Dadra             | Jharkhand        | Nagaland        | Uttaranchal    |
-| Daman             | Karnataka        | Odisha          |        &nbsp;  |
-
+.. list-table:: Title
+   :widths: 30 30 30 30
+    
+   * Andaman, Delhi, Kerala, Puducherry
+   * Andhra Pradesh, Goa, Madhya Pradesh, Punjab
+   * Arunachal Pradesh, Gujarat, Maharashtra, Rajasthan 
+   * Assam, Haryana, Manipur, Sikkim
+   * Bihar, Himachal Pradesh, Meghalaya, Tripura 
+   * Chandigarh, Jammu and Kashmir, Mizoram, Uttar Pradesh   
+   * Dadra, Jharkhand, Nagaland, Uttaranchal
+   * Daman, Karnataka, Odisha, , 
   
 
 How is the underlying data produced?
