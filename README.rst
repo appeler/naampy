@@ -20,7 +20,7 @@ Data
 
 In all, we capitalize on information in the parsed electoral rolls from the following 31 states and union territories: 
 
-|       | | |
+|                   |             |             |             |
 | -----------       | ----------- | ----------- | ----------- |
 | Andaman           | Delhi            | Kerala          | Puducherry     |
 | Andhra Pradesh    | Goa              | Madhya Pradesh  | Punjab         |
@@ -30,6 +30,7 @@ In all, we capitalize on information in the parsed electoral rolls from the foll
 | Chandigarh        | Jammu and Kashmir| Mizoram         | Uttar Pradesh  |   
 | Dadra             | Jharkhand        | Nagaland        | Uttaranchal    |
 | Daman             | Karnataka        | Odisha          |                |
+
   
 
 How is the underlying data produced?
