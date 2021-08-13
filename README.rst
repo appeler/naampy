@@ -18,39 +18,17 @@ We fill this yawning gap. Using data from the `Indian Electoral Rolls <https://g
 Data
 ~~~~
 
-In all, we capitalize on information in the parsed electoral rolls from the following 32 states and union territories: 
+In all, we capitalize on information in the parsed electoral rolls from the following 31 states and union territories: 
 
-* Andaman
-* Andhra Pradesh
-* Arunachal Pradesh
-* Assam
-* Bihar
-* Chandigarh
-* Dadra
-* Daman
-* Delhi
-* Goa
-* Gujarat
-* Haryana
-* Himachal Pradesh
-* Jammu and Kashmir
-* Jharkhand
-* Karnatka
-* Kerala
-* Madhya Pradesh
-* Maharashtra
-* Manipur
-* Meghalaya
-* Mizoram
-* Nagaland
-* Odisha
-* Puducherry
-* Punjab
-* Rajasthan
-* Sikkim
-* Tripura
-* Uttar Pradesh
-* Uttaranchal
+| Andaman           | Delhi            | Kerala          | Puducherry     |
+| Andhra Pradesh    | Goa              | Madhya Pradesh  | Punjab         |
+| Arunachal Pradesh | Gujarat          | Maharashtra     | Rajasthan      | 
+| Assam             | Haryana          | Manipur         | Sikkim         |
+| Bihar             | Himachal Pradesh | Meghalaya       | Tripura        | 
+| Chandigarh        | Jammu and Kashmir| Mizoram         | Uttar Pradesh  |   
+| Dadra             | Jharkhand        | Nagaland        | Uttaranchal    |
+| Daman             | Karnataka        | Odisha          |                |
+  
 
 How is the underlying data produced?
 ====================================
