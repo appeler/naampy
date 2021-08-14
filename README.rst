@@ -51,7 +51,7 @@ In all, we capitalize on information in the parsed electoral rolls from the foll
    *   - Dadra
        - Jharkhand
        - Nagaland
-       - Uttaranchal
+       - Uttarakhand
    *  -  Daman
       - Karnataka
       - Odisha
@@ -72,19 +72,24 @@ Issues with underlying data
 
 Concerns:
 
-* Voting registration lists may not be accurate, systematically underrepresenting the poor, minorities, etc.
-* Voting registrations lists at best reflect the adult citizens. But to the extent that prejudice against women, etc., prevents some kinds of people to reach adulthood, the data bakes those biased in.
+* Voting registration lists may not be accurate, systematically underrepresenting poor people, minorities, and similar such groups.
+
+* Voting registration lists are at best a census of adult citizens. But to the extent there is prejudice against women, etc., that prevents them from reaching adulthood, the data bakes those biases in.
+
 * Indian names are complicated. We do not have good parsers for them yet. We have gone for the default arrangement. Please go through the notebook to look at the judgments we make. We plan to improve the underlying data over time.
-* For states with non-English rolls, we use libindic to transliterate the names. the transliterations are consistently bad. (We hope to make progress here. We also plan to provide a way to match in the original script.)
+
+* For states with non-English rolls, we use libindic to transliterate the names. The transliterations are consistently bad. (We hope to make progress here. We also plan to provide a way to match in the original script.)
 
 Gender Classifier
 ~~~~~~~~~~~~~~~~~
 
 We start by providing a base model for first\_name that gives the Bayes
-optimal solution providing the proportion of women with that name who
+optimal solution providing the proportion of people with that name who
 are women. We also provide a series of base models where the state of
-residence is known. In the future, we plan to use ML to learn the relationship between
-sequences of characters in the first name and gender.
+residence and year of birth is known.
+
+In the future, we plan to provide ML models that use the relationship between
+sequences of characters in the first name and gender to predict gender from a name.
 
 Installation
 ~~~~~~~~~~~~~~
@@ -102,10 +107,10 @@ Usage
 ::
 
     usage: in_rolls_fn_gender [-h] -f FIRST_NAME
-                            [-s {andaman,andhra,arunachal,dadra,daman,goa,jk,manipur,meghalaya,mizoram,nagaland,puducherry,}]
+                            [-s {andaman,andhra,arunachal,assam,bihar,chandigarh,dadra,daman,delhi,goa,gujarat,haryana,himachal,jharkhand,jk,karnataka,kerala,maharashtra,manipur,meghalaya,mizoram,mp,nagaland,odisha,puducherry,punjab,rajasthan,sikkim,tripura,up,uttarakhand}]
                             [-y YEAR] [-o OUTPUT]
                             input
-
+  
     Appends Electoral roll columns for prop_female, n_female, n_male
     n_third_gender by first name
 
@@ -117,8 +122,8 @@ Usage
     -f FIRST_NAME, --first-name FIRST_NAME
                             Name or index location of column contains the first
                             name
-    -s {andaman,andhra,arunachal,dadra,daman,goa,jk,manipur,meghalaya,mizoram,nagaland,puducherry},
-    --state {andaman,andhra,arunachal,dadra,daman,goa,jk,manipur,meghalaya,mizoram,nagaland,puducherry}
+    -s {andaman,andhra,arunachal,assam,bihar,chandigarh,dadra,daman,delhi,goa,gujarat,haryana,himachal,jharkhand,jk,karnataka,kerala,maharashtra,manipur,meghalaya,mizoram,mp,nagaland,odisha,puducherry,punjab,rajasthan,sikkim,tripura,up,uttarakhand},
+    --state {andaman,andhra,arunachal,assam,bihar,chandigarh,dadra,daman,delhi,goa,gujarat,haryana,himachal,jharkhand,jk,karnataka,kerala,maharashtra,manipur,meghalaya,mizoram,mp,nagaland,odisha,puducherry,punjab,rajasthan,sikkim,tripura,up,uttarakhand}
                             State name of Indian electoral rolls data
                             (default=all)
     -y YEAR, --year YEAR  Birth year in Indian electoral rolls data
@@ -173,6 +178,11 @@ Using naampy
             DataFrame: Pandas DataFrame with additional columns:-
                 'n_female', 'n_male', 'n_third_gender',
                 'prop_female', 'prop_male', 'prop_third_gender' by first name
+
+Functionality
+~~~~~~~~~~~~~
+
+When you first run `in_rolls_fn_gender`, it downloads data from `Harvard Dataverse <https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/WZGJBM>`__ to the local folder. Next time you run the function, it searches for local data and if it finds it, it uses it.
 
 Authors
 ~~~~~~~
