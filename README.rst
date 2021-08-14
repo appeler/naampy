@@ -75,6 +75,7 @@ Concerns:
 * Voting registration lists may not be accurate, systematically underrepresenting the poor, minorities, etc.
 * Voting registrations lists at best reflect the adult citizens. But to the extent that prejudice against women, etc., prevents some kinds of people to reach adulthood, the data bakes those biased in.
 * Indian names are complicated. We do not have good parsers for them yet. We have gone for the default arrangement. Please go through the notebook to look at the judgments we make. We plan to improve the underlying data over time.
+* For states with non-English rolls, we use libindic to transliterate the names. the transliterations are consistently bad. (We hope to make progress here. We also plan to provide a way to match in the original script.)
 
 Gender Classifier
 ~~~~~~~~~~~~~~~~~
@@ -82,7 +83,7 @@ Gender Classifier
 We start by providing a base model for first\_name that gives the Bayes
 optimal solution providing the proportion of women with that name who
 are women. We also provide a series of base models where the state of
-residence is known. In the future, we plan to use LSTM to learn the relationship between
+residence is known. In the future, we plan to use ML to learn the relationship between
 sequences of characters in the first name and gender.
 
 Installation
@@ -101,7 +102,7 @@ Usage
 ::
 
     usage: in_rolls_fn_gender [-h] -f FIRST_NAME
-                            [-s {andaman,andhra,arunachal,dadra,daman,goa,jk,manipur,meghalaya,mizoram,nagaland,puducherry}]
+                            [-s {andaman,andhra,arunachal,dadra,daman,goa,jk,manipur,meghalaya,mizoram,nagaland,puducherry,}]
                             [-y YEAR] [-o OUTPUT]
                             input
 
@@ -134,19 +135,19 @@ Using naampy
     >>> import pandas as pd
     >>> from naampy import in_rolls_fn_gender
 
-    >>> names = [{'name': 'yoga'},
+    >>> names = [{'name': 'gaurav'},
     ...          {'name': 'yasmin'},
-    ...          {'name': 'siri'},
+    ...          {'name': 'deepti'},
     ...          {'name': 'vivek'}]
 
     >>> df = pd.DataFrame(names)
 
     >>> in_rolls_fn_gender(df, 'name')
-        name  n_male  n_female  n_third_gender  prop_female  prop_male  prop_third_gender
-    0    yoga     202       150               0     0.426136   0.573864                0.0
-    1  yasmin      24      2635               0     0.990974   0.009026                0.0
-    2    siri     115       556               0     0.828614   0.171386                0.0
-    3   vivek    2252        13               0     0.005740   0.994260                0.0
+            name    n_male  n_female    n_third_gender  prop_female prop_male   prop_third_gender
+        0   gaurav  25625   47  0   0.001831    0.998169    0.0
+        1   yasmin  58  6079    0   0.990549    0.009451    0.0
+        2   deepti  35  5784    0   0.993985    0.006015    0.0
+        3   vivek   233622  1655    0   0.007034    0.992966    0.0
     
     >>> help(in_rolls_fn_gender)
     Help on method in_rolls_fn_gender in module naampy.in_rolls_fn:
