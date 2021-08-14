@@ -18,35 +18,78 @@ We fill this yawning gap. Using data from the `Indian Electoral Rolls <https://g
 Data
 ~~~~
 
+In all, we capitalize on information in the parsed electoral rolls from the following 31 states and union territories: 
+
+.. list-table:: States
+   :widths: 30 30 30 30
+
+   * - Andaman
+     - Delhi
+     - Kerala
+     - Puducherry
+
+   *  - Andhra Pradesh
+      - Goa
+      - Madhya Pradesh
+      - Punjab
+   *  - Arunachal Pradesh
+      - Gujarat
+      - Maharashtra
+      - Rajasthan
+   *  - Assam
+      - Haryana
+      - Manipur
+      - Sikkim
+   *  - Bihar
+      - Himachal Pradesh
+      - Meghalaya
+      - Tripura
+   *  - Chandigarh
+      - Jammu and Kashmir
+      - Mizoram
+      - Uttar Pradesh
+   *   - Dadra
+       - Jharkhand
+       - Nagaland
+       - Uttarakhand
+   *  -  Daman
+      - Karnataka
+      - Odisha
+      -
+
+
 How is the underlying data produced?
 ====================================
 
-We split name into first name and last name and then aggregated per state `first_name, prop_female, n_female, n_male`
+We split the name into first name and last name (see the python notebook for how we do this) and then aggregate per state and first_name, and tabulate `prop_male, prop_female, prop_third_gender, n_female, n_male, n_third_gender`
 
 This is used to provide the base prediction.
 
-Given the association between prop_female and first_name may change over time, we exploited the age. Given the data were collected in 2017, we calculate the year each person was born and then do a group by year to create `first_name, prop_female, n_female, n_male, year`
-
-We group across the 12 states to provide the aggregated view.
-
+Given the association between prop_female and first_name may change over time, we exploited the age. Given the data were collected in 2017, we calculate the year each person was born and then do a group by year to create `prop_male, prop_female, prop_third_gender, n_female, n_male, n_third_gender`
 
 Issues with underlying data
 ==============================
 
 Concerns:
 
-* Voting registration lists may not be accurate, systematically underrepresenting the poor, minorities, etc.
-* Voting registrations lists at best reflect the adult citizens. But to the extent that prejudice against women, etc., prevents some kinds of people to reach adulthood, the data bakes those biased in.
+* Voting registration lists may not be accurate, systematically underrepresenting poor people, minorities, and similar such groups.
+
+* Voting registration lists are at best a census of adult citizens. But to the extent there is prejudice against women, etc., that prevents them from reaching adulthood, the data bakes those biases in.
+
 * Indian names are complicated. We do not have good parsers for them yet. We have gone for the default arrangement. Please go through the notebook to look at the judgments we make. We plan to improve the underlying data over time.
+
+* For states with non-English rolls, we use libindic to transliterate the names. The transliterations are consistently bad. (We hope to make progress here. We also plan to provide a way to match in the original script.)
 
 Gender Classifier
 ~~~~~~~~~~~~~~~~~
 
 We start by providing a base model for first\_name that gives the Bayes
-optimal solution providing the proportion of women with that name who
+optimal solution providing the proportion of people with that name who
 are women. We also provide a series of base models where the state of
-residence is known. In the future, we plan to use LSTM to learn the relationship between
-sequences of characters in the first name and gender.
+residence and year of birth is known.
+
+In the future, we plan to provide ML models that use the relationship between
+sequences of characters in the first name and gender to predict gender from a name.
 
 Installation
 ~~~~~~~~~~~~~~
@@ -64,7 +107,7 @@ Usage
 ::
 
     usage: in_rolls_fn_gender [-h] -f FIRST_NAME
-                            [-s {andaman,andhra,arunachal,dadra,daman,goa,jk,manipur,meghalaya,mizoram,nagaland,puducherry}]
+                            [-s {andaman,andhra,arunachal,assam,bihar,chandigarh,dadra,daman,delhi,goa,gujarat,haryana,himachal,jharkhand,jk,karnataka,kerala,maharashtra,manipur,meghalaya,mizoram,mp,nagaland,odisha,puducherry,punjab,rajasthan,sikkim,tripura,up,uttarakhand}]
                             [-y YEAR] [-o OUTPUT]
                             input
 
@@ -79,8 +122,8 @@ Usage
     -f FIRST_NAME, --first-name FIRST_NAME
                             Name or index location of column contains the first
                             name
-    -s {andaman,andhra,arunachal,dadra,daman,goa,jk,manipur,meghalaya,mizoram,nagaland,puducherry},
-    --state {andaman,andhra,arunachal,dadra,daman,goa,jk,manipur,meghalaya,mizoram,nagaland,puducherry}
+    -s {andaman,andhra,arunachal,assam,bihar,chandigarh,dadra,daman,delhi,goa,gujarat,haryana,himachal,jharkhand,jk,karnataka,kerala,maharashtra,manipur,meghalaya,mizoram,mp,nagaland,odisha,puducherry,punjab,rajasthan,sikkim,tripura,up,uttarakhand},
+    --state {andaman,andhra,arunachal,assam,bihar,chandigarh,dadra,daman,delhi,goa,gujarat,haryana,himachal,jharkhand,jk,karnataka,kerala,maharashtra,manipur,meghalaya,mizoram,mp,nagaland,odisha,puducherry,punjab,rajasthan,sikkim,tripura,up,uttarakhand}
                             State name of Indian electoral rolls data
                             (default=all)
     -y YEAR, --year YEAR  Birth year in Indian electoral rolls data
@@ -97,19 +140,19 @@ Using naampy
     >>> import pandas as pd
     >>> from naampy import in_rolls_fn_gender
 
-    >>> names = [{'name': 'yoga'},
+    >>> names = [{'name': 'gaurav'},
     ...          {'name': 'yasmin'},
-    ...          {'name': 'siri'},
+    ...          {'name': 'deepti'},
     ...          {'name': 'vivek'}]
 
     >>> df = pd.DataFrame(names)
 
     >>> in_rolls_fn_gender(df, 'name')
-        name  n_male  n_female  n_third_gender  prop_female  prop_male  prop_third_gender
-    0    yoga     202       150               0     0.426136   0.573864                0.0
-    1  yasmin      24      2635               0     0.990974   0.009026                0.0
-    2    siri     115       556               0     0.828614   0.171386                0.0
-    3   vivek    2252        13               0     0.005740   0.994260                0.0
+            name    n_male  n_female    n_third_gender  prop_female prop_male   prop_third_gender
+        0   gaurav  25625   47  0   0.001831    0.998169    0.0
+        1   yasmin  58  6079    0   0.990549    0.009451    0.0
+        2   deepti  35  5784    0   0.993985    0.006015    0.0
+        3   vivek   233622  1655    0   0.007034    0.992966    0.0
     
     >>> help(in_rolls_fn_gender)
     Help on method in_rolls_fn_gender in module naampy.in_rolls_fn:
@@ -135,6 +178,11 @@ Using naampy
             DataFrame: Pandas DataFrame with additional columns:-
                 'n_female', 'n_male', 'n_third_gender',
                 'prop_female', 'prop_male', 'prop_third_gender' by first name
+
+Functionality
+~~~~~~~~~~~~~
+
+When you first run `in_rolls_fn_gender`, it downloads data from `Harvard Dataverse <https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/WZGJBM>`__ to the local folder. Next time you run the function, it searches for local data and if it finds it, it uses it.
 
 Authors
 ~~~~~~~
