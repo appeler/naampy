@@ -88,7 +88,7 @@ optimal solution providing the proportion of people with that name who
 are women. We also provide a series of base models where the state of
 residence and year of birth is known.
 
-If name does not exist in database, we use :doc:`ML model <data/in_rolls/08_training_model.ipynb>` that use the relationship between
+If name does not exist in database, we use `ML model <https://github.com/appeler/naampy/blob/master/naampy/data/in_rolls/08_training_model.ipynb>`__ that use the relationship between
 sequences of characters in the first name and gender to predict gender from a name.
 
 Installation
@@ -184,7 +184,7 @@ Using naampy
                 'n_female', 'n_male', 'n_third_gender',
                 'prop_female', 'prop_male', 'prop_third_gender' by first name
 
-    If you want to use model prediction use `predict_fn_gender` like below
+    # If you want to use model prediction use `predict_fn_gender` like below
     from naampy import predict_fn_gender
     input = [
          "rajinikanth",
@@ -252,7 +252,7 @@ Functionality
 ~~~~~~~~~~~~~
 
 When you first run `in_rolls_fn_gender`, it downloads data from `Harvard Dataverse <https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/WZGJBM>`__ to the local folder. Next time you run the function, it searches for local data and if it finds it, it uses it.
-
+Use `predict_fn_gender` to get gender predictions based on first name.
 Authors
 ~~~~~~~
 
