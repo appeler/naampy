@@ -253,6 +253,7 @@ Functionality
 
 When you first run `in_rolls_fn_gender`, it downloads data from `Harvard Dataverse <https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/WZGJBM>`__ to the local folder. Next time you run the function, it searches for local data and if it finds it, it uses it.
 Use `predict_fn_gender` to get gender predictions based on first name.
+
 Authors
 ~~~~~~~
 
