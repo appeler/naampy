@@ -88,7 +88,7 @@ optimal solution providing the proportion of people with that name who
 are women. We also provide a series of base models where the state of
 residence and year of birth is known.
 
-If name does not exist in database, we use `ML model <https://github.com/appeler/naampy/blob/master/naampy/data/ml_model/01_training_model.ipynb>`__ that use the relationship between
+If name does not exist in database, we use `ML model <https://github.com/appeler/naampy/blob/master/naampy/data/ml_model/02_training_model.ipynb>`__ that use the relationship between
 sequences of characters in the first name and gender to predict gender from a name.
 
 Installation
