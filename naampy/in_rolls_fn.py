@@ -18,6 +18,7 @@ IN_ROLLS_DATA = {
     "v1": "https://dataverse.harvard.edu/api/v1/access/datafile/4967581",
     "v2": "https://dataverse.harvard.edu/api/v1/access/datafile/4965696",
     "v2_1k": "https://dataverse.harvard.edu/api/v1/access/datafile/4965695",
+    "v2_native": "https://dataverse.harvard.edu/api/v1/access/datafile/6292042",
 }
 
 IN_ROLLS_COLS = ["n_male", "n_female", "n_third_gender", "prop_female", "prop_male", "prop_third_gender"]
@@ -29,6 +30,7 @@ class InRollsFnData:
     __year = None
     __model = None
     __tk = None
+    __dataset = None
 
     @staticmethod
     def load_naampy_data(dataset):
@@ -117,7 +119,8 @@ class InRollsFnData:
         df["__first_name"] = df[namecol].str.strip()
         df["__first_name"] = df["__first_name"].str.lower()
 
-        if cls.__df is None or cls.__state != state or cls.__year != year:
+        if cls.__df is None or cls.__state != state or cls.__year != year or cls.__dataset != dataset:
+            cls.__dataset = dataset
             data_path = InRollsFnData.load_naampy_data(dataset)
             adf = pd.read_csv(
                 data_path, usecols=["state", "birth_year", "first_name", "n_female", "n_male", "n_third_gender"]
@@ -146,12 +149,13 @@ class InRollsFnData:
             cls.__df.rename(columns={"first_name": "__first_name"}, inplace=True)
         rdf = pd.merge(df, cls.__df, how="left", on="__first_name")
 
-        # if name does not exist in database
-        not_in_db_names = rdf[rdf["prop_female"].isna()]
-        if len(not_in_db_names.values) > 0:
-            mdf = predict_fn_gender(not_in_db_names["__first_name"].values)
-            rdf.at[not_in_db_names.index, "pred_gender"] = mdf["pred_gender"].values
-            rdf.at[not_in_db_names.index, "pred_prob"] = mdf["pred_prob"].values
+        if dataset != "v2_native":
+            # if name does not exist in database
+            not_in_db_names = rdf[rdf["prop_female"].isna()]
+            if len(not_in_db_names.values) > 0:
+                mdf = predict_fn_gender(not_in_db_names["__first_name"].values)
+                rdf.at[not_in_db_names.index, "pred_gender"] = mdf["pred_gender"].values
+                rdf.at[not_in_db_names.index, "pred_prob"] = mdf["pred_prob"].values
 
         del rdf["__first_name"]
 
@@ -192,11 +196,13 @@ def main(argv=sys.argv[1:]):
         "-d",
         "--dataset",
         default="v2_1k",
-        choices=["v1", "v2", "v2_1k"],
-        help="Select the dataset v1 is 12 states,\n"
-        + "v2 and v2_1k for 30 states with 100 and 1,000\n"
+        choices=["v1", "v2", "v2_1k", "v2_native"],
+        help="Select the dataset v1 is 12 states,"
+        + " v2 and v2_1k for 30 states with 100 and 1,000"
         + " first name occurrences respectively"
-        "(default=v2_1k)",
+        + " and v2_native is the native language dataset of"
+        + " 16 states with 10 first name occurrences per state"
+        + " (default=v2_1k)"
     )
 
     args = parser.parse_args(argv)
