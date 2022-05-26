@@ -57,11 +57,10 @@ In all, we capitalize on information in the parsed electoral rolls from the foll
       - Odisha
       - 
   
-
 How is the underlying data produced?
 ====================================
 
-We split the name into first name and last name (see the python notebook for how we do this) and then aggregate per state and first_name, and tabulate `prop_male, prop_female, prop_third_gender, n_female, n_male, n_third_gender`
+We split the name into first name and last name (see the python notebook for how we do this) and then aggregate per state and first_name, and tabulate `prop_male, prop_female, prop_third_gender, n_female, n_male, n_third_gender`. We produce native language rolls and english transliterations. (We use `indicate <https://github.com/in-rolls/indicate>`__ to produce transliterations for hindi rolls.)
 
 This is used to provide the base prediction.
 
