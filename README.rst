@@ -11,7 +11,7 @@ naampy: Infer Sociodemographic Characteristics from Indian Names
     :target: https://pepy.tech/project/naampy
 
 
-The ability to programmatically reliably infer social attributes of a person from their name can be useful for a broad set of tasks, from estimating bias in coverage of women in the media to estimating bias in lending against certain social groups. But unlike the American Census Bureau, which produces a list of last names and first names, which can (and are) used to infer the gender, race, ethnicity, etc. from names, the Indian government produces no such commensurate datasets. And hence inferring the relationship between gender, ethnicity, language group, etc. and names has generally been done with small datasets constructed in an ad-hoc manner.
+The ability to programmatically reliably infer the social attributes of a person from their name can be useful for a broad set of tasks, from estimating bias in coverage of women in the media to estimating bias in lending against certain social groups. But unlike the American Census Bureau, which produces a list of last names and first names, which can (and are) used to infer the gender, race, ethnicity, etc., from names, the Indian government produces no such commensurate datasets. And hence inferring the relationship between gender, ethnicity, language group, etc., and names have generally been done with small datasets constructed in an ad-hoc manner.
 
 We fill this yawning gap. Using data from the `Indian Electoral Rolls <https://github.com/in-rolls/electoral_rolls>`__ (parsed data `here <https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/MUEGDT>`__), we estimate the proportion female, male, and `third sex` (see `here <https://en.wikipedia.org/wiki/Third_gender>`__) for a particular `first name, year, and state.`
 
@@ -65,7 +65,7 @@ We split the name into first name and last name (see the python notebook for how
 
 This is used to provide the base prediction.
 
-Given the association between prop_female and first_name may change over time, we exploited the age. Given the data were collected in 2017, we calculate the year each person was born and then do a group by year to create `prop_male, prop_female, prop_third_gender, n_female, n_male, n_third_gender`
+Given the association between prop_female and first_name may change over time, we exploited the age. Given the data were collected in 2017, we calculated the year each person was born and then did a group by year to create `prop_male, prop_female, prop_third_gender, n_female, n_male, n_third_gender`
 
 Issues with underlying data
 ==============================
@@ -74,7 +74,7 @@ Concerns:
 
 * Voting registration lists may not be accurate, systematically underrepresenting poor people, minorities, and similar such groups.
 
-* Voting registration lists are at best a census of adult citizens. But to the extent there is prejudice against women, etc., that prevents them from reaching adulthood, the data bakes those biases in.
+* Voting registration lists are, at best, a census of adult citizens. But to the extent there is prejudice against women, etc., that prevents them from reaching adulthood, the data bakes those biases in.
 
 * Indian names are complicated. We do not have good parsers for them yet. We have gone for the default arrangement. Please go through the notebook to look at the judgments we make. We plan to improve the underlying data over time.
 
