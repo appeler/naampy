@@ -65,14 +65,14 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version="0.3.0",
+    version="0.4.0",
     description="Infer Gender from Indian Names",
     long_description=long_description,
     # The project's main homepage.
     url="https://github.com/appeler/naampy",
     # Author details
-    author="Gaurav Sood, Suriyan Laohaprapanon",
-    author_email="gsood07@gmail.com, suriyant@gmail.com",
+    author="Gaurav Sood, Suriyan Laohaprapanon, Rajashekar Chintalapati",
+    author_email="gsood07@gmail.com, suriyant@gmail.com, rajshekar.ch@gmail.com",
     # Choose your license
     license="MIT",
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers

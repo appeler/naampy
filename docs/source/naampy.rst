@@ -88,8 +88,54 @@ optimal solution providing the proportion of people with that name who
 are women. We also provide a series of base models where the state of
 residence and year of birth is known.
 
-If name does not exist in database, we use `ML model <https://github.com/appeler/naampy/blob/master/naampy/data/in_rolls/08_training_model.ipynb>`__ that use the relationship between
+If name does not exist in database, we use `ML model <https://github.com/appeler/naampy/blob/master/naampy/data/ml_model/02_training_model.ipynb>`__ that use the relationship between
 sequences of characters in the first name and gender to predict gender from a name.
+
+Model was trained as regression problem instead of plain classification,
+because we need to consider proportion of people with that name. Model predicts 
+the female proportion of the name, if it is less than 0.5 then it is a male name, if not then it is female name.
+
+.. math::
+    \text{Female proportion} = \frac{\text{Number of female}}{\text{Number of female + Number of male}}
+
+Refer below histogram for the female proportion for the dataset which model is trained on. 
+
+.. figure:: images/female_prop.png
+   :width: 400px
+   :height: 250px
+   :alt: Female proportion
+   :align: center
+
+   Female proportion
+
+**Below are the results on model loss function and metrics on test dataset**
+
+MSE no weights - loss: 0.04974181950092316, metric: 0.04974181950092316
+
+RMSE no weights - loss: 0.21903139352798462, metric: 0.2212539166212082
+
+**Below are the results on model loss function and metrics on test dataset with weights**
+
+RMSE with weights - loss: 0.21645867824554443, metric: 0.2223343402147293
+
+MSE with weights - loss: 0.0501617006957531, metric: 0.043311625719070435
+
+Where weight is calculated like below - 
+
+.. math::
+    \text{weight}_i = \frac{\text{no of females}_i + \text{no of males}_i}{\text{Total population}}
+
+    \text { Weighted MSE } = \frac{\sum_{i=1}^{n} \text { weights }_{i}\left(\text { predicted }_{\mathrm{i}}-\text { actual }_{i}\right)^{2}}{\sum_{1=1}^{n} \text { weights }_{\mathrm{i}}}
+
+    \text { Weighted RMSE } = \sqrt{\frac{\sum_{i=1}^{n} \text { weights }_{i}\left(\text { predicted }_{\mathrm{i}}-\text { actual }_{i}\right)^{2}}{\sum_{1=1}^{n} \text { weights }_{\mathrm{i}}}}
+
+Below are the inference results using different models.
+
+.. figure:: images/infer_oos.png
+   :alt: Inference on different models
+   :align: center
+
+   Inference results using different models
 
 Installation
 ~~~~~~~~~~~~~~
@@ -257,7 +303,7 @@ Use `predict_fn_gender` to get gender predictions based on first name.
 Authors
 ~~~~~~~
 
-Suriyan Laohaprapanon and Gaurav Sood
+Suriyan Laohaprapanon, Gaurav Sood and Rajashekar Chintalapati
 
 License
 ~~~~~~~

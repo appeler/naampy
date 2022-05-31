@@ -46,8 +46,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'naampy'
-copyright = u'2020, Gaurav Sood, Atul Dhingra, Suriyan Laohaprapanon'
-author = u'Gaurav Sood, Atul Dhingra, Suriyan Laohaprapanon'
+copyright = u'2022, Gaurav Sood, Atul Dhingra, Suriyan Laohaprapanon, Rajashekar Chintalapati'
+author = u'Gaurav Sood, Atul Dhingra, Suriyan Laohaprapanon, Rajashekar Chintalapati'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -137,7 +137,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'naampy.tex', u'naampy Documentation',
-     u'Gaurav Sood, Atul Dhingra, Suriyan Laohaprapanon', 'manual'),
+     u'Gaurav Sood, Atul Dhingra, Suriyan Laohaprapanon', 'Rajashekar Chintalapati' ,'manual'),
 ]
 
 
