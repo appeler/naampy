@@ -83,18 +83,15 @@ Gender Classifier
 ~~~~~~~~~~~~~~~~~
 
 We start by providing a base model for first\_name that gives the Bayes
-optimal solution providing the proportion of people with that name who
+optimal solution---the proportion of people with that name who
 are women. We also provide a series of base models where the state of
 residence and year of birth is known.
 
-If name does not exist in database, we use `ML model <https://github.com/appeler/naampy/blob/master/naampy/data/ml_model/02_training_model.ipynb>`__ that use the relationship between
-sequences of characters in the first name and gender to predict gender from a name.
+If the name does not exist in the database, we use `ML model <https://github.com/appeler/naampy/blob/master/naampy/data/ml_model/02_training_model.ipynb>`__ that uses the relationship between
+sequences of characters in the first name and gender to predict gender from the name.
 
-Model was trained as regression problem instead of plain classification,
-because we need to consider proportion of people with that name. Model predicts 
-the female proportion of the name, if it is less than 0.5 then it is a male name, if not then it is female name.
-
-Refer below histogram for the female proportion for the dataset which model is trained on. 
+The model was trained as a regression problem instead of a classification problem because men and women share names. (See the histogram below for the female proportion for the dataset.) The model predicts 
+the female proportion of the name. If it is less than 0.5, we classify it as male; otherwise, we classify it as female.
 
 .. figure:: images/female_prop.png
    :width: 400px
@@ -102,13 +99,13 @@ Refer below histogram for the female proportion for the dataset which model is t
    :alt: Female proportion
    :align: center
 
-**Below are the results on model loss function and metrics on test dataset**
+**Test data**
 
 MSE no weights - loss: 0.04974181950092316, metric: 0.04974181950092316
 
 RMSE no weights - loss: 0.21903139352798462, metric: 0.2212539166212082
 
-**Below are the results on model loss function and metrics on test dataset with weights**
+**Test data with weights**
 
 RMSE with weights - loss: 0.21645867824554443, metric: 0.2223343402147293
 
