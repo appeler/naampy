@@ -283,7 +283,7 @@ Use `predict_fn_gender` to get gender predictions based on first name.
 Authors
 ~~~~~~~
 
-Suriyan Laohaprapanon, Gaurav Sood and Rajashekar Chintalapati
+Suriyan Laohaprapanon, Gaurav Sood, and Rajashekar Chintalapati
 
 License
 ~~~~~~~
