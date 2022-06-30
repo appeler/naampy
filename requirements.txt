@@ -1,4 +1,4 @@
 pandas>=0.19.2
-tensorflow
+tensorflow==2.8.*
 requests
 tqdm

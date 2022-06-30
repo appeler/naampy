@@ -65,7 +65,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version="0.4.0",
+    version="0.4.1",
     description="Infer Gender from Indian Names",
     long_description=long_description,
     # The project's main homepage.
@@ -109,7 +109,7 @@ setup(
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
         "pandas>=0.19.2",
-        "tensorflow==2.8.0",
+        "tensorflow==2.8.*",
         "requests",
         "tqdm",
     ],
