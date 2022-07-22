@@ -65,7 +65,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version="0.4.1",
+    version="0.4.2",
     description="Infer Gender from Indian Names",
     long_description=long_description,
     # The project's main homepage.
@@ -124,9 +124,7 @@ setup(
     # If there are data files included in your packages that need to be
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
-    package_data={
-        "naampy": [],
-    },
+    package_data={"naampy": ["model/naampy_rmse/variables/variables.*", "model/naampy_rmse/*.pb"]},
     # Although 'package_data' is the preferred approach, in some case you may
     # need to place data files outside of your packages. See:
     # http://docs.python.org/3.4/distutils/setupscript.html#installing-additional-files # noqa
