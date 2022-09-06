@@ -19,6 +19,7 @@ IN_ROLLS_DATA = {
     "v2": "https://dataverse.harvard.edu/api/v1/access/datafile/4965696",
     "v2_1k": "https://dataverse.harvard.edu/api/v1/access/datafile/4965695",
     "v2_native": "https://dataverse.harvard.edu/api/v1/access/datafile/6292042",
+    "v2_en": "https://dataverse.harvard.edu/api/v1/access/datafile/6457224",
 }
 
 IN_ROLLS_COLS = ["n_male", "n_female", "n_third_gender", "prop_female", "prop_male", "prop_third_gender"]
@@ -196,12 +197,13 @@ def main(argv=sys.argv[1:]):
         "-d",
         "--dataset",
         default="v2_1k",
-        choices=["v1", "v2", "v2_1k", "v2_native"],
+        choices=["v1", "v2", "v2_1k", "v2_native", "v2_en"],
         help="Select the dataset v1 is 12 states,"
         + " v2 and v2_1k for 30 states with 100 and 1,000"
         + " first name occurrences respectively"
-        + " and v2_native is the native language dataset of"
-        + " 16 states with 10 first name occurrences per state"
+        + " v2_native is the native language dataset of"
+        + " 16 states with 10 first name occurrences per state,"
+        + " and v2_en is Hindi transliteration of v2_native dataset"
         + " (default=v2_1k)"
     )
 
