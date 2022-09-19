@@ -101,15 +101,15 @@ the female proportion of the name. If it is less than 0.5, we classify it as mal
 
 **Test data**
 
-MSE no weights - loss: 0.04974181950092316, metric: 0.04974181950092316
+MSE no weights - loss: .05, metric: 0.05
 
-RMSE no weights - loss: 0.21903139352798462, metric: 0.2212539166212082
+RMSE no weights - loss: 0.22, metric: 0.22
 
 **Test data with weights**
 
-RMSE with weights - loss: 0.21645867824554443, metric: 0.2223343402147293
+MSE with weights - loss: 0.05, metric: 0.04
 
-MSE with weights - loss: 0.0501617006957531, metric: 0.043311625719070435
+RMSE with weights - loss: 0.22, metric: 0.22
 
 Below are the inference results using different models.
 
