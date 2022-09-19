@@ -77,7 +77,7 @@ Concerns:
 
 * Indian names are complicated. We do not have good parsers for them yet. We have gone for the default arrangement. Please go through the notebook to look at the judgments we make. We plan to improve the underlying data over time.
 
-* For states with non-English rolls, we use libindic to transliterate the names. The transliterations are consistently bad. (We hope to make progress here. We also plan to provide a way to match in the original script.)
+* For state electoral rolls that are neither in English and Hindi, we use libindic. The quality of transliterations is consistently bad.
 
 Gender Classifier
 ~~~~~~~~~~~~~~~~~
@@ -156,6 +156,8 @@ Usage
                             (default=all)
     -o OUTPUT, --output OUTPUT
                             Output file with Indian electoral rolls data columns
+
+        choices=["v1", "v2", "v2_1k", "v2_native", "v2_en"],
 
 
 Using naampy
