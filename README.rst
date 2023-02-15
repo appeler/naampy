@@ -7,6 +7,8 @@ naampy: Infer Sociodemographic Characteristics from Indian Names
     :target: https://ci.appveyor.com/project/soodoku/naampy
 .. image:: https://img.shields.io/pypi/v/naampy.svg
     :target: https://pypi.python.org/pypi/naampy
+.. image:: https://readthedocs.org/projects/naampy/badge/?version=latest
+    :target: http://naampy.readthedocs.io/en/latest/?badge=latest
 .. image:: https://pepy.tech/badge/naampy
     :target: https://pepy.tech/project/naampy
 
