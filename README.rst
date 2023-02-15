@@ -80,7 +80,7 @@ Concerns:
 * For state electoral rolls that are neither in English and Hindi, we use libindic. The quality of transliterations is consistently bad.
 
 Gender Classifier
-~~~~~~~~~~~~~~~~~
+==============================
 
 We start by providing a base model for first\_name that gives the Bayes
 optimal solution---the proportion of people with that name who
@@ -118,7 +118,7 @@ Below are the inference results using different models.
    :align: center
 
 Installation
-~~~~~~~~~~~~~~
+==============================
 
 We strongly recommend installing `naampy` inside a Python virtual environment (see `venv documentation <https://docs.python.org/3/library/venv.html#creating-virtual-environments>`__)
 
@@ -128,7 +128,7 @@ We strongly recommend installing `naampy` inside a Python virtual environment (s
 
 
 Usage
-~~~~~
+==============================
 
 ::
 
@@ -161,7 +161,7 @@ Usage
 
 
 Using naampy
-~~~~~~~~~~~~
+==============================
 
 ::
 
@@ -277,18 +277,18 @@ Using naampy
     27           riteish        male   0.950755
 
 Functionality
-~~~~~~~~~~~~~
+==============================
 
 When you first run `in_rolls_fn_gender`, it downloads data from `Harvard Dataverse <https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/WZGJBM>`__ to the local folder. Next time you run the function, it searches for local data and if it finds it, it uses it.
 Use `predict_fn_gender` to get gender predictions based on first name.
 
 Authors
-~~~~~~~
+==============================
 
 Suriyan Laohaprapanon, Gaurav Sood, and Rajashekar Chintalapati
 
 License
-~~~~~~~
+==============================
 
 The package is released under the `MIT
 License <https://opensource.org/licenses/MIT>`__.
