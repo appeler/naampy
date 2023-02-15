@@ -7,8 +7,8 @@ import argparse
 import pandas as pd
 import tensorflow as tf
 import numpy as np
-from keras.preprocessing.text import Tokenizer
-from keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 from pkg_resources import resource_filename
 

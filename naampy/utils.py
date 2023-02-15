@@ -5,6 +5,7 @@ import os
 from os import path
 import requests
 from tqdm import tqdm
+import pandas as pd
 
 def isstring(s: str) -> bool:
     # if we use Python 3
