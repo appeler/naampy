@@ -89,7 +89,7 @@ class InRollsFnData:
         return pd.DataFrame(data={"name": input, "pred_gender": gender, "pred_prob": score})
 
     @classmethod
-    def in_rolls_fn_gender(cls, df, namecol, state=None, year=None, dataset="v2_1k"):
+    def in_rolls_fn_gender(cls, df: pd.DataFrame, namecol: str, state: str=None, year: int=None, dataset: str="v2_1k") -> pd.DataFrame:
         """Appends additional columns from Female ratio data to the input DataFrame
         based on the first name.
 
