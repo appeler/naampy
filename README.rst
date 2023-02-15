@@ -3,8 +3,6 @@ naampy: Infer Sociodemographic Characteristics from Indian Names
 
 .. image:: https://travis-ci.org/appeler/naampy.svg?branch=master
     :target: https://travis-ci.org/appeler/naampy
-.. image:: https://ci.appveyor.com/api/projects/status/q4wr4clilf4samlk?svg=true
-    :target: https://ci.appveyor.com/project/soodoku/naampy
 .. image:: https://img.shields.io/pypi/v/naampy.svg
     :target: https://pypi.python.org/pypi/naampy
 .. image:: https://readthedocs.org/projects/naampy/badge/?version=latest
