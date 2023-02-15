@@ -1,18 +1,22 @@
 .. naampy documentation master file, created by
-   sphinx-quickstart on Tue Jan 23 19:17:03 2018.
+   sphinx-quickstart on Tue Feb 14 18:40:49 2023.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-naampy: Predict Gender From Indian Names
-=================================================
+Welcome to naampy's documentation!
+==================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Contents:
 
-   naampy
-   
+   modules
+
+.. include:: ../../README.rst
+
 Indices and tables
 ==================
 
 * :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
