@@ -6,6 +6,7 @@ import os
 import argparse
 import pandas as pd
 import tensorflow as tf
+import numpy as np
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 
@@ -26,6 +27,9 @@ IN_ROLLS_COLS = ["n_male", "n_female", "n_third_gender", "prop_female", "prop_ma
 
 
 class InRollsFnData:
+    """
+    InRollsFnData class.
+    """
     __df = None
     __state = None
     __year = None
@@ -34,26 +38,33 @@ class InRollsFnData:
     __dataset = None
 
     @staticmethod
-    def load_naampy_data(dataset):
-        data_fn = "naampy_{0:s}.csv.gz".format(dataset)
+    def load_naampy_data(dataset: str) -> str:
+        """
+
+        Args:
+            dataset (str): version of the dataset
+        Returns:
+            path to the data
+        """
+        data_fn = "naampy_{dataset}.csv.gz"
         data_path = get_app_file_path("naampy", data_fn)
         if not os.path.exists(data_path):
-            print("Downloading naampy data from the server ({0!s})...".format(data_fn))
+            print("Downloading naampy data from the server ({data_fn})...")
             if not download_file(IN_ROLLS_DATA[dataset], data_path):
                 print("ERROR: Cannot download naampy data file")
                 return None
         else:
-            print("Using cached naampy data from local ({0!s})...".format(data_path))
+            print("Using cached naampy data from local ({data_path})...")
         return data_path
 
     @classmethod
-    def predict_fn_gender(cls, input):
+    def predict_fn_gender(cls, first_names: list[str]) -> pd.DataFrame:
         """
         Predict gender based on name
         Args:
-            input (list of str): list of first name
+            first_names (list of str): list of first name
         Returns:
-            DataFrame: Pandas DataFrame with prediction and its probability
+            DataFrame: Pandas DataFrame with predicted labels and probability
         """
         # load model
         if cls.__model is None:
@@ -71,14 +82,14 @@ class InRollsFnData:
             # Add 'UNK' to the vocabulary
             cls.__tk.word_index[cls.__tk.oov_token] = max(char_dict.values()) + 1
 
-        input = [i.lower() for i in input]
-        sequences = cls.__tk.texts_to_sequences(input)
+        first_names = [i.lower() for i in first_names]
+        sequences = cls.__tk.texts_to_sequences(first_names)
         tokens = pad_sequences(sequences, maxlen=24, padding="post")
 
         results = cls.__model.predict(tokens)
         gender = []
         score = []
-        for i in range(len(input)):
+        for i in range(len(first_names)):
             pred = results[i].item()
             if pred > 0.5:
                 gender.append("female")
@@ -86,11 +97,12 @@ class InRollsFnData:
             else:
                 gender.append("male")
                 score.append(1 - pred)
-        return pd.DataFrame(data={"name": input, "pred_gender": gender, "pred_prob": score})
+        return pd.DataFrame(data={"name": first_names, "pred_gender": gender, "pred_prob": score})
 
     @classmethod
     def in_rolls_fn_gender(cls, df: pd.DataFrame, namecol: str, state: str=None, year: int=None, dataset: str="v2_1k") -> pd.DataFrame:
-        """Appends additional columns from Female ratio data to the input DataFrame
+        """
+        Appends additional columns from Female ratio data to the input DataFrame
         based on the first name.
 
         Removes extra space. Checks if the name is the Indian electoral rolls data.
@@ -114,7 +126,7 @@ class InRollsFnData:
         """
 
         if namecol not in df.columns:
-            print("No column `{0!s}` in the DataFrame".format(namecol))
+            print("No column `{namecol}` in the DataFrame")
             return df
 
         df["__first_name"] = df[namecol].str.strip()
@@ -163,7 +175,14 @@ class InRollsFnData:
         return rdf
 
     @staticmethod
-    def list_states(dataset="v2_1k"):
+    def list_states(dataset: str="v2_1k") -> np.ndarray:
+        """
+
+        Args:
+            dataset (str): version of the dataset
+        Returns:
+            list of states
+        """
         data_path = InRollsFnData.load_naampy_data(dataset)
         adf = pd.read_csv(data_path, usecols=["state"])
         return adf.state.unique()
@@ -174,7 +193,10 @@ predict_fn_gender = InRollsFnData.predict_fn_gender
 
 
 def main(argv=sys.argv[1:]):
-    title = "Appends Electoral roll columns for prop_female, n_female, " "n_male n_third_gender by first name"
+    """
+    Main method for shell support
+    """
+    title = "Appends Electoral roll columns for prop_female, n_female, n_male n_third_gender by first name"
     parser = argparse.ArgumentParser(description=title)
     parser.add_argument("input", default=None, help="Input file")
     parser.add_argument(
@@ -222,7 +244,7 @@ def main(argv=sys.argv[1:]):
 
     rdf = in_rolls_fn_gender(df, args.first_name, args.state, args.year, args.dataset)
 
-    print("Saving output to file: `{0:s}`".format(args.output))
+    print("Saving output to file: `{args.output}`")
     rdf.columns = fixup_columns(rdf.columns)
     rdf.to_csv(args.output, index=False)
 

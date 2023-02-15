@@ -6,8 +6,7 @@ from os import path
 import requests
 from tqdm import tqdm
 
-
-def isstring(s: str):
+def isstring(s: str) -> bool:
     # if we use Python 3
     if (sys.version_info[0] >= 3):
         return isinstance(s, str)
@@ -34,7 +33,7 @@ def column_exists(df: pd.DataFrame, col: str) -> bool:
         return True
 
 
-def fixup_columns(cols) -> list:
+def fixup_columns(cols: list) -> list:
     """Replace index location column to name with `col` prefix
 
     Args:
@@ -85,7 +84,7 @@ def find_ngrams(vocab: list, text: str, n: int) -> list:
     return wi
 
 
-def get_app_file_path(app_name, filename):
+def get_app_file_path(app_name: str, filename: str) -> str:
     user_dir = path.expanduser('~')
     app_data_dir = path.join(user_dir, '.' + app_name)
     if not path.exists(app_data_dir):
@@ -93,7 +92,7 @@ def get_app_file_path(app_name, filename):
     file_path = path.join(app_data_dir, filename)
     return file_path
 
-def download_file(url, target) -> bool:
+def download_file(url: str, target: str) -> bool:
 
     headers = {}
 
