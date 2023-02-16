@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import annotations
 import sys
 import os
 import argparse
@@ -46,15 +47,15 @@ class InRollsFnData:
         Returns:
             path to the data
         """
-        data_fn = "naampy_{dataset}.csv.gz"
+        data_fn = f"naampy_{dataset}.csv.gz"
         data_path = get_app_file_path("naampy", data_fn)
         if not os.path.exists(data_path):
-            print("Downloading naampy data from the server ({data_fn})...")
+            print(f"Downloading naampy data from the server ({data_fn})...")
             if not download_file(IN_ROLLS_DATA[dataset], data_path):
                 print("ERROR: Cannot download naampy data file")
                 return None
         else:
-            print("Using cached naampy data from local ({data_path})...")
+            print(f"Using cached naampy data from local ({data_path})...")
         return data_path
 
     @classmethod
@@ -126,7 +127,7 @@ class InRollsFnData:
         """
 
         if namecol not in df.columns:
-            print("No column `{namecol}` in the DataFrame")
+            print(f"No column `{namecol}` in the DataFrame")
             return df
 
         df["__first_name"] = df[namecol].str.strip()
@@ -244,7 +245,7 @@ def main(argv=sys.argv[1:]):
 
     rdf = in_rolls_fn_gender(df, args.first_name, args.state, args.year, args.dataset)
 
-    print("Saving output to file: `{args.output}`")
+    print(f"Saving output to file: `{args.output}`")
     rdf.columns = fixup_columns(rdf.columns)
     rdf.to_csv(args.output, index=False)
 
