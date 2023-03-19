@@ -27,8 +27,7 @@ def column_exists(df: pd.DataFrame, col: str) -> bool:
 
     """
     if col and (col not in df.columns):
-        print("Column `{0!s}` not found in the input file"
-              .format(col))
+        print(f"Column `{col}` not found in the input file")
         return False
     else:
         return True
@@ -47,7 +46,7 @@ def fixup_columns(cols: list) -> list:
     out_cols = []
     for col in cols:
         if type(col) == int:
-            out_cols.append('col{:d}'.format(col))
+            out_cols.append(f'col{col}')
         else:
             out_cols.append(col)
     return out_cols
@@ -112,5 +111,5 @@ def download_file(url: str, target: str) -> bool:
                 f.write(data)
         return True
     else:
-        print("ERROR: status_code={0:d}".format(r.status_code))
+        print(f"ERROR: status_code={r.status_code}")
         return False
