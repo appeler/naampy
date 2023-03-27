@@ -32,26 +32,6 @@ def column_exists(df: pd.DataFrame, col: str) -> bool:
     else:
         return True
 
-
-def fixup_columns(cols: list) -> list:
-    """Replace index location column to name with `col` prefix
-
-    Args:
-        cols (list): List of original columns
-
-    Returns:
-        list: List of column names
-
-    """
-    out_cols = []
-    for col in cols:
-        if type(col) == int:
-            out_cols.append(f'col{col}')
-        else:
-            out_cols.append(col)
-    return out_cols
-
-
 def find_ngrams(vocab: list, text: str, n: int) -> list:
     """Find and return list of the index of n-grams in the vocabulary list.
 

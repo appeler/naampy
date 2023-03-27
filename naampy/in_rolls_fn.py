@@ -13,7 +13,7 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 from pkg_resources import resource_filename
 
-from .utils import column_exists, fixup_columns, get_app_file_path, download_file
+from .utils import column_exists, get_app_file_path, download_file
 
 
 IN_ROLLS_DATA = {
@@ -246,7 +246,6 @@ def main(argv=sys.argv[1:]):
     rdf = in_rolls_fn_gender(df, args.first_name, args.state, args.year, args.dataset)
 
     print(f"Saving output to file: `{args.output}`")
-    rdf.columns = fixup_columns(rdf.columns)
     rdf.to_csv(args.output, index=False)
 
 
