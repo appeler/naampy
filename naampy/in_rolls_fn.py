@@ -105,9 +105,8 @@ class InRollsFnData:
         Args:
             df (:obj:`DataFrame`): Pandas DataFrame containing the first name
                 column.
-            namecol (str or int): Column's name or location of the name in
-                DataFrame.
-            state (str): The state name of Indian electoral rolls data to be used.
+            namecol (str or int): Columnn name containing the first name.
+            state (str): The state from which Indian electoral rolls data to be used.
                 (default is None for all states)
             year (int): The year of Indian electoral rolls to be used.
                 (default is None for all years)
@@ -123,8 +122,7 @@ class InRollsFnData:
             print(f"No column `{namecol}` in the DataFrame")
             return df
 
-        df["__first_name"] = df[namecol].str.strip()
-        df["__first_name"] = df["__first_name"].str.lower()
+        df["__first_name"] = df[namecol].str.strip().str.lower()
 
         if cls.__df is None or cls.__state != state or cls.__year != year or cls.__dataset != dataset:
             cls.__dataset = dataset
@@ -190,11 +188,11 @@ def main(argv=sys.argv[1:]):
     """
     Main method for shell support
     """
-    title = "Appends Electoral roll columns for prop_female, n_female, n_male n_third_gender by first name"
+    title = "Appends Electoral roll columns prop_female, n_female, n_male n_third_gender"
     parser = argparse.ArgumentParser(description=title)
     parser.add_argument("input", default=None, help="Input file")
     parser.add_argument(
-        "-f", "--first-name", required=True, help="Name or index location of column contains " "the first name"
+        "-f", "--first-name", required=True, help="Name of column containing the first name"
     )
     parser.add_argument(
         "-s",
@@ -229,8 +227,8 @@ def main(argv=sys.argv[1:]):
 
     df = pd.read_csv(args.input)
     
-    if col and (col not in df.columns):
-        print(f"Column `{col}` not found in the input file")
+    if args.first_name and (args.first_name not in df.columns):
+        print(f"Column `{args.first_name}` not found in the input file")
         return -1
 
     rdf = in_rolls_fn_gender(df, args.first_name, args.state, args.year, args.dataset)
