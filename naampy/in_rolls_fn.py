@@ -88,17 +88,12 @@ class InRollsFnData:
         tokens = pad_sequences(sequences, maxlen=24, padding="post")
 
         results = cls.__model.predict(tokens)
-        gender = np.where(results > 0.5, "female", "male")
-        score = np.where(results > 0.5, results, 1 - results)
+        gender = []
+        score = []
+        pred = results > 0.5
+        gender = np.where(pred, "female", "male")
+        score = np.where(pred, results, 1 - results)
 
-        for i in range(len(first_names)):
-            pred = results[i].item()
-            if pred > 0.5:
-                gender.append("female")
-                score.append(pred)
-            else:
-                gender.append("male")
-                score.append(1 - pred)
         return pd.DataFrame(data={"name": first_names, "pred_gender": gender, "pred_prob": score})
 
     @classmethod
