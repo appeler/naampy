@@ -7,31 +7,6 @@ import requests
 from tqdm import tqdm
 import pandas as pd
 
-def isstring(s: str) -> bool:
-    # if we use Python 3
-    if (sys.version_info[0] >= 3):
-        return isinstance(s, str)
-    # we use Python 2
-    return isinstance(s, basestring)
-
-
-def column_exists(df: pd.DataFrame, col: str) -> bool:
-    """Check the column name exists in the DataFrame.
-
-    Args:
-        df (:obj:`DataFrame`): Pandas DataFrame.
-        col (str): Column name.
-
-    Returns:
-        bool: True if exists, False if not exists.
-
-    """
-    if col and (col not in df.columns):
-        print(f"Column `{col}` not found in the input file")
-        return False
-    else:
-        return True
-
 def find_ngrams(vocab: list, text: str, n: int) -> list:
     """Find and return list of the index of n-grams in the vocabulary list.
 
@@ -49,9 +24,6 @@ def find_ngrams(vocab: list, text: str, n: int) -> list:
     """
 
     wi = []
-
-    if not isstring(text):
-        return wi
 
     a = zip(*[text[i:] for i in range(n)])
     for i in a:

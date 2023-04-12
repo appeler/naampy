@@ -13,7 +13,7 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 from pkg_resources import resource_filename
 
-from .utils import column_exists, get_app_file_path, download_file
+from .utils import get_app_file_path, download_file
 
 
 IN_ROLLS_DATA = {
@@ -221,7 +221,7 @@ def main(argv=sys.argv[1:]):
         "--dataset",
         default="v2_1k",
         choices=["v1", "v2", "v2_1k", "v2_native", "v2_en"],
-        help="Select the dataset v1 is 12 states,"
+        help="Select the dataset. v1 is 12 states,"
         + " v2 and v2_1k for 30 states with 100 and 1,000"
         + " first name occurrences respectively"
         + " v2_native is the native language dataset of"
@@ -234,13 +234,10 @@ def main(argv=sys.argv[1:]):
 
     print(args)
 
-    if not args.first_name.isdigit():
-        df = pd.read_csv(args.input)
-    else:
-        df = pd.read_csv(args.input, header=None)
-        args.first_name = int(args.first_name)
-
-    if not column_exists(df, args.first_name):
+    df = pd.read_csv(args.input)
+    
+    if col and (col not in df.columns):
+        print(f"Column `{col}` not found in the input file")
         return -1
 
     rdf = in_rolls_fn_gender(df, args.first_name, args.state, args.year, args.dataset)
@@ -248,6 +245,7 @@ def main(argv=sys.argv[1:]):
     print(f"Saving output to file: `{args.output}`")
     rdf.to_csv(args.output, index=False)
 
+    return 0
 
 if __name__ == "__main__":
     sys.exit(main())
