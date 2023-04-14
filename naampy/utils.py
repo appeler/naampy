@@ -3,9 +3,11 @@
 import sys
 import os
 from os import path
+from pathlib import Path
 import requests
 from tqdm import tqdm
 import pandas as pd
+import logging
 
 def find_ngrams(vocab: list, text: str, n: int) -> list:
     """Find and return list of the index of n-grams in the vocabulary list.
@@ -45,23 +47,21 @@ def get_app_file_path(app_name: str, filename: str) -> str:
     return file_path
 
 def download_file(url: str, target: str) -> bool:
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"}
 
-    headers = {}
+    response = requests.get(url, headers=headers, stream=True)
 
-    # Streaming, so we can iterate over the response.
-    r = requests.get(url, stream=True, headers=headers)
-
-    if r.status_code == 200:
-        chunk_size = (64 * 1024)
-        # Total size in bytes.
-        total_size = int(r.headers.get('content-length', 0)) / chunk_size
-
-        total_size += 1
-
-        with open(target, 'wb') as f:
-            for data in tqdm(r.iter_content(chunk_size), total=round(total_size, 1), unit_scale=chunk_size/1024, unit='KB'):
-                f.write(data)
-        return True
-    else:
-        print(f"ERROR: status_code={r.status_code}")
+    if response.status_code != 200:
+        logging.error(f"ERROR: Failed to download file from {url}. Status code: {response.status_code}")
         return False
+
+    total_size = int(response.headers.get("Content-Length", 0))
+    with open(Path(target).expanduser(), "wb") as f:
+        with tqdm(total=total_size, unit="B", unit_scale=True, unit_divisor=1024) as pbar:
+            for data in response.iter_content(chunk_size=4096):
+                f.write(data)
+                pbar.update(len(data))
+
+    logging.info(f"Successfully downloaded file from {url} to {target}")
+
+    return True

@@ -8,6 +8,7 @@ import argparse
 import pandas as pd
 import tensorflow as tf
 import numpy as np
+from typing import Optional
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
@@ -52,8 +53,7 @@ class InRollsFnData:
         if not os.path.exists(data_path):
             print(f"Downloading naampy data from the server ({data_fn})...")
             if not download_file(IN_ROLLS_DATA[dataset], data_path):
-                print("ERROR: Cannot download naampy data file")
-                return None
+                raise Exception("ERROR: Cannot download naampy data file")
         else:
             print(f"Using cached naampy data from local ({data_path})...")
         return data_path
@@ -94,7 +94,7 @@ class InRollsFnData:
         return pd.DataFrame(data={"name": first_names, "pred_gender": gender, "pred_prob": score})
 
     @classmethod
-    def in_rolls_fn_gender(cls, df: pd.DataFrame, namecol: str, state: str=None, year: int=None, dataset: str="v2_1k") -> pd.DataFrame:
+    def in_rolls_fn_gender(cls, df: pd.DataFrame, namecol: str, state: Optional[str]=None, year: Optional[int]=None, dataset: str="v2_1k") -> pd.DataFrame:
         """
         Appends additional columns from Female ratio data to the input DataFrame
         based on the first name.
@@ -105,10 +105,10 @@ class InRollsFnData:
         Args:
             df (:obj:`DataFrame`): Pandas DataFrame containing the first name
                 column.
-            namecol (str or int): Columnn name containing the first name.
-            state (str): The state from which Indian electoral rolls data to be used.
+            namecol (str): Columnn name containing the first name.
+            state (str or None): The state from which Indian electoral rolls data to be used.
                 (default is None for all states)
-            year (int): The year of Indian electoral rolls to be used.
+            year (int or None): The year of Indian electoral rolls to be used.
                 (default is None for all years)
 
         Returns:
@@ -118,7 +118,7 @@ class InRollsFnData:
 
         """
 
-        if namecol not in df.columns:
+        if namecol and namecol not in df.columns:
             print(f"No column `{namecol}` in the DataFrame")
             return df
 
