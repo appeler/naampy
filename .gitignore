@@ -10,3 +10,4 @@ build/
 naampy.egg-info/
 lit/
 dist/
+venv/
