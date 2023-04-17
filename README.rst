@@ -14,6 +14,8 @@ The ability to programmatically reliably infer the social attributes of a person
 
 We fill this yawning gap. Using data from the `Indian Electoral Rolls <https://github.com/in-rolls/electoral_rolls>`__ (parsed data `here <https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/MUEGDT>`__), we estimate the proportion female, male, and `third sex` (see `here <https://en.wikipedia.org/wiki/Third_gender>`__) for a particular `first name, year, and state.`
 
+Please also check out `pranaam <https://github.com/appeler/pranaam>`__ that uses land record data from Bihar to infer religion based on the name. The package uses `indicate <https://github.com/in-rolls/indicate>`__ to transliterate Hindi to English.
+
 Data
 ~~~~
 

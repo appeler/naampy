@@ -8,12 +8,13 @@ import argparse
 import pandas as pd
 import tensorflow as tf
 import numpy as np
+from typing import Optional
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 from pkg_resources import resource_filename
 
-from .utils import column_exists, fixup_columns, get_app_file_path, download_file
+from .utils import get_app_file_path, download_file
 
 
 IN_ROLLS_DATA = {
@@ -52,8 +53,7 @@ class InRollsFnData:
         if not os.path.exists(data_path):
             print(f"Downloading naampy data from the server ({data_fn})...")
             if not download_file(IN_ROLLS_DATA[dataset], data_path):
-                print("ERROR: Cannot download naampy data file")
-                return None
+                raise Exception("ERROR: Cannot download naampy data file")
         else:
             print(f"Using cached naampy data from local ({data_path})...")
         return data_path
@@ -88,20 +88,13 @@ class InRollsFnData:
         tokens = pad_sequences(sequences, maxlen=24, padding="post")
 
         results = cls.__model.predict(tokens)
-        gender = []
-        score = []
-        for i in range(len(first_names)):
-            pred = results[i].item()
-            if pred > 0.5:
-                gender.append("female")
-                score.append(pred)
-            else:
-                gender.append("male")
-                score.append(1 - pred)
+        gender = np.where(results > 0.5, "female", "male")
+        score = np.where(results > 0.5, results, 1 - results)
+
         return pd.DataFrame(data={"name": first_names, "pred_gender": gender, "pred_prob": score})
 
     @classmethod
-    def in_rolls_fn_gender(cls, df: pd.DataFrame, namecol: str, state: str=None, year: int=None, dataset: str="v2_1k") -> pd.DataFrame:
+    def in_rolls_fn_gender(cls, df: pd.DataFrame, namecol: str, state: Optional[str]=None, year: Optional[int]=None, dataset: str="v2_1k") -> pd.DataFrame:
         """
         Appends additional columns from Female ratio data to the input DataFrame
         based on the first name.
@@ -112,11 +105,10 @@ class InRollsFnData:
         Args:
             df (:obj:`DataFrame`): Pandas DataFrame containing the first name
                 column.
-            namecol (str or int): Column's name or location of the name in
-                DataFrame.
-            state (str): The state name of Indian electoral rolls data to be used.
+            namecol (str): Columnn name containing the first name.
+            state (str or None): The state from which Indian electoral rolls data to be used.
                 (default is None for all states)
-            year (int): The year of Indian electoral rolls to be used.
+            year (int or None): The year of Indian electoral rolls to be used.
                 (default is None for all years)
 
         Returns:
@@ -126,12 +118,11 @@ class InRollsFnData:
 
         """
 
-        if namecol not in df.columns:
+        if namecol and namecol not in df.columns:
             print(f"No column `{namecol}` in the DataFrame")
             return df
 
-        df["__first_name"] = df[namecol].str.strip()
-        df["__first_name"] = df["__first_name"].str.lower()
+        df["__first_name"] = df[namecol].str.strip().str.lower()
 
         if cls.__df is None or cls.__state != state or cls.__year != year or cls.__dataset != dataset:
             cls.__dataset = dataset
@@ -197,11 +188,11 @@ def main(argv=sys.argv[1:]):
     """
     Main method for shell support
     """
-    title = "Appends Electoral roll columns for prop_female, n_female, n_male n_third_gender by first name"
+    title = "Appends Electoral roll columns prop_female, n_female, n_male n_third_gender"
     parser = argparse.ArgumentParser(description=title)
     parser.add_argument("input", default=None, help="Input file")
     parser.add_argument(
-        "-f", "--first-name", required=True, help="Name or index location of column contains " "the first name"
+        "-f", "--first-name", required=True, help="Name of column containing the first name"
     )
     parser.add_argument(
         "-s",
@@ -221,7 +212,7 @@ def main(argv=sys.argv[1:]):
         "--dataset",
         default="v2_1k",
         choices=["v1", "v2", "v2_1k", "v2_native", "v2_en"],
-        help="Select the dataset v1 is 12 states,"
+        help="Select the dataset. v1 is 12 states,"
         + " v2 and v2_1k for 30 states with 100 and 1,000"
         + " first name occurrences respectively"
         + " v2_native is the native language dataset of"
@@ -234,23 +225,18 @@ def main(argv=sys.argv[1:]):
 
     print(args)
 
-    if not args.first_name.isdigit():
-        df = pd.read_csv(args.input)
-    else:
-        df = pd.read_csv(args.input, header=None)
-        args.first_name = int(args.first_name)
-
-    if not column_exists(df, args.first_name):
+    df = pd.read_csv(args.input)
+    
+    if args.first_name and (args.first_name not in df.columns):
+        print(f"Column `{args.first_name}` not found in the input file")
         return -1
 
     rdf = in_rolls_fn_gender(df, args.first_name, args.state, args.year, args.dataset)
 
     print(f"Saving output to file: `{args.output}`")
-    rdf.columns = fixup_columns(rdf.columns)
     rdf.to_csv(args.output, index=False)
 
     return 0
-
 
 if __name__ == "__main__":
     sys.exit(main())
