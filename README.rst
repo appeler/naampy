@@ -16,6 +16,11 @@ We fill this yawning gap. Using data from the `Indian Electoral Rolls <https://g
 
 Please also check out `pranaam <https://github.com/appeler/pranaam>`__ that uses land record data from Bihar to infer religion based on the name. The package uses `indicate <https://github.com/in-rolls/indicate>`__ to transliterate Hindi to English.
 
+Streamlit App
+~~~~
+
+`https://naampy.streamlit.app/ <https://naampy.streamlit.app/>`__ 
+
 Data
 ~~~~
 
