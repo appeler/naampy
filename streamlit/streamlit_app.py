@@ -10,7 +10,7 @@ sidebar_options = {
     'Append Electoral Roll Data to First Name': in_rolls_fn_gender,
     'Predict': predict_fn_gender
 }
-
+       
 def download_file(df):
     csv = df.to_csv(index=False)
     b64 = base64.b64encode(csv.encode()).decode()
@@ -36,33 +36,33 @@ def app():
     if uploaded_file is not None:
         df = pd.read_csv(uploaded_file)
         st.write("Data loaded successfully!")
+
+        if selected_function == "Append Electoral Roll to First Name": 
+            fname_col = st.selectbox("Select column with first name", df.columns)
+            state = st.selectbox("Select a state", ["andaman", "andhra", "arunachal", "assam",
+                                                "bihar", "chandigarh", "dadra", "daman", "delhi",
+                                                "goa", "gujarat", "haryana", "himachal", "jharkhand",
+                                                "jk", "karnataka", "kerala", "maharashtra", "manipur",
+                                                "meghalaya", "mizoram", "mp", "nagaland", "odisha",
+                                                "puducherry", "punjab", "rajasthan", "sikkim", "tripura",
+                                                "up", "uttarakhand"])
+            function = sidebar_options[selected_function]
+            if st.button('Run'):
+                transformed_df = function(df, namecol=fname_col, state = state)
+                st.dataframe(transformed_df)
+                download_file(transformed_df)
+    
+        elif selected_function == "Predict Using the Model":
+            fname_col = st.selectbox("Select column with first name", df.columns)
+            function = sidebar_options[selected_function]
+            if st.button('Run'):
+                transformed_df = function(df, namecol=fname_col)
+                st.dataframe(transformed_df)
+                download_file(transformed_df)
+
     else:
         st.stop()
-
-    if selected_function == "Append Electoral Roll to First Name": 
-        fname_col = st.selectbox("Select column with first name", df.columns)
-        state = st.selectbox("Select a state", ["andaman", "andhra", "arunachal", "assam",
-                                            "bihar", "chandigarh", "dadra", "daman", "delhi",
-                                            "goa", "gujarat", "haryana", "himachal", "jharkhand",
-                                            "jk", "karnataka", "kerala", "maharashtra", "manipur",
-                                            "meghalaya", "mizoram", "mp", "nagaland", "odisha",
-                                            "puducherry", "punjab", "rajasthan", "sikkim", "tripura",
-                                            "up", "uttarakhand"])
-        function = sidebar_options[selected_function]
-        if st.button('Run'):
-            transformed_df = function(df, namecol=fname_col, state = state)
-            st.dataframe(transformed_df)
-            download_file(transformed_df)
-
-    elif selected_function == "Predict Using the Model":
-        fname_col = st.selectbox("Select column with first name", df.columns)
-        function = sidebar_options[selected_function]
-        if st.button('Run'):
-            transformed_df = function(df, namecol=fname_col)
-            st.dataframe(transformed_df)
-            download_file(transformed_df)
-
-
+        
 # Run the app
 if __name__ == "__main__":
     app()
