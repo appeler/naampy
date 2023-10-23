@@ -1,7 +1,7 @@
 naampy: Infer Sociodemographic Characteristics from Indian Names
 ----------------------------------------------------------------
 
-.. image:: https://github.com/appeler/naampy/workflows/test/badge.svg
+.. image:: https://github.com/appeler/naampy/actions/workflows/test.yml/badge.svg
     :target: https://github.com/appeler/naampy/actions/workflows/test.yml
 .. image:: https://img.shields.io/pypi/v/naampy.svg
     :target: https://pypi.python.org/pypi/naampy
