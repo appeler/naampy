@@ -1,5 +1,5 @@
 pandas>=0.19.2
-tensorflow==2.8
+tensorflow>=2.8.0
 requests
 tqdm
 numpy
