@@ -41,7 +41,7 @@ def app():
 
     if selected_function == "Append Electoral Roll to First Name": 
         fname_col = st.selectbox("Select column with first name", df.columns)
-        year = st.selectbox("Select a state", ["andaman", "andhra", "arunachal", "assam",
+        state = st.selectbox("Select a state", ["andaman", "andhra", "arunachal", "assam",
                                             "bihar", "chandigarh", "dadra", "daman", "delhi",
                                             "goa", "gujarat", "haryana", "himachal", "jharkhand",
                                             "jk", "karnataka", "kerala", "maharashtra", "manipur",
@@ -50,7 +50,7 @@ def app():
                                             "up", "uttarakhand"])
         function = sidebar_options[selected_function]
         if st.button('Run'):
-            transformed_df = function(df, namecol=fname_col, year = year)
+            transformed_df = function(df, namecol=fname_col, state = state)
             st.dataframe(transformed_df)
             download_file(transformed_df)
 
