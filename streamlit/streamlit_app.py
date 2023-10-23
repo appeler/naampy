@@ -8,7 +8,7 @@ import base64
 # Define your sidebar options
 sidebar_options = {
     'Append Electoral Roll Data to First Name': in_rolls_fn_gender,
-    'Predict': predict_fn_gender
+    'Predict Using the Model': predict_fn_gender
 }
        
 def download_file(df):
@@ -37,7 +37,7 @@ def app():
         df = pd.read_csv(uploaded_file)
         st.write("Data loaded successfully!")
 
-    if selected_function == "Append Electoral Roll to First Name": 
+    if selected_function == "Append Electoral Roll Data to First Name": 
         fname_col = st.selectbox("Select column with first name", df.columns)
         state = st.selectbox("Select a state", ["andaman", "andhra", "arunachal", "assam",
                                                 "bihar", "chandigarh", "dadra", "daman", "delhi",
