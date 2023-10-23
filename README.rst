@@ -10,7 +10,7 @@ naampy: Infer Sociodemographic Characteristics from Indian Names
 .. image:: https://static.pepy.tech/badge/naampy
     :target: https://pepy.tech/project/naampy
 
-The ability to programmatically reliably infer the social attributes of a person from their name can be useful for a broad set of tasks, from estimating bias in coverage of women in the media to estimating bias in lending against certain social groups. But unlike the American Census Bureau, which produces a list of last names and first names, which can (and are) used to infer the gender, race, ethnicity, etc., from names, the Indian government produces no such commensurate datasets. And hence inferring the relationship between gender, ethnicity, language group, etc., and names have generally been done with small datasets constructed in an ad-hoc manner.
+The ability to programmatically and reliably infer the social attributes of a person from their name can be useful for a broad set of tasks, from estimating bias in coverage of women in the media to estimating bias in lending against certain social groups. But unlike the American Census Bureau, which produces a list of last names and first names, which can (and are) used to infer the gender, race, ethnicity, etc., from names, the Indian government produces no such commensurate datasets. Hence inferring the relationship between gender, ethnicity, language group, etc., and names has generally been done with small datasets constructed in an ad-hoc manner.
 
 We fill this yawning gap. Using data from the `Indian Electoral Rolls <https://github.com/in-rolls/electoral_rolls>`__ (parsed data `here <https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/MUEGDT>`__), we estimate the proportion female, male, and `third sex` (see `here <https://en.wikipedia.org/wiki/Third_gender>`__) for a particular `first name, year, and state.`
 
@@ -66,7 +66,7 @@ In all, we capitalize on information in the parsed electoral rolls from the foll
 How is the underlying data produced?
 ====================================
 
-We split the name into first name and last name (see the python notebook for how we do this) and then aggregate per state and first_name, and tabulate `prop_male, prop_female, prop_third_gender, n_female, n_male, n_third_gender`. We produce native language rolls and english transliterations. (We use `indicate <https://github.com/in-rolls/indicate>`__ to produce transliterations for hindi rolls.)
+We split the name into first name and last name (see the Python notebook for how we do this) and then aggregate per state and first_name, and tabulate `prop_male, prop_female, prop_third_gender, n_female, n_male, n_third_gender`. We produce native language rolls and English transliterations. (We use `indicate <https://github.com/in-rolls/indicate>`__ to produce transliterations for Hindi rolls.)
 
 This is used to provide the base prediction.
 
@@ -77,13 +77,13 @@ Issues with underlying data
 
 Concerns:
 
-* Voting registration lists may not be accurate, systematically underrepresenting poor people, minorities, and similar such groups.
+* Voting registration lists may not be accurate, systematically underrepresenting poor people, minorities, and similar groups.
 
 * Voting registration lists are, at best, a census of adult citizens. But to the extent there is prejudice against women, etc., that prevents them from reaching adulthood, the data bakes those biases in.
 
 * Indian names are complicated. We do not have good parsers for them yet. We have gone for the default arrangement. Please go through the notebook to look at the judgments we make. We plan to improve the underlying data over time.
 
-* For state electoral rolls that are neither in English and Hindi, we use libindic. The quality of transliterations is consistently bad.
+* For state electoral rolls that are neither in English nor Hindi, we use libindic. The quality of transliterations is consistently bad.
 
 Gender Classifier
 ==============================
