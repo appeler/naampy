@@ -56,7 +56,7 @@ def app():
             fname_col = st.selectbox("Select column with first name", df.columns)
             function = sidebar_options[selected_function]
             if st.button('Run'):
-                transformed_df = function(df["fname_col"])
+                transformed_df = function(df[fname_col])
                 st.dataframe(transformed_df)
                 download_file(transformed_df)
         
