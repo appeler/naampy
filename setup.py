@@ -108,7 +108,7 @@ setup(
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
         "pandas>=0.19.2",
-        "tensorflow==2.8.*",
+        "tensorflow>=2.8,<2.19",
         "requests",
         "tqdm",
     ],
