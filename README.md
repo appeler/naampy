@@ -28,7 +28,7 @@ uses land record data from Bihar to infer religion based on the name.
 The package uses [indicate](https://github.com/in-rolls/indicate) to
 transliterate Hindi to English.
 
-Streamlit App \~\~\~\~
+### Streamlit App
 
 <https://naampy.streamlit.app/>
 
@@ -269,8 +269,8 @@ documentation](https://docs.python.org/3/library/venv.html#creating-virtual-envi
 When you first run [in_rolls_fn_gender]{.title-ref}, it downloads data
 from [Harvard
 Dataverse](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/WZGJBM)
-to the local folder. Next time you run the function, it searches for
-local data and if it finds it, it uses it. Use
+to the local folder. The next time you run the function, it searches for
+local data, and if it finds it, it uses it. Use
 [predict_fn_gender]{.title-ref} to get gender predictions based on first
 name.
 
