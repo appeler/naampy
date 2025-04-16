@@ -35,7 +35,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["check-manifest"]
-test = ["coverage", "tox"]
+test = ["coverage", pytest"]
 
 [project.urls]
 "Homepage" = "https://github.com/appeler/naampy"
