@@ -28,7 +28,7 @@ uses land record data from Bihar to infer religion based on the name.
 The package uses [indicate](https://github.com/in-rolls/indicate) to
 transliterate Hindi to English.
 
-Streamlit App \~\~\~\~
+### Streamlit App
 
 <https://naampy.streamlit.app/>
 
