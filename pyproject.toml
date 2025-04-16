@@ -26,11 +26,11 @@ classifiers = [
 ]
 keywords = ["gender", "names"]
 dependencies = [
+  "tensorflow<2.15",
+  "numpy>=1.21,<1.25",
   "pandas>=0.19.2",
-  "tensorflow>=2.8,<2.19",
   "requests",
-  "tqdm",
-  "numpy"
+  "tqdm"
 ]
 
 [project.optional-dependencies]
