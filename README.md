@@ -1,8 +1,8 @@
 # naampy: Infer Sociodemographic Characteristics from Indian Names
 
 [![image](https://github.com/appeler/naampy/actions/workflows/test.yml/badge.svg)](https://github.com/appeler/naampy/actions/workflows/test.yml)
+[![Documentation](https://img.shields.io/badge/docs-github.io-blue)](https://appeler.github.io/naampy/)
 [![image](https://img.shields.io/pypi/v/naampy.svg)](https://pypi.python.org/pypi/naampy)
-[![image](https://readthedocs.org/projects/naampy/badge/?version=latest)](http://naampy.readthedocs.io/en/latest/?badge=latest)
 [![image](https://static.pepy.tech/badge/naampy)](https://pepy.tech/project/naampy)
 
 The ability to programmatically and reliably infer the social attributes
