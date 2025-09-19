@@ -36,6 +36,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["check-manifest"]
 test = ["coverage", "pytest"]
+docs = ["sphinx", "sphinx-rtd-theme"]
 
 [project.urls]
 "Homepage" = "https://github.com/appeler/naampy"

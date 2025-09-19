@@ -5,21 +5,36 @@
 
 import os
 import sys
+import tomllib
+from pathlib import Path
+
 sys.path.insert(0, os.path.abspath('../'))
 sys.path.insert(1, os.path.abspath('../../'))
+
+# Read project metadata from pyproject.toml
+pyproject_path = Path(__file__).parent.parent.parent / "pyproject.toml"
+with open(pyproject_path, "rb") as f:
+    pyproject_data = tomllib.load(f)
+
+project_info = pyproject_data["project"]
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'naampy'
-copyright = '2023, suriyan laohaprapanon, gaurav sood, rajashekar chintalapati'
-author = 'suriyan laohaprapanon, gaurav sood, rajashekar chintalapati'
-release = '0.5.0'
+project = project_info["name"]
+version = project_info["version"]
+release = version
+author = ", ".join([author["name"] for author in project_info["authors"]])
+copyright = f"2023, {author}"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = []
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.viewcode',
+    'sphinx.ext.napoleon'
+]
 
 templates_path = ['_templates']
 exclude_patterns = []
