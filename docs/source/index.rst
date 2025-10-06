@@ -12,7 +12,6 @@ Welcome to naampy's documentation!
 
    modules
 
-.. include:: ../../README.rst
 
 Indices and tables
 ==================
