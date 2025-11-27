@@ -41,26 +41,16 @@ jobs:
         shell: bash
 
       - name: Run ruff linting
-        run: |
-          source .venv/bin/activate
-          ruff check .
+        run: uv run ruff check .
 
       - name: Run ruff format check
-        run: |
-          source .venv/bin/activate
-          ruff format --check .
+        run: uv run ruff format --check .
 
       - name: Run mypy type checking
-        run: |
-          source .venv/bin/activate
-          mypy naampy --ignore-missing-imports
+        run: uv run mypy naampy --ignore-missing-imports
 
       - name: Run pytest with coverage
-        run: |
-          source .venv/bin/activate
-          pytest --cov=naampy --cov-report=term-missing --cov-report=html
+        run: uv run pytest --cov=naampy --cov-report=term-missing --cov-report=html
 
       - name: Show TensorFlow and NumPy version
-        run: |
-          source .venv/bin/activate
-          python -c "import tensorflow as tf, numpy as np; print('TF:', tf.__version__, '| NumPy:', np.__version__)"
+        run: uv run python -c "import tensorflow as tf, numpy as np; print('TF:', tf.__version__, '| NumPy:', np.__version__)"
