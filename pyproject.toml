@@ -134,7 +134,7 @@ known_first_party = ["naampy"]
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-testpaths = ["tests"]
+testpaths = ["naampy/tests"]
 python_files = "test_*.py"
 addopts = [
     "-ra",
@@ -178,4 +178,3 @@ exclude_lines = [
     "if __name__ == .__main__.:",
     "if TYPE_CHECKING:",
 ]
-testpaths = ["tests"]
