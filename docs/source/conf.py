@@ -45,9 +45,12 @@ extensions = [
 
 # Source file configuration
 source_suffix = {
-    '.rst': 'restructuredtext',
     '.md': 'markdown',
+    '.rst': 'restructuredtext',
 }
+
+# Set markdown as primary source
+primary_source_suffix = '.md'
 
 # Autodoc settings
 autodoc_default_options = {
@@ -73,7 +76,8 @@ intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
     'numpy': ('https://numpy.org/doc/stable', None),
     'pandas': ('https://pandas.pydata.org/docs', None),
-    'tensorflow': ('https://www.tensorflow.org/api_docs/python', None),
+    # TensorFlow doesn't provide objects.inv file
+    # 'tensorflow': ('https://www.tensorflow.org/api_docs/python', None),
 }
 
 # Copy button settings
@@ -96,7 +100,11 @@ myst_enable_extensions = [
 ]
 
 templates_path = ['_templates']
-exclude_patterns = []
+exclude_patterns = ['naampy.tests*', '_build', 'Thumbs.db', '.DS_Store']
+
+# Autodoc exclusions
+autodoc_mock_imports = []
+add_module_names = False
 
 
 

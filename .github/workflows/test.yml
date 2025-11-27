@@ -32,8 +32,8 @@ jobs:
           pip install --no-cache-dir --force-reinstall .[test]
           pip install pytest  # fallback in case it's not in optional-deps
 
-      - name: Run pytest
-        run: pytest
+      - name: Run pytest with coverage
+        run: pytest --cov=naampy --cov-report=term-missing --cov-report=html
 
       - name: Show TensorFlow and NumPy version
         run: python -c "import tensorflow as tf, numpy as np; print('TF:', tf.__version__, '| NumPy:', np.__version__)"

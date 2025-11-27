@@ -139,14 +139,13 @@ python_files = "test_*.py"
 addopts = [
     "-ra",
     "--strict-markers",
-    "--cov=naampy",
-    "--cov-report=term-missing",
-    "--cov-report=html",
-    "--cov-report=xml",
 ]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
 ]
+
+# Coverage configuration (optional)
+# To run with coverage: pytest --cov=naampy --cov-report=term-missing --cov-report=html
 
 # mypy configuration
 [tool.mypy]

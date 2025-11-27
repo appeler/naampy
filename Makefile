@@ -4,7 +4,8 @@ help:
 	@echo "Available commands:"
 	@echo "  install    Install package in production mode"
 	@echo "  dev        Install package in development mode with all dependencies"
-	@echo "  test       Run tests with coverage"
+	@echo "  test       Run tests without coverage"
+	@echo "  test-cov   Run tests with coverage"
 	@echo "  lint       Run linting checks"
 	@echo "  format     Format code with ruff"
 	@echo "  clean      Remove build artifacts and cache files"
@@ -20,7 +21,10 @@ dev:
 	uv run pre-commit install
 
 test:
-	uv run pytest tests/ -v --cov=naampy
+	uv run pytest naampy/tests/ -v
+
+test-cov:
+	uv run pytest --cov=naampy --cov-report=term-missing --cov-report=html -v
 
 lint:
 	uv run ruff check .
