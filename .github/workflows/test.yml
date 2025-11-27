@@ -28,8 +28,13 @@ jobs:
 
       - name: Create virtual environment and install dependencies
         run: |
-          uv venv
-          uv pip install -e ".[test,dev]"
+          uv sync --dev
+          # Install platform-specific TensorFlow with version constraint
+          if [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+            uv pip install "tensorflow>=2.13.0,<2.16.0" "tensorflow-macos>=2.13.0,<2.16.0"
+          else
+            uv pip install "tensorflow>=2.13.0,<2.16.0"
+          fi
 
       - name: Run ruff linting
         run: |

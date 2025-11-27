@@ -13,6 +13,18 @@ from tensorflow.keras.preprocessing.text import Tokenizer
 
 from .utils import download_file, get_app_file_path
 
+#: Harvard Dataverse URLs for Indian Electoral Roll datasets.
+#:
+#: Contains download URLs for different versions of the naampy gender prediction
+#: datasets hosted on Harvard Dataverse. Each version contains electoral roll
+#: statistics from different numbers of Indian states and territories.
+#:
+#: Dataset versions:
+#:     - v1: 12 states dataset
+#:     - v2: Full 30 states dataset
+#:     - v2_1k: 30 states with 1000+ name occurrences (recommended)
+#:     - v2_native: Native language scripts dataset (16 states)
+#:     - v2_en: English transliteration of v2_native
 IN_ROLLS_DATA = {
     "v1": "https://dataverse.harvard.edu/api/v1/access/datafile/4967581",
     "v2": "https://dataverse.harvard.edu/api/v1/access/datafile/4965696",
