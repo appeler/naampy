@@ -27,19 +27,25 @@ class TestElectoralRoll(unittest.TestCase):
         result = in_rolls_fn_gender(self.df, "name")
 
         # Check required columns are present
-        expected_cols = ["prop_female", "prop_male", "prop_third_gender",
-                        "n_female", "n_male", "n_third_gender"]
+        expected_cols = [
+            "prop_female",
+            "prop_male",
+            "prop_third_gender",
+            "n_female",
+            "n_male",
+            "n_third_gender",
+        ]
         for col in expected_cols:
             self.assertIn(col, result.columns)
 
         # Validate gender predictions for known names
         # yasmin should be predominantly female
-        yasmin_row = result[result['name'] == 'yasmin'].iloc[0]
-        self.assertTrue(yasmin_row['prop_female'] > 0.9)
+        yasmin_row = result[result["name"] == "yasmin"].iloc[0]
+        self.assertTrue(yasmin_row["prop_female"] > 0.9)
 
         # vivek should be predominantly male
-        vivek_row = result[result['name'] == 'vivek'].iloc[0]
-        self.assertTrue(vivek_row['prop_female'] < 0.1)
+        vivek_row = result[result["name"] == "vivek"].iloc[0]
+        self.assertTrue(vivek_row["prop_female"] < 0.1)
 
     def test_state_filtering(self):
         """Test state-specific electoral roll data."""
@@ -49,10 +55,12 @@ class TestElectoralRoll(unittest.TestCase):
         self.assertIn("prop_female", result.columns)
 
         # Gender predictions should still be reasonable
-        yasmin_row = result[result['name'] == 'yasmin'].iloc[0]
-        vivek_row = result[result['name'] == 'vivek'].iloc[0]
-        self.assertTrue(yasmin_row['prop_female'] > 0.8)  # Slightly more lenient for state-specific
-        self.assertTrue(vivek_row['prop_female'] < 0.2)
+        yasmin_row = result[result["name"] == "yasmin"].iloc[0]
+        vivek_row = result[result["name"] == "vivek"].iloc[0]
+        self.assertTrue(
+            yasmin_row["prop_female"] > 0.8
+        )  # Slightly more lenient for state-specific
+        self.assertTrue(vivek_row["prop_female"] < 0.2)
 
     def test_year_filtering(self):
         """Test year-specific electoral roll data."""
@@ -62,36 +70,40 @@ class TestElectoralRoll(unittest.TestCase):
         self.assertIn("prop_female", result.columns)
 
         # Gender predictions should still be reasonable
-        yasmin_row = result[result['name'] == 'yasmin'].iloc[0]
-        vivek_row = result[result['name'] == 'vivek'].iloc[0]
-        self.assertTrue(yasmin_row['prop_female'] > 0.8)
-        self.assertTrue(vivek_row['prop_female'] < 0.2)
+        yasmin_row = result[result["name"] == "yasmin"].iloc[0]
+        vivek_row = result[result["name"] == "vivek"].iloc[0]
+        self.assertTrue(yasmin_row["prop_female"] > 0.8)
+        self.assertTrue(vivek_row["prop_female"] < 0.2)
 
     def test_dataset_v1(self):
         """Test v1 dataset functionality."""
-        result = in_rolls_fn_gender(self.df, "name", state="andhra", year=1985, dataset="v1")
+        result = in_rolls_fn_gender(
+            self.df, "name", state="andhra", year=1985, dataset="v1"
+        )
 
         # Should have required columns
         self.assertIn("prop_female", result.columns)
 
         # Gender predictions should be consistent
-        yasmin_row = result[result['name'] == 'yasmin'].iloc[0]
-        vivek_row = result[result['name'] == 'vivek'].iloc[0]
-        self.assertTrue(yasmin_row['prop_female'] > 0.8)
-        self.assertTrue(vivek_row['prop_female'] < 0.2)
+        yasmin_row = result[result["name"] == "yasmin"].iloc[0]
+        vivek_row = result[result["name"] == "vivek"].iloc[0]
+        self.assertTrue(yasmin_row["prop_female"] > 0.8)
+        self.assertTrue(vivek_row["prop_female"] < 0.2)
 
     def test_dataset_v2(self):
         """Test v2 dataset functionality."""
-        result = in_rolls_fn_gender(self.df, "name", state="andhra", year=1985, dataset="v2")
+        result = in_rolls_fn_gender(
+            self.df, "name", state="andhra", year=1985, dataset="v2"
+        )
 
         # Should have required columns
         self.assertIn("prop_female", result.columns)
 
         # Gender predictions should be consistent
-        yasmin_row = result[result['name'] == 'yasmin'].iloc[0]
-        vivek_row = result[result['name'] == 'vivek'].iloc[0]
-        self.assertTrue(yasmin_row['prop_female'] > 0.8)
-        self.assertTrue(vivek_row['prop_female'] < 0.2)
+        yasmin_row = result[result["name"] == "yasmin"].iloc[0]
+        vivek_row = result[result["name"] == "vivek"].iloc[0]
+        self.assertTrue(yasmin_row["prop_female"] > 0.8)
+        self.assertTrue(vivek_row["prop_female"] < 0.2)
 
     def test_column_types_and_values(self):
         """Test that output columns have correct types and value ranges."""
@@ -115,10 +127,18 @@ class TestElectoralRoll(unittest.TestCase):
         result = in_rolls_fn_gender(self.df, "name")
 
         for idx, row in result.iterrows():
-            if pd.notna(row['prop_female']) and pd.notna(row['prop_male']):
-                prop_sum = row['prop_female'] + row['prop_male'] + row.get('prop_third_gender', 0)
-                self.assertAlmostEqual(prop_sum, 1.0, places=2,
-                                     msg=f"Proportions don't sum to 1 for row {idx}")
+            if pd.notna(row["prop_female"]) and pd.notna(row["prop_male"]):
+                prop_sum = (
+                    row["prop_female"]
+                    + row["prop_male"]
+                    + row.get("prop_third_gender", 0)
+                )
+                self.assertAlmostEqual(
+                    prop_sum,
+                    1.0,
+                    places=2,
+                    msg=f"Proportions don't sum to 1 for row {idx}",
+                )
 
     def test_invalid_column_name(self):
         """Test behavior with invalid column name."""

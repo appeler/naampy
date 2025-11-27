@@ -33,30 +33,35 @@ class TestMLModel(unittest.TestCase):
         self.assertEqual(len(result), len(self.common_names))
 
         # Validate specific predictions for known patterns
-        nabha_row = result[result['name'] == 'nabha'].iloc[0]
-        self.assertEqual(nabha_row['pred_gender'], 'female')
+        nabha_row = result[result["name"] == "nabha"].iloc[0]
+        self.assertEqual(nabha_row["pred_gender"], "female")
 
-        ayushmann_row = result[result['name'] == 'ayushmann'].iloc[0]
-        self.assertEqual(ayushmann_row['pred_gender'], 'male')
+        ayushmann_row = result[result["name"] == "ayushmann"].iloc[0]
+        self.assertEqual(ayushmann_row["pred_gender"], "male")
 
     def test_confidence_scores_valid_range(self):
         """Test that confidence scores are in valid range [0, 1]."""
         result = predict_fn_gender(self.common_names)
 
         for _idx, row in result.iterrows():
-            self.assertGreaterEqual(row['pred_prob'], 0.0,
-                                   f"Confidence score below 0 for {row['name']}")
-            self.assertLessEqual(row['pred_prob'], 1.0,
-                                f"Confidence score above 1 for {row['name']}")
+            self.assertGreaterEqual(
+                row["pred_prob"], 0.0, f"Confidence score below 0 for {row['name']}"
+            )
+            self.assertLessEqual(
+                row["pred_prob"], 1.0, f"Confidence score above 1 for {row['name']}"
+            )
 
     def test_gender_values_valid(self):
         """Test that predicted gender values are valid."""
         result = predict_fn_gender(self.common_names)
 
-        valid_genders = {'male', 'female'}
+        valid_genders = {"male", "female"}
         for _idx, row in result.iterrows():
-            self.assertIn(row['pred_gender'], valid_genders,
-                         f"Invalid gender prediction for {row['name']}")
+            self.assertIn(
+                row["pred_gender"],
+                valid_genders,
+                f"Invalid gender prediction for {row['name']}",
+            )
 
     def test_high_confidence_common_names(self):
         """Test that common names have high confidence scores."""
@@ -64,16 +69,17 @@ class TestMLModel(unittest.TestCase):
 
         # All should have confidence > 0.6 for these well-known names
         for _idx, row in result.iterrows():
-            self.assertGreaterEqual(row['pred_prob'], 0.6,
-                                   f"Low confidence for common name: {row['name']}")
+            self.assertGreaterEqual(
+                row["pred_prob"], 0.6, f"Low confidence for common name: {row['name']}"
+            )
 
     def test_edge_case_names(self):
         """Test ML model with edge case names."""
         edge_cases = [
-            'a',  # Very short
-            'abcdefghijklmnopqr',  # Long name
-            'X',  # Single letter
-            'zee'  # Short but valid
+            "a",  # Very short
+            "abcdefghijklmnopqr",  # Long name
+            "X",  # Single letter
+            "zee",  # Short but valid
         ]
 
         result = predict_fn_gender(edge_cases)
@@ -83,9 +89,9 @@ class TestMLModel(unittest.TestCase):
 
         # All should have valid predictions
         for _idx, row in result.iterrows():
-            self.assertIn(row['pred_gender'], ['male', 'female'])
-            self.assertGreaterEqual(row['pred_prob'], 0.0)
-            self.assertLessEqual(row['pred_prob'], 1.0)
+            self.assertIn(row["pred_gender"], ["male", "female"])
+            self.assertGreaterEqual(row["pred_prob"], 0.0)
+            self.assertLessEqual(row["pred_prob"], 1.0)
 
     def test_name_preprocessing(self):
         """Test that names are properly preprocessed (lowercased)."""
@@ -94,8 +100,9 @@ class TestMLModel(unittest.TestCase):
 
         # All names in result should be lowercase
         for _idx, row in result.iterrows():
-            self.assertEqual(row['name'], row['name'].lower(),
-                           f"Name not lowercased: {row['name']}")
+            self.assertEqual(
+                row["name"], row["name"].lower(), f"Name not lowercased: {row['name']}"
+            )
 
     def test_empty_input(self):
         """Test ML model behavior with empty input."""
@@ -119,9 +126,9 @@ class TestMLModel(unittest.TestCase):
         result = predict_fn_gender(["deepika"])
 
         self.assertEqual(len(result), 1)
-        self.assertEqual(result.iloc[0]['name'], 'deepika')
-        self.assertIn(result.iloc[0]['pred_gender'], ['male', 'female'])
-        self.assertIsNotNone(result.iloc[0]['pred_prob'])
+        self.assertEqual(result.iloc[0]["name"], "deepika")
+        self.assertIn(result.iloc[0]["pred_gender"], ["male", "female"])
+        self.assertIsNotNone(result.iloc[0]["pred_prob"])
 
     def test_duplicate_names(self):
         """Test ML model with duplicate names in input."""
@@ -132,12 +139,15 @@ class TestMLModel(unittest.TestCase):
         self.assertEqual(len(result), len(names_with_duplicates))
 
         # Check that duplicate names have consistent predictions
-        priya_rows = result[result['name'] == 'priya']
+        priya_rows = result[result["name"] == "priya"]
         if len(priya_rows) > 1:
-            first_prediction = priya_rows.iloc[0]['pred_gender']
+            first_prediction = priya_rows.iloc[0]["pred_gender"]
             for _idx, row in priya_rows.iterrows():
-                self.assertEqual(row['pred_gender'], first_prediction,
-                               "Inconsistent predictions for duplicate names")
+                self.assertEqual(
+                    row["pred_gender"],
+                    first_prediction,
+                    "Inconsistent predictions for duplicate names",
+                )
 
     def test_special_characters_handling(self):
         """Test ML model with names containing special characters."""
@@ -149,7 +159,7 @@ class TestMLModel(unittest.TestCase):
 
         # All should have valid predictions
         for _idx, row in result.iterrows():
-            self.assertIn(row['pred_gender'], ['male', 'female'])
+            self.assertIn(row["pred_gender"], ["male", "female"])
 
     def test_model_consistency(self):
         """Test that ML model gives consistent predictions for same input."""
@@ -160,8 +170,8 @@ class TestMLModel(unittest.TestCase):
         result2 = predict_fn_gender(test_names)
 
         # Should get identical results
-        self.assertEqual(result1.iloc[0]['pred_gender'], result2.iloc[0]['pred_gender'])
-        self.assertEqual(result1.iloc[0]['pred_prob'], result2.iloc[0]['pred_prob'])
+        self.assertEqual(result1.iloc[0]["pred_gender"], result2.iloc[0]["pred_gender"])
+        self.assertEqual(result1.iloc[0]["pred_prob"], result2.iloc[0]["pred_prob"])
 
 
 if __name__ == "__main__":
