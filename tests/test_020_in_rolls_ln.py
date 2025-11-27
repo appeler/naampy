@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 """
 Tests for in_rolls_fn.py
@@ -7,8 +6,10 @@ Tests for in_rolls_fn.py
 """
 
 import unittest
+
 import pandas as pd
-from naampy.in_rolls_fn import in_rolls_fn_gender, predict_fn_gender
+
+from naampy.in_rolls_fn import in_rolls_fn_gender
 
 
 class TestInRollsFn(unittest.TestCase):

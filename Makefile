@@ -21,10 +21,10 @@ dev:
 	uv run pre-commit install
 
 test:
-	uv run pytest naampy/tests/ -v
+	uv run --group test pytest tests/ -v
 
 test-cov:
-	uv run pytest --cov=naampy --cov-report=term-missing --cov-report=html -v
+	uv run --group test pytest --cov=naampy --cov-report=term-missing --cov-report=html -v
 
 lint:
 	uv run ruff check .

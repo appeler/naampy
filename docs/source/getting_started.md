@@ -6,7 +6,7 @@ This guide will help you install naampy and make your first predictions.
 
 ### Requirements
 
-- Python 3.10, 3.11, or 3.12
+- Python 3.11 or 3.12
 - pip or uv package manager
 
 ### Install from PyPI

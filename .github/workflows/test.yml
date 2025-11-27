@@ -11,29 +11,47 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ['3.10', '3.11']
+        python-version: ['3.11', '3.12']
         exclude:
           - os: macos-latest
-            python-version: "3.10"
-          - os: windows-latest
             python-version: "3.11"
+          - os: windows-latest
+            python-version: "3.12"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install dependencies from pyproject.toml
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: Create virtual environment and install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install --no-cache-dir --force-reinstall .[test]
-          pip install pytest  # fallback in case it's not in optional-deps
+          uv venv
+          uv pip install -e ".[test,dev]"
+
+      - name: Run ruff linting
+        run: |
+          uv run ruff check .
+
+      - name: Run ruff format check
+        run: |
+          uv run ruff format --check .
+
+      - name: Run mypy type checking
+        run: |
+          uv run mypy naampy --ignore-missing-imports
 
       - name: Run pytest with coverage
-        run: pytest --cov=naampy --cov-report=term-missing --cov-report=html
+        run: |
+          uv run pytest --cov=naampy --cov-report=term-missing --cov-report=html
 
       - name: Show TensorFlow and NumPy version
-        run: python -c "import tensorflow as tf, numpy as np; print('TF:', tf.__version__, '| NumPy:', np.__version__)"
+        run: |
+          uv run python -c "import tensorflow as tf, numpy as np; print('TF:', tf.__version__, '| NumPy:', np.__version__)"

@@ -1,13 +1,13 @@
 [build-system]
-requires = ["hatchling>=1.21.1"]
-build-backend = "hatchling.build"
+requires = ["uv_build>=0.9.13,<0.10.0"]
+build-backend = "uv_build"
 
 [project]
 name = "naampy"
 version = "0.6.1"
 description = "Infer Gender from Indian Names"
 readme = "README.md"
-requires-python = ">=3.10,<3.13"
+requires-python = ">=3.11,<3.13"
 license = { text = "MIT" }
 authors = [
   { name = "Gaurav Sood", email = "gsood07@gmail.com" },
@@ -18,7 +18,6 @@ classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
   "License :: OSI Approved :: MIT License",
-  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Topic :: Scientific/Engineering :: Information Analysis",
@@ -51,8 +50,7 @@ dev = [
     "pytest-xdist>=3.0",
     "ruff>=0.7.0",
     "mypy>=1.0",
-    "black>=24.0",
-    "isort>=5.0",
+    "types-requests>=2.25.0",
     "pre-commit>=3.0",
 ]
 test = [
@@ -71,23 +69,15 @@ Changelog = "https://github.com/appeler/naampy/blob/main/CHANGELOG.md"
 [project.scripts]
 in_rolls_fn_gender = "naampy.in_rolls_fn:main"
 
-[tool.hatch.build]
-exclude = [
-    "/.github",
-    "/.venv",
-    "/docs",
-    "/tests",
-    "/.gitignore",
-    "/.pre-commit-config.yaml",
-]
+[tool.uv.build-backend]
+module-name = "naampy"
+module-root = ""
 
-[tool.hatch.build.targets.wheel]
-packages = ["naampy"]
 
 # Ruff configuration
 [tool.ruff]
 line-length = 88
-target-version = "py310"
+target-version = "py311"
 exclude = [
     ".git",
     "__pycache__",
@@ -96,6 +86,7 @@ exclude = [
     ".venv",
     "docs",
     ".eggs",
+    "naampy/data",
 ]
 
 [tool.ruff.lint]
@@ -121,10 +112,12 @@ ignore = [
 [tool.ruff.lint.isort]
 known-first-party = ["naampy"]
 
-# Black configuration
-[tool.black]
-line-length = 88
-target-version = ["py310", "py311", "py312"]
+# Ruff formatting configuration (replaces black)
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
 
 # isort configuration
 [tool.isort]
@@ -134,7 +127,7 @@ known_first_party = ["naampy"]
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-testpaths = ["naampy/tests"]
+testpaths = ["tests"]
 python_files = "test_*.py"
 addopts = [
     "-ra",
@@ -147,22 +140,6 @@ markers = [
 # Coverage configuration (optional)
 # To run with coverage: pytest --cov=naampy --cov-report=term-missing --cov-report=html
 
-# mypy configuration
-[tool.mypy]
-python_version = "3.10"
-warn_return_any = true
-warn_unused_configs = true
-check_untyped_defs = true
-warn_redundant_casts = true
-warn_unused_ignores = true
-warn_no_return = true
-show_error_codes = true
-
-[[tool.mypy.overrides]]
-module = "tests.*"
-ignore_errors = true
-
-# Coverage configuration
 [tool.coverage.run]
 source = ["naampy"]
 branch = true
@@ -177,3 +154,18 @@ exclude_lines = [
     "if __name__ == .__main__.:",
     "if TYPE_CHECKING:",
 ]
+
+# mypy configuration
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+check_untyped_defs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+show_error_codes = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+ignore_errors = true
