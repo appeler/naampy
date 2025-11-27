@@ -26,39 +26,41 @@ jobs:
         with:
           version: "latest"
 
-      - name: Install dependencies with uv pip (avoiding sync issues)
+      - name: Create virtual environment and install dependencies
         run: |
           uv venv
           uv pip install -e . --group dev
 
-      - name: Install TensorFlow for macOS  
-        if: matrix.os == 'macos-latest'
-        run: uv pip install "tensorflow>=2.13.0,<2.16.0" "tensorflow-macos>=2.13.0,<2.16.0"
-
-      - name: Install TensorFlow for Windows
-        if: matrix.os == 'windows-latest'
-        run: uv pip install "tensorflow>=2.13.0,<2.16.0" "tensorflow-io-gcs-filesystem>=0.31.0,<0.32.0"
-
-      - name: Install TensorFlow for Linux
-        if: matrix.os == 'ubuntu-latest'  
-        run: uv pip install "tensorflow>=2.13.0,<2.16.0"
+      - name: Install platform-specific TensorFlow packages
+        run: |
+          if [ "${{ matrix.os }}" = "macos-latest" ]; then
+            uv pip install "tensorflow-macos>=2.13.0,<2.16.0"
+          elif [ "${{ matrix.os }}" = "windows-latest" ]; then
+            uv pip install "tensorflow-io-gcs-filesystem>=0.31.0,<0.32.0"
+          fi
+        shell: bash
 
       - name: Run ruff linting
         run: |
-          uv run ruff check .
+          source .venv/bin/activate
+          ruff check .
 
       - name: Run ruff format check
         run: |
-          uv run ruff format --check .
+          source .venv/bin/activate
+          ruff format --check .
 
       - name: Run mypy type checking
         run: |
-          uv run mypy naampy --ignore-missing-imports
+          source .venv/bin/activate
+          mypy naampy --ignore-missing-imports
 
       - name: Run pytest with coverage
         run: |
-          uv run pytest --cov=naampy --cov-report=term-missing --cov-report=html
+          source .venv/bin/activate
+          pytest --cov=naampy --cov-report=term-missing --cov-report=html
 
       - name: Show TensorFlow and NumPy version
         run: |
-          uv run python -c "import tensorflow as tf, numpy as np; print('TF:', tf.__version__, '| NumPy:', np.__version__)"
+          source .venv/bin/activate
+          python -c "import tensorflow as tf, numpy as np; print('TF:', tf.__version__, '| NumPy:', np.__version__)"
