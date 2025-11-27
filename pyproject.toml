@@ -31,7 +31,6 @@ dependencies = [
   "pandas>=1.5.0,<2.3.0",
   "requests>=2.25.0",
   "tqdm>=4.60.0",
-  "tensorflow-macos>=2.15.0",
 ]
 
 [project.optional-dependencies]
