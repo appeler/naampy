@@ -26,15 +26,21 @@ jobs:
         with:
           version: "latest"
 
-      - name: Create virtual environment and install dependencies
-        run: uv sync --dev
+      - name: Install dependencies with uv pip (avoiding sync issues)
+        run: |
+          uv venv
+          uv pip install -e . --group dev
 
-      - name: Install TensorFlow for macOS
+      - name: Install TensorFlow for macOS  
         if: matrix.os == 'macos-latest'
         run: uv pip install "tensorflow>=2.13.0,<2.16.0" "tensorflow-macos>=2.13.0,<2.16.0"
 
-      - name: Install TensorFlow for Linux/Windows
-        if: matrix.os != 'macos-latest'
+      - name: Install TensorFlow for Windows
+        if: matrix.os == 'windows-latest'
+        run: uv pip install "tensorflow>=2.13.0,<2.16.0" "tensorflow-io-gcs-filesystem>=0.31.0,<0.32.0"
+
+      - name: Install TensorFlow for Linux
+        if: matrix.os == 'ubuntu-latest'  
         run: uv pip install "tensorflow>=2.13.0,<2.16.0"
 
       - name: Run ruff linting
