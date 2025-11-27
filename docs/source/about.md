@@ -1,12 +1,9 @@
 # About naampy
 
-## Background and Motivation
-
-The ability to programmatically and reliably infer the social attributes of a person from their name can be useful for a broad set of tasks, from estimating bias in coverage of women in the media to estimating bias in lending against certain social groups. 
-
-Unlike the American Census Bureau, which produces lists of last names and first names that can be used to infer gender, race, ethnicity, etc., the Indian government produces no such commensurate datasets. Hence inferring the relationship between gender, ethnicity, language group, and names has generally been done with small datasets constructed in an ad-hoc manner.
-
-naampy fills this gap by using data from the [Indian Electoral Rolls](https://github.com/in-rolls/electoral_rolls) (parsed data available [here](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/MUEGDT)) to estimate the proportion female, male, and third gender for a particular first name, year, and state.
+```{include} ../../README.md
+:start-after: <!-- START:description -->
+:end-before: <!-- END:description -->
+```
 
 ## Data Sources
 

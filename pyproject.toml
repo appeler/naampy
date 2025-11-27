@@ -7,7 +7,7 @@ name = "naampy"
 version = "0.6.1"
 description = "Infer Gender from Indian Names"
 readme = "README.md"
-requires-python = ">=3.11,<3.13"
+requires-python = ">=3.11,<3.12"
 license = { text = "MIT" }
 authors = [
   { name = "Gaurav Sood", email = "gsood07@gmail.com" },
@@ -19,7 +19,6 @@ classifiers = [
   "Intended Audience :: Developers",
   "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12",
   "Topic :: Scientific/Engineering :: Information Analysis",
   "Topic :: Software Development :: Libraries :: Python Modules",
   "Topic :: Utilities"

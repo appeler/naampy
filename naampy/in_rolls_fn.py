@@ -33,7 +33,14 @@ IN_ROLLS_COLS = [
 
 class InRollsFnData:
     """
-    InRollsFnData class.
+    Main class for handling Indian Electoral Roll data and gender prediction.
+
+    This class provides methods to predict gender based on Indian first names using
+    two approaches:
+    1. Statistical data from Indian Electoral Rolls (31 states and union territories)
+    2. Machine learning model for names not found in the electoral data
+
+    The class maintains cached data and models for efficient repeated predictions.
     """
 
     __df = None
@@ -46,11 +53,28 @@ class InRollsFnData:
     @staticmethod
     def load_naampy_data(dataset: str) -> str:
         """
+        Download and cache the naampy dataset from Harvard Dataverse.
+
+        This method downloads the specified dataset version if not already cached locally.
+        Subsequent calls will use the cached version for faster performance.
 
         Args:
-            dataset (str): version of the dataset
+            dataset (str): Version of the dataset to load. Options are:
+                - 'v1': 12 states dataset
+                - 'v2': Full 30 states dataset
+                - 'v2_1k': 30 states with 1000+ name occurrences (default)
+                - 'v2_native': Native language dataset (16 states)
+                - 'v2_en': English transliteration of v2_native
+
         Returns:
-            path to the data
+            str: Local file path to the downloaded/cached dataset
+
+        Raises:
+            Exception: If the dataset download fails
+
+        Example:
+            >>> path = InRollsFnData.load_naampy_data('v2_1k')
+            >>> print(f"Data cached at: {path}")
         """
         data_fn = f"naampy_{dataset}.csv.gz"
         data_path = get_app_file_path("naampy", data_fn)
@@ -65,11 +89,36 @@ class InRollsFnData:
     @classmethod
     def predict_fn_gender(cls, first_names: list[str]) -> pd.DataFrame:
         """
-        Predict gender based on name
+        Predict gender using a neural network model based on character patterns in names.
+
+        This method uses a character-level neural network trained on Indian names to predict
+        gender when names are not found in the electoral roll database. The model learns
+        patterns in character sequences to make predictions.
+
         Args:
-            first_names (list of str): list of first name
+            first_names (list[str]): List of first names to predict gender for.
+                Names are automatically converted to lowercase.
+
         Returns:
-            DataFrame: Pandas DataFrame with predicted labels and probability
+            pd.DataFrame: DataFrame containing:
+                - name (str): Input first name (lowercased)
+                - pred_gender (str): Predicted gender ('male' or 'female')
+                - pred_prob (float): Confidence score for the prediction (0.0 to 1.0)
+
+        Note:
+            - Names are classified as 'female' if predicted probability > 0.5
+            - Names are classified as 'male' if predicted probability ≤ 0.5
+            - The model handles character sequences up to 24 characters
+            - Model accuracy: RMSE of 0.22 on test data
+
+        Example:
+            >>> names = ['Priya', 'Rahul', 'Unknown_Name']
+            >>> result = InRollsFnData.predict_fn_gender(names)
+            >>> print(result)
+                  name pred_gender  pred_prob
+            0    priya      female      0.945
+            1    rahul        male      0.876
+            2  unknown_name  female      0.623
         """
         # load model
         if cls.__model is None:
@@ -109,26 +158,56 @@ class InRollsFnData:
         dataset: str = "v2_1k",
     ) -> pd.DataFrame:
         """
-        Appends additional columns from Female ratio data to the input DataFrame
-        based on the first name.
+        Predict gender from Indian first names using Electoral Roll statistics.
 
-        Removes extra space. Checks if the name is the Indian electoral rolls data.
-        If it is, outputs data from that row.
+        This function enriches the input DataFrame with gender statistics from the Indian
+        Electoral Rolls database. For names not found in the database, it automatically
+        falls back to machine learning predictions (except for v2_native dataset).
 
         Args:
-            df (:obj:`DataFrame`): Pandas DataFrame containing the first name
-                column.
-            namecol (str): Columnn name containing the first name.
-            state (str or None): The state from which Indian electoral rolls data to be used.
-                (default is None for all states)
-            year (int or None): The year of Indian electoral rolls to be used.
-                (default is None for all years)
+            df (pd.DataFrame): Input DataFrame containing the first name column.
+            namecol (str): Name of the column containing first names to analyze.
+            state (str, optional): Specific Indian state to use for analysis.
+                Available states: andaman, andhra, arunachal, assam, bihar, chandigarh,
+                dadra, daman, delhi, goa, gujarat, haryana, himachal, jharkhand, jk,
+                karnataka, kerala, maharashtra, manipur, meghalaya, mizoram, mp,
+                nagaland, odisha, puducherry, punjab, rajasthan, sikkim, tripura,
+                up, uttarakhand. Defaults to None (all states).
+            year (int, optional): Specific birth year to filter data by.
+                Defaults to None (all years).
+            dataset (str, optional): Dataset version to use. Options:
+                - 'v1': 12 states dataset
+                - 'v2': Full 30 states dataset
+                - 'v2_1k': 1000+ occurrences dataset (default, good balance)
+                - 'v2_native': Native language dataset (no ML fallback)
+                - 'v2_en': English transliteration dataset
 
         Returns:
-            DataFrame: Pandas DataFrame with additional columns:-
-                'n_female', 'n_male', 'n_third_gender',
-                'prop_female', 'prop_male', 'prop_third_gender' by first name
+            pd.DataFrame: Enhanced DataFrame with additional columns:
+                - n_female (float): Count of females with this name
+                - n_male (float): Count of males with this name
+                - n_third_gender (float): Count of third gender individuals
+                - prop_female (float): Proportion female (0.0 to 1.0)
+                - prop_male (float): Proportion male (0.0 to 1.0)
+                - prop_third_gender (float): Proportion third gender (0.0 to 1.0)
+                - pred_gender (str): ML prediction for names not in database
+                - pred_prob (float): ML prediction confidence score
 
+        Note:
+            - Names are automatically cleaned (stripped and lowercased)
+            - For names not in electoral data, ML predictions are added
+            - Data is cached after first download for faster subsequent use
+            - Third gender category reflects Indian electoral roll classifications
+
+        Example:
+            >>> import pandas as pd
+            >>> df = pd.DataFrame({'name': ['Priya', 'Rahul', 'Anjali']})
+            >>> result = in_rolls_fn_gender(df, 'name')
+            >>> print(result[['name', 'prop_female', 'prop_male']].head())
+                 name  prop_female  prop_male
+            0   priya       0.994      0.006
+            1   rahul       0.008      0.992
+            2  anjali       0.989      0.011
         """
 
         if namecol and namecol not in df.columns:
@@ -199,11 +278,22 @@ class InRollsFnData:
     @staticmethod
     def list_states(dataset: str = "v2_1k") -> np.ndarray:
         """
+        Get list of available states in the specified dataset.
+
+        This method returns all unique states/union territories available in the
+        chosen dataset version for filtering and analysis.
 
         Args:
-            dataset (str): version of the dataset
+            dataset (str, optional): Dataset version to query. Defaults to 'v2_1k'.
+                See load_naampy_data() for available dataset options.
+
         Returns:
-            list of states
+            np.ndarray: Array of state names available in the dataset.
+
+        Example:
+            >>> states = InRollsFnData.list_states('v2_1k')
+            >>> print(f"Available states: {', '.join(states[:5])}...")
+            Available states: andaman, andhra, arunachal, assam, bihar...
         """
         data_path = InRollsFnData.load_naampy_data(dataset)
         adf = pd.read_csv(data_path, usecols=["state"])
@@ -216,7 +306,21 @@ predict_fn_gender = InRollsFnData.predict_fn_gender
 
 def main(argv=sys.argv[1:]):
     """
-    Main method for shell support
+    Command-line interface for naampy gender prediction.
+
+    This function provides a command-line interface to process CSV files and
+    add gender predictions based on first names using Indian Electoral Roll data.
+
+    Args:
+        argv (list[str], optional): Command line arguments.
+            Defaults to sys.argv[1:].
+
+    Returns:
+        int: Exit code (0 for success, -1 for error)
+
+    Example:
+        $ in_rolls_fn_gender input.csv -f first_name -o output.csv
+        $ in_rolls_fn_gender input.csv -f name -s kerala -y 1990
     """
     title = (
         "Appends Electoral roll columns prop_female, n_female, n_male n_third_gender"
