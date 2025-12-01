@@ -135,7 +135,16 @@ class InRollsFnData:
         # load model
         if cls.__model is None:
             model_path = resources.files(__package__) / "model" / "naampy_rmse"
-            cls.__model = tf.keras.models.load_model(str(model_path))
+            # Use TFSMLayer for Keras 3 compatibility with SavedModel format
+            try:
+                cls.__model = tf.keras.models.load_model(str(model_path))
+            except ValueError:
+                # Fallback for Keras 3 with SavedModel format
+                tfsm_layer = tf.keras.layers.TFSMLayer(str(model_path), call_endpoint='serving_default')
+                # Create a functional model wrapper
+                inputs = tf.keras.layers.Input(shape=(24,), dtype='int64', name='input')
+                outputs = tfsm_layer(inputs)
+                cls.__model = tf.keras.models.Model(inputs=inputs, outputs=outputs)
         # create tokenizer
         if cls.__tk is None:
             cls.__tk = Tokenizer(num_words=None, char_level=True, oov_token="UNK")
@@ -148,11 +157,24 @@ class InRollsFnData:
             # Add 'UNK' to the vocabulary
             cls.__tk.word_index[cls.__tk.oov_token] = max(char_dict.values()) + 1
 
+        # Handle empty input - support both lists and numpy arrays
+        if len(first_names) == 0:
+            return pd.DataFrame(
+                columns=["name", "pred_gender", "pred_prob"]
+            )
+
         first_names = [i.lower() for i in first_names]
         sequences = cls.__tk.texts_to_sequences(first_names)
         tokens = pad_sequences(sequences, maxlen=24, padding="post")
 
         results = cls.__model.predict(tokens)
+
+        # Handle both old format (direct array) and new TFSMLayer format (dictionary)
+        if isinstance(results, dict):
+            # TFSMLayer returns a dictionary, extract the output tensor
+            output_key = list(results.keys())[0]  # Get the first (and likely only) output
+            results = results[output_key]
+
         gender = np.where(results > 0.5, "female", "male")[:, 0]
         score = np.where(results > 0.5, results, 1 - results)[:, 0]
 

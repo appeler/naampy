@@ -27,9 +27,7 @@ jobs:
           version: "latest"
 
       - name: Create virtual environment and install dependencies
-        run: |
-          uv venv
-          uv pip install -e . --group dev
+        run: uv sync --dev
 
       - name: Install platform-specific TensorFlow packages
         run: |
