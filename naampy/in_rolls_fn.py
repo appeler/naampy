@@ -140,9 +140,11 @@ class InRollsFnData:
                 cls.__model = tf.keras.models.load_model(str(model_path))
             except ValueError:
                 # Fallback for Keras 3 with SavedModel format
-                tfsm_layer = tf.keras.layers.TFSMLayer(str(model_path), call_endpoint='serving_default')
+                tfsm_layer = tf.keras.layers.TFSMLayer(
+                    str(model_path), call_endpoint="serving_default"
+                )
                 # Create a functional model wrapper
-                inputs = tf.keras.layers.Input(shape=(24,), dtype='int64', name='input')
+                inputs = tf.keras.layers.Input(shape=(24,), dtype="int64", name="input")
                 outputs = tfsm_layer(inputs)
                 cls.__model = tf.keras.models.Model(inputs=inputs, outputs=outputs)
         # create tokenizer
@@ -159,9 +161,7 @@ class InRollsFnData:
 
         # Handle empty input - support both lists and numpy arrays
         if len(first_names) == 0:
-            return pd.DataFrame(
-                columns=["name", "pred_gender", "pred_prob"]
-            )
+            return pd.DataFrame(columns=["name", "pred_gender", "pred_prob"])
 
         first_names = [i.lower() for i in first_names]
         sequences = cls.__tk.texts_to_sequences(first_names)
@@ -172,7 +172,9 @@ class InRollsFnData:
         # Handle both old format (direct array) and new TFSMLayer format (dictionary)
         if isinstance(results, dict):
             # TFSMLayer returns a dictionary, extract the output tensor
-            output_key = list(results.keys())[0]  # Get the first (and likely only) output
+            output_key = list(results.keys())[
+                0
+            ]  # Get the first (and likely only) output
             results = results[output_key]
 
         gender = np.where(results > 0.5, "female", "male")[:, 0]
