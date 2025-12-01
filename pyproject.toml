@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "naampy"
-version = "0.6.1"
+version = "0.7.0"
 description = "Infer Gender from Indian Names"
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
