@@ -29,13 +29,6 @@ jobs:
       - name: Create virtual environment and install dependencies
         run: uv sync --group dev --group test
 
-      - name: Install platform-specific TensorFlow packages
-        run: |
-          if [ "${{ matrix.os }}" = "macos-latest" ]; then
-            uv pip install "tensorflow-macos>=2.20.0,<3.0.0"
-          fi
-        shell: bash
-
       - name: Run ruff linting
         run: uv run ruff check .
 
