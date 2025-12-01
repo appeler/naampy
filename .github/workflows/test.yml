@@ -11,7 +11,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ['3.11']
+        python-version: ['3.11', '3.12', '3.13']
 
     steps:
       - uses: actions/checkout@v4
@@ -27,14 +27,12 @@ jobs:
           version: "latest"
 
       - name: Create virtual environment and install dependencies
-        run: uv sync --dev
+        run: uv sync --group dev --group test
 
       - name: Install platform-specific TensorFlow packages
         run: |
           if [ "${{ matrix.os }}" = "macos-latest" ]; then
-            uv pip install "tensorflow-macos>=2.13.0,<2.16.0"
-          elif [ "${{ matrix.os }}" = "windows-latest" ]; then
-            uv pip install "tensorflow-io-gcs-filesystem>=0.31.0,<0.32.0"
+            uv pip install "tensorflow-macos>=2.20.0,<3.0.0"
           fi
         shell: bash
 
