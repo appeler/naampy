@@ -88,6 +88,7 @@ exclude = [
     "docs",
     ".eggs",
     "naampy/data",
+    "*.ipynb",
 ]
 
 [tool.ruff.lint]
