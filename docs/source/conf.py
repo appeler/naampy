@@ -8,8 +8,8 @@ import sys
 import tomllib
 from pathlib import Path
 
-sys.path.insert(0, os.path.abspath('../'))
-sys.path.insert(1, os.path.abspath('../../'))
+sys.path.insert(0, os.path.abspath("../"))
+sys.path.insert(1, os.path.abspath("../../"))
 
 # Read project metadata from pyproject.toml
 pyproject_path = Path(__file__).parent.parent.parent / "pyproject.toml"
@@ -31,34 +31,34 @@ copyright = f"2023, {author}"
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.autosummary',
-    'sphinx.ext.napoleon',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.intersphinx',
-    'sphinx.ext.coverage',
-    'sphinx.ext.mathjax',
-    'sphinx_autodoc_typehints',
-    'sphinx_copybutton',
-    'myst_parser',
+    "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.coverage",
+    "sphinx.ext.mathjax",
+    "sphinx_autodoc_typehints",
+    "sphinx_copybutton",
+    "myst_parser",
 ]
 
 # Source file configuration
 source_suffix = {
-    '.md': 'markdown',
-    '.rst': 'restructuredtext',
+    ".md": "markdown",
+    ".rst": "restructuredtext",
 }
 
 # Set markdown as primary source
-primary_source_suffix = '.md'
+primary_source_suffix = ".md"
 
 # Autodoc settings
 autodoc_default_options = {
-    'members': True,
-    'member-order': 'bysource',
-    'special-members': '__init__',
-    'undoc-members': True,
-    'exclude-members': '__weakref__',
+    "members": True,
+    "member-order": "bysource",
+    "special-members": "__init__",
+    "undoc-members": True,
+    "exclude-members": "__weakref__",
 }
 
 # Napoleon settings
@@ -73,9 +73,9 @@ napoleon_use_admonition_for_references = True
 
 # Intersphinx mapping
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3', None),
-    'numpy': ('https://numpy.org/doc/stable', None),
-    'pandas': ('https://pandas.pydata.org/docs', None),
+    "python": ("https://docs.python.org/3", None),
+    "numpy": ("https://numpy.org/doc/stable", None),
+    "pandas": ("https://pandas.pydata.org/docs", None),
     # TensorFlow doesn't provide objects.inv file
     # 'tensorflow': ('https://www.tensorflow.org/api_docs/python', None),
 }
@@ -99,21 +99,20 @@ myst_enable_extensions = [
     "tasklist",
 ]
 
-templates_path = ['_templates']
-exclude_patterns = ['naampy.tests*', '_build', 'Thumbs.db', '.DS_Store']
+templates_path = ["_templates"]
+exclude_patterns = ["naampy.tests*", "_build", "Thumbs.db", ".DS_Store"]
 
 # Autodoc exclusions
 autodoc_mock_imports = []
 add_module_names = False
 
 
-
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'furo'
+html_theme = "furo"
 html_title = project
-html_static_path = ['_static']
+html_static_path = ["_static"]
 
 # Furo theme options
 html_theme_options = {
