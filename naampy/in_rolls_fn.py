@@ -303,7 +303,7 @@ class InRollsFnData:
             # if name does not exist in database
             not_in_db_names = rdf[rdf["prop_female"].isna()]
             if len(not_in_db_names.values) > 0:
-                mdf = predict_fn_gender(not_in_db_names["__first_name"].values)
+                mdf = predict_fn_gender(not_in_db_names["__first_name"].tolist())
                 rdf.at[not_in_db_names.index, "pred_gender"] = mdf["pred_gender"].values
                 rdf.at[not_in_db_names.index, "pred_prob"] = mdf["pred_prob"].values
 
@@ -333,7 +333,7 @@ class InRollsFnData:
         """
         data_path = InRollsFnData.load_naampy_data(dataset)
         adf = pd.read_csv(data_path, usecols=["state"])
-        return adf.state.unique()  # type: ignore[no-any-return]
+        return adf.state.unique()
 
 
 in_rolls_fn_gender = InRollsFnData.in_rolls_fn_gender

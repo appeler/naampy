@@ -28,7 +28,6 @@ classifiers = [
 keywords = ["gender", "names"]
 dependencies = [
   "tensorflow>=2.20.0,<3.0.0",
-  "keras>=2.13.1,<4.0.0",
   "numpy>=2.1.0,<3.0.0",
   "pandas>=1.5.0,<2.3.0",
   "requests>=2.25.0",
@@ -52,6 +51,9 @@ dev = [
     "ruff>=0.7.0",
     "mypy>=1.0",
     "types-requests>=2.25.0",
+    "types-tqdm>=4.0",
+    "pandas-stubs>=2.0",
+    "types-tensorflow>=2.0",
     "pre-commit>=3.0",
 ]
 test = [
@@ -180,3 +182,10 @@ show_error_codes = true
 [[tool.mypy.overrides]]
 module = "tests.*"
 ignore_errors = true
+
+# deptry configuration
+[tool.deptry]
+# Ignore docs dependencies that are actually used in conf.py but not detected
+per_rule_ignores = {DEP002 = ["sphinx", "furo", "sphinx-autodoc-typehints", "sphinx-copybutton", "myst-parser"]}
+# Exclude everything except docs, tests, and naampy source
+extend_exclude = ["model_training", "streamlit", ".*\\.ipynb$"]
