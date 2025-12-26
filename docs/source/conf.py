@@ -41,12 +41,14 @@ extensions = [
     "sphinx_autodoc_typehints",
     "sphinx_copybutton",
     "myst_parser",
+    "nbsphinx",
 ]
 
 # Source file configuration
 source_suffix = {
     ".md": "markdown",
     ".rst": "restructuredtext",
+    ".ipynb": None,  # Handled by nbsphinx
 }
 
 # Set markdown as primary source
@@ -98,6 +100,15 @@ myst_enable_extensions = [
     "substitution",
     "tasklist",
 ]
+
+# NBSphinx settings
+nbsphinx_execute = "always"  # Execute notebooks during build
+nbsphinx_execute_arguments = [
+    "--InlineBackend.figure_formats={'svg', 'pdf'}",
+    "--InlineBackend.rc={'figure.dpi': 150}",
+]
+nbsphinx_timeout = 300  # 5 minutes timeout for notebook execution
+nbsphinx_allow_errors = False  # Fail build if notebook has errors
 
 templates_path = ["_templates"]
 exclude_patterns = ["naampy.tests*", "_build", "Thumbs.db", ".DS_Store"]

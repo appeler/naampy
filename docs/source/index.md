@@ -27,6 +27,9 @@ Installation instructions and your first prediction
 ### 📖 [User Guide](user_guide.md)
 Detailed usage examples and best practices
 
+### 🔬 [Interactive Examples](examples/usage_examples.ipynb)
+Comprehensive Jupyter notebook with visualizations and analysis
+
 ### 📚 [API Reference](api_reference.md)
 Complete API documentation
 
@@ -59,6 +62,7 @@ Check out our [Streamlit App](https://naampy.streamlit.app/) for an interactive 
 
 getting_started
 user_guide
+examples/usage_examples
 api_reference
 about
 ```
