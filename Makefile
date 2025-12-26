@@ -6,7 +6,7 @@ help:
 	@echo "  dev        Install package in development mode with all dependencies"
 	@echo "  test       Run tests without coverage"
 	@echo "  test-cov   Run tests with coverage"
-	@echo "  lint       Run linting checks"
+	@echo "  lint       Run linting checks (ruff, mypy, pydoclint)"
 	@echo "  format     Format code with ruff"
 	@echo "  clean      Remove build artifacts and cache files"
 	@echo "  docs       Build documentation"
@@ -29,6 +29,7 @@ test-cov:
 lint:
 	uv run ruff check .
 	uv run mypy naampy --ignore-missing-imports
+	uv run pydoclint naampy/
 
 format:
 	uv run ruff format .

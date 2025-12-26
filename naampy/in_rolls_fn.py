@@ -71,7 +71,7 @@ class InRollsFnData:
         Subsequent calls will use the cached version for faster performance.
 
         Args:
-            dataset (str): Version of the dataset to load. Options are:
+            dataset: Version of the dataset to load. Options are:
                 - 'v1': 12 states dataset
                 - 'v2': Full 30 states dataset
                 - 'v2_1k': 30 states with 1000+ name occurrences (default)
@@ -108,14 +108,14 @@ class InRollsFnData:
         patterns in character sequences to make predictions.
 
         Args:
-            first_names (list[str]): List of first names to predict gender for.
+            first_names: List of first names to predict gender for.
                 Names are automatically converted to lowercase.
 
         Returns:
             pd.DataFrame: DataFrame containing:
-                - name (str): Input first name (lowercased)
-                - pred_gender (str): Predicted gender ('male' or 'female')
-                - pred_prob (float): Confidence score for the prediction (0.0 to 1.0)
+                - name: Input first name (lowercased)
+                - pred_gender: Predicted gender ('male' or 'female')
+                - pred_prob: Confidence score for the prediction (0.0 to 1.0)
 
         Note:
             - Names are classified as 'female' if predicted probability > 0.5
@@ -177,8 +177,10 @@ class InRollsFnData:
             ]  # Get the first (and likely only) output
             results = results[output_key]
 
-        gender = np.where(results > 0.5, "female", "male")[:, 0]
-        score = np.where(results > 0.5, results, 1 - results)[:, 0]
+        # Flatten results to ensure proper scalar extraction
+        results_flat = results.flatten() if results.ndim > 1 else results
+        gender = np.where(results_flat > 0.5, "female", "male")
+        score = np.where(results_flat > 0.5, results_flat, 1 - results_flat)
 
         return pd.DataFrame(
             data={"name": first_names, "pred_gender": gender, "pred_prob": score}
@@ -201,17 +203,17 @@ class InRollsFnData:
         falls back to machine learning predictions (except for v2_native dataset).
 
         Args:
-            df (pd.DataFrame): Input DataFrame containing the first name column.
-            namecol (str): Name of the column containing first names to analyze.
-            state (str, optional): Specific Indian state to use for analysis.
+            df: Input DataFrame containing the first name column.
+            namecol: Name of the column containing first names to analyze.
+            state: Specific Indian state to use for analysis.
                 Available states: andaman, andhra, arunachal, assam, bihar, chandigarh,
                 dadra, daman, delhi, goa, gujarat, haryana, himachal, jharkhand, jk,
                 karnataka, kerala, maharashtra, manipur, meghalaya, mizoram, mp,
                 nagaland, odisha, puducherry, punjab, rajasthan, sikkim, tripura,
                 up, uttarakhand. Defaults to None (all states).
-            year (int, optional): Specific birth year to filter data by.
+            year: Specific birth year to filter data by.
                 Defaults to None (all years).
-            dataset (str, optional): Dataset version to use. Options:
+            dataset: Dataset version to use. Options:
                 - 'v1': 12 states dataset
                 - 'v2': Full 30 states dataset
                 - 'v2_1k': 1000+ occurrences dataset (default, good balance)
@@ -220,14 +222,14 @@ class InRollsFnData:
 
         Returns:
             pd.DataFrame: Enhanced DataFrame with additional columns:
-                - n_female (float): Count of females with this name
-                - n_male (float): Count of males with this name
-                - n_third_gender (float): Count of third gender individuals
-                - prop_female (float): Proportion female (0.0 to 1.0)
-                - prop_male (float): Proportion male (0.0 to 1.0)
-                - prop_third_gender (float): Proportion third gender (0.0 to 1.0)
-                - pred_gender (str): ML prediction for names not in database
-                - pred_prob (float): ML prediction confidence score
+                - n_female: Count of females with this name
+                - n_male: Count of males with this name
+                - n_third_gender: Count of third gender individuals
+                - prop_female: Proportion female (0.0 to 1.0)
+                - prop_male: Proportion male (0.0 to 1.0)
+                - prop_third_gender: Proportion third gender (0.0 to 1.0)
+                - pred_gender: ML prediction for names not in database
+                - pred_prob: ML prediction confidence score
 
         Note:
             - Names are automatically cleaned (stripped and lowercased)
@@ -320,7 +322,7 @@ class InRollsFnData:
         chosen dataset version for filtering and analysis.
 
         Args:
-            dataset (str, optional): Dataset version to query. Defaults to 'v2_1k'.
+            dataset: Dataset version to query. Defaults to 'v2_1k'.
                 See load_naampy_data() for available dataset options.
 
         Returns:
@@ -340,7 +342,7 @@ in_rolls_fn_gender = InRollsFnData.in_rolls_fn_gender
 predict_fn_gender = InRollsFnData.predict_fn_gender
 
 
-def main(argv=sys.argv[1:]):
+def main(argv: list[str] = sys.argv[1:]) -> int:
     """
     Command-line interface for naampy gender prediction.
 
@@ -348,7 +350,7 @@ def main(argv=sys.argv[1:]):
     add gender predictions based on first names using Indian Electoral Roll data.
 
     Args:
-        argv (list[str], optional): Command line arguments.
+        argv: Command line arguments.
             Defaults to sys.argv[1:].
 
     Returns:

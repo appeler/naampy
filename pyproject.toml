@@ -55,6 +55,7 @@ dev = [
     "pandas-stubs>=2.0",
     "types-tensorflow>=2.0",
     "pre-commit>=3.0",
+    "pydoclint>=0.8.0",
 ]
 test = [
     "pytest>=7.0",
@@ -140,6 +141,10 @@ addopts = [
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
 ]
+filterwarnings = [
+    # Ignore numpy scalar conversion warnings from Keras/TensorFlow
+    "ignore:Conversion of an array with ndim > 0 to a scalar is deprecated:DeprecationWarning",
+]
 
 # Coverage configuration (optional)
 # To run with coverage: pytest --cov=naampy --cov-report=term-missing --cov-report=html
@@ -189,3 +194,14 @@ ignore_errors = true
 per_rule_ignores = {DEP002 = ["sphinx", "furo", "sphinx-autodoc-typehints", "sphinx-copybutton", "myst-parser"]}
 # Exclude everything except docs, tests, and naampy source
 extend_exclude = ["model_training", "streamlit", ".*\\.ipynb$"]
+
+# pydoclint configuration
+[tool.pydoclint]
+style = "google"
+arg-type-hints-in-docstring = false
+arg-type-hints-in-signature = true
+check-return-types = true
+check-yield-types = true
+check-arg-order = true
+require-return-section-when-returning-nothing = false
+exclude = '\.git|\.tox|__pycache__|build|dist|\.venv|docs|\.eggs|naampy/data|.*\.ipynb$|model_training|streamlit'

@@ -25,7 +25,7 @@ The package capitalizes on information from parsed electoral rolls from **31 sta
 2. **Aggregation**: Data is aggregated per state and first name
 3. **Statistics Calculated**:
    - `prop_male`: Proportion of males with the name
-   - `prop_female`: Proportion of females with the name  
+   - `prop_female`: Proportion of females with the name
    - `prop_third_gender`: Proportion of third gender individuals
    - `n_female`: Count of females
    - `n_male`: Count of males
