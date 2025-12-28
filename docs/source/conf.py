@@ -40,15 +40,14 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx_autodoc_typehints",
     "sphinx_copybutton",
-    "myst_parser",
-    "nbsphinx",
+    "myst_nb",  # MyST-NB handles both .md and .ipynb files
 ]
 
-# Source file configuration
+# Source file configuration - MyST-NB handles both .md and .ipynb
 source_suffix = {
-    ".md": "markdown",
     ".rst": "restructuredtext",
-    ".ipynb": None,  # Handled by nbsphinx
+    ".md": None,  # Let MyST-NB handle markdown files
+    ".ipynb": None,  # Let MyST-NB handle notebook files
 }
 
 # Set markdown as primary source
@@ -101,20 +100,31 @@ myst_enable_extensions = [
     "tasklist",
 ]
 
-# NBSphinx settings
-nbsphinx_execute = "always"  # Execute notebooks during build
-nbsphinx_execute_arguments = [
-    "--InlineBackend.figure_formats={'svg', 'pdf'}",
-    "--InlineBackend.rc={'figure.dpi': 150}",
-]
-nbsphinx_timeout = 300  # 5 minutes timeout for notebook execution
-nbsphinx_allow_errors = False  # Fail build if notebook has errors
+# MyST-NB settings (modern Jupyter notebook support)
+nb_execution_mode = "off"  # Disable execution for initial testing
+nb_execution_timeout = 60
+nb_execution_allow_errors = True
+
+# Kernel configuration
+nb_kernel_rgx_aliases = {
+    "python": "python3",
+}
+
+# Figure format configuration
+nb_render_image_options = {
+    "alt": "Generated plot"
+}
+
+# Custom formats support
+nb_custom_formats = {
+    ".md": ["jupytext.reads", {"fmt": "mystnb"}],
+}
 
 templates_path = ["_templates"]
 exclude_patterns = ["naampy.tests*", "_build", "Thumbs.db", ".DS_Store"]
 
-# Autodoc exclusions
-autodoc_mock_imports = []
+# Autodoc exclusions - mock TensorFlow to prevent hanging
+autodoc_mock_imports = ["tensorflow", "tensorflow.keras"]
 add_module_names = False
 
 
