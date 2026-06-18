@@ -7,9 +7,6 @@ from importlib import resources
 
 import numpy as np
 import pandas as pd
-import tensorflow as tf
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-from tensorflow.keras.preprocessing.text import Tokenizer
 
 from .utils import download_file, get_app_file_path
 
@@ -31,6 +28,10 @@ IN_ROLLS_DATA = {
     "v2_1k": "https://dataverse.harvard.edu/api/v1/access/datafile/4965695",
     "v2_native": "https://dataverse.harvard.edu/api/v1/access/datafile/6292042",
     "v2_en": "https://dataverse.harvard.edu/api/v1/access/datafile/6457224",
+    # v3: native first names re-romanized via the eroll corpora + v2's non-native states
+    # (31 states, full coverage). Build: model_training/retransliterate_native.py. After
+    # uploading naampy_v3.csv.gz to Dataverse, add its datafile URL here and default to it.
+    # "v3": "https://dataverse.harvard.edu/api/v1/access/datafile/<ID>",
 }
 
 IN_ROLLS_COLS = [
@@ -59,7 +60,6 @@ class InRollsFnData:
     __state = None
     __year = None
     __model = None
-    __tk = None
     __dataset = None
 
     @staticmethod
@@ -132,58 +132,57 @@ class InRollsFnData:
             1    rahul        male      0.876
             2  unknown_name  female      0.623
         """
-        # load model
-        if cls.__model is None:
-            model_path = resources.files(__package__) / "model" / "naampy_rmse"
-            # Use TFSMLayer for Keras 3 compatibility with SavedModel format
-            try:
-                cls.__model = tf.keras.models.load_model(str(model_path))
-            except ValueError:
-                # Fallback for Keras 3 with SavedModel format
-                tfsm_layer = tf.keras.layers.TFSMLayer(
-                    str(model_path), call_endpoint="serving_default"
-                )
-                # Create a functional model wrapper
-                inputs = tf.keras.layers.Input(shape=(24,), dtype="int64", name="input")
-                outputs = tfsm_layer(inputs)
-                cls.__model = tf.keras.models.Model(inputs=inputs, outputs=outputs)
-        # create tokenizer
-        if cls.__tk is None:
-            cls.__tk = Tokenizer(num_words=None, char_level=True, oov_token="UNK")
-            alphabet = "abcdefghijklmnopqrstuvwxyz"
-            char_dict = {}
-            for i, char in enumerate(alphabet):
-                char_dict[char] = i + 1
-            # Use char_dict to replace the tk.word_index
-            cls.__tk.word_index = char_dict.copy()
-            # Add 'UNK' to the vocabulary
-            cls.__tk.word_index[cls.__tk.oov_token] = max(char_dict.values()) + 1
+        import torch
 
-        # Handle empty input - support both lists and numpy arrays
+        from .nnets import (
+            LSTM_DROPOUT,
+            LSTM_EMB,
+            LSTM_HIDDEN,
+            LSTM_LAYERS,
+            VOCAB_SIZE,
+            CharBiLSTM,
+            encode_name,
+            pad_encoded,
+        )
+
         if len(first_names) == 0:
             return pd.DataFrame(columns=["name", "pred_gender", "pred_prob"])
 
-        first_names = [i.lower() for i in first_names]
-        sequences = cls.__tk.texts_to_sequences(first_names)
-        tokens = pad_sequences(sequences, maxlen=24, padding="post")
+        # Load the bundled char-BiLSTM once (lazy; cached on the class).
+        if cls.__model is None:
+            model = CharBiLSTM(
+                VOCAB_SIZE, 1, LSTM_EMB, LSTM_HIDDEN, LSTM_LAYERS, LSTM_DROPOUT
+            )
+            model_path = resources.files(__package__) / "model" / "gender_lstm.pt"
+            with resources.as_file(model_path) as p:
+                state = torch.load(str(p), map_location="cpu", weights_only=True)
+            model.load_state_dict(state)
+            model.eval()
+            cls.__model = model
 
-        results = cls.__model.predict(tokens)
+        names = [str(n).lower() for n in first_names]
+        probs = [0.5] * len(names)  # neutral default for names with no in-vocab chars
+        valid_rows: list[int] = []
+        valid_enc: list[list[int]] = []
+        for i, nm in enumerate(names):
+            enc = encode_name(nm)
+            if enc:
+                valid_rows.append(i)
+                valid_enc.append(enc)
 
-        # Handle both old format (direct array) and new TFSMLayer format (dictionary)
-        if isinstance(results, dict):
-            # TFSMLayer returns a dictionary, extract the output tensor
-            output_key = list(results.keys())[
-                0
-            ]  # Get the first (and likely only) output
-            results = results[output_key]
+        for s in range(0, len(valid_enc), 1024):
+            rows = valid_rows[s : s + 1024]
+            x, lengths = pad_encoded(valid_enc[s : s + 1024])
+            with torch.no_grad():
+                p = torch.sigmoid(cls.__model(x, lengths)).squeeze(1).tolist()
+            for r, pv in zip(rows, p, strict=True):
+                probs[r] = pv
 
-        # Flatten results to ensure proper scalar extraction
-        results_flat = results.flatten() if results.ndim > 1 else results
-        gender = np.where(results_flat > 0.5, "female", "male")
-        score = np.where(results_flat > 0.5, results_flat, 1 - results_flat)
-
+        probs_arr = np.array(probs)
+        gender = np.where(probs_arr > 0.5, "female", "male")
+        score = np.where(probs_arr > 0.5, probs_arr, 1 - probs_arr)
         return pd.DataFrame(
-            data={"name": first_names, "pred_gender": gender, "pred_prob": score}
+            data={"name": names, "pred_gender": gender, "pred_prob": score}
         )
 
     @classmethod

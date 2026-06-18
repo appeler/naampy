@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "naampy"
-version = "0.7.0"
+version = "0.8.0"
 description = "Infer Gender from Indian Names"
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
@@ -27,8 +27,8 @@ classifiers = [
 ]
 keywords = ["gender", "names"]
 dependencies = [
-  "tensorflow>=2.20.0,<3.0.0",
-  "numpy>=2.1.0,<3.0.0",
+  "torch>=2.0.0",
+  "numpy>=1.21.0",
   "pandas>=1.5.0,<2.3.0",
   "requests>=2.25.0",
   "tqdm>=4.60.0",
@@ -59,7 +59,6 @@ dev = [
     "types-requests>=2.25.0",
     "types-tqdm>=4.0",
     "pandas-stubs>=2.0",
-    "types-tensorflow>=2.0",
     "pre-commit>=3.0",
     "pydoclint>=0.8.0",
 ]

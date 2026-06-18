@@ -11,3 +11,10 @@ naampy.egg-info/
 lit/
 dist/
 venv/
+
+# Build intermediates (regenerable / Dataverse-hosted): downloaded rolls + the rebuilt
+# first-name->gender table. Notebooks in model_training/data/ stay tracked; data files don't.
+# Lifecycle: code committed; naampy/model/gender_lstm.pt bundled (committed); naampy_v3.csv.gz
+# uploaded to Dataverse + downloaded at runtime (URL in in_rolls_fn.IN_ROLLS_DATA).
+model_training/data/*.csv.gz
+model_training/data/*.csv
