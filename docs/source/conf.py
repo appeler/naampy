@@ -120,7 +120,6 @@ nb_custom_formats = {
     ".md": ["jupytext.reads", {"fmt": "mystnb"}],
 }
 
-templates_path = ["_templates"]
 exclude_patterns = ["naampy.tests*", "_build", "Thumbs.db", ".DS_Store"]
 
 # Autodoc exclusions - mock TensorFlow to prevent hanging
@@ -133,7 +132,6 @@ add_module_names = False
 
 html_theme = "furo"
 html_title = project
-html_static_path = ["_static"]
 
 # Furo theme options
 html_theme_options = {
