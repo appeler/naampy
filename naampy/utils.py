@@ -1,3 +1,5 @@
+"""Shared helpers: n-gram indexing, app data paths, and file downloads."""
+
 import logging
 import os
 from os import path
@@ -22,7 +24,6 @@ def find_ngrams(vocab: list, text: str, n: int) -> list:
         list: List of the index of n-grams in the vocabulary list.
 
     """
-
     wi = []
 
     a = zip(*[text[i:] for i in range(n)], strict=False)
@@ -74,7 +75,7 @@ def download_file(url: str, target: str) -> bool:
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
     }
 
-    response = requests.get(url, headers=headers, stream=True)
+    response = requests.get(url, headers=headers, stream=True, timeout=30)
 
     if response.status_code != 200:
         logging.error(
@@ -83,13 +84,13 @@ def download_file(url: str, target: str) -> bool:
         return False
 
     total_size = int(response.headers.get("Content-Length", 0))
-    with open(Path(target).expanduser(), "wb") as f:
-        with tqdm(
-            total=total_size, unit="B", unit_scale=True, unit_divisor=1024
-        ) as pbar:
-            for data in response.iter_content(chunk_size=4096):
-                f.write(data)
-                pbar.update(len(data))
+    with (
+        open(Path(target).expanduser(), "wb") as f,
+        tqdm(total=total_size, unit="B", unit_scale=True, unit_divisor=1024) as pbar,
+    ):
+        for data in response.iter_content(chunk_size=4096):
+            f.write(data)
+            pbar.update(len(data))
 
     logging.info(f"Successfully downloaded file from {url} to {target}")
 
