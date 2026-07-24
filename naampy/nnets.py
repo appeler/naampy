@@ -48,6 +48,16 @@ class CharBiLSTM(nn.Module):
         num_layers: int = LSTM_LAYERS,
         dropout: float = LSTM_DROPOUT,
     ) -> None:
+        """Build the embedding, BiLSTM, and output projection layers.
+
+        Args:
+            num_chars: Vocabulary size (number of distinct character indices).
+            num_classes: Number of output logits (1 for binary gender).
+            embedding_dim: Character embedding dimension.
+            hidden_dim: LSTM hidden state size (per direction).
+            num_layers: Number of stacked LSTM layers.
+            dropout: Dropout between LSTM layers (ignored if num_layers == 1).
+        """
         super().__init__()
         self.embedding = nn.Embedding(num_chars, embedding_dim, padding_idx=0)
         self.lstm = nn.LSTM(
@@ -61,10 +71,20 @@ class CharBiLSTM(nn.Module):
         self.fc = nn.Linear(2 * hidden_dim, num_classes)
 
     def forward(self, x: torch.Tensor, lengths: torch.Tensor) -> torch.Tensor:
+        """Run the packed BiLSTM and return raw (pre-sigmoid) logits.
+
+        Args:
+            x: Padded, encoded character indices, shape ``[B, T]``.
+            lengths: True (unpadded) sequence length per row, shape ``[B]``.
+
+        Returns:
+            Raw logits of shape ``[B, num_classes]``.
+        """
         embedded = self.embedding(x)
         packed = nn.utils.rnn.pack_padded_sequence(
             embedded, lengths.cpu(), batch_first=True, enforce_sorted=False
         )
         _, (h_n, _) = self.lstm(packed)
         h = torch.cat([h_n[-2], h_n[-1]], dim=1)
-        return self.fc(h)
+        logits: torch.Tensor = self.fc(h)
+        return logits

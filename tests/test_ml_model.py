@@ -173,6 +173,40 @@ class TestMLModel(unittest.TestCase):
         self.assertEqual(result1.iloc[0]["pred_gender"], result2.iloc[0]["pred_gender"])
         self.assertEqual(result1.iloc[0]["pred_prob"], result2.iloc[0]["pred_prob"])
 
+    def test_multi_batch_index_alignment(self):
+        """Predictions must stay aligned to their input row across the 1024-name
+        internal batch boundary, including rows whose names encode to nothing
+        (no in-vocab characters) and so are skipped by the batched model call.
+
+        Regression test for a variable-shadowing bug in predict_fn_gender where
+        the batch-loop probability variable reused the name of an earlier,
+        differently-typed local variable in the same function scope.
+        """
+        n = 1030
+        names = []
+        unencodable_positions = set()
+        for i in range(n):
+            if i % 97 == 0:
+                # No a-z characters at all -> encode_name([]) -> skipped in the
+                # batched model call, must keep the neutral 0.5 default.
+                names.append(str(i))
+                unencodable_positions.add(i)
+            else:
+                names.append("priya" if i % 2 == 0 else "rahul")
+
+        result = predict_fn_gender(names)
+        self.assertEqual(len(result), n)
+
+        for i, name in enumerate(names):
+            row = result.iloc[i]
+            self.assertEqual(row["name"], name)
+            if i in unencodable_positions:
+                self.assertAlmostEqual(row["pred_prob"], 0.5, places=6)
+            elif name == "priya":
+                self.assertEqual(row["pred_gender"], "female")
+            elif name == "rahul":
+                self.assertEqual(row["pred_gender"], "male")
+
 
 if __name__ == "__main__":
     unittest.main()

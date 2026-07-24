@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Gender prediction from Indian first names using Electoral Roll data."""
 
 import argparse
 import os
@@ -45,8 +46,7 @@ IN_ROLLS_COLS = [
 
 
 class InRollsFnData:
-    """
-    Main class for handling Indian Electoral Roll data and gender prediction.
+    """Main class for handling Indian Electoral Roll data and gender prediction.
 
     This class provides methods to predict gender based on Indian first names using
     two approaches:
@@ -64,8 +64,7 @@ class InRollsFnData:
 
     @staticmethod
     def load_naampy_data(dataset: str) -> str:
-        """
-        Download and cache the naampy dataset from Harvard Dataverse.
+        """Download and cache the naampy dataset from Harvard Dataverse.
 
         This method downloads the specified dataset version if not already cached locally.
         Subsequent calls will use the cached version for faster performance.
@@ -100,8 +99,7 @@ class InRollsFnData:
 
     @classmethod
     def predict_fn_gender(cls, first_names: list[str]) -> pd.DataFrame:
-        """
-        Predict gender using a neural network model based on character patterns in names.
+        """Predict gender using a neural network model based on character patterns in names.
 
         This method uses a character-level neural network trained on Indian names to predict
         gender when names are not found in the electoral roll database. The model learns
@@ -154,8 +152,10 @@ class InRollsFnData:
                 VOCAB_SIZE, 1, LSTM_EMB, LSTM_HIDDEN, LSTM_LAYERS, LSTM_DROPOUT
             )
             model_path = resources.files(__package__) / "model" / "gender_lstm.pt"
-            with resources.as_file(model_path) as p:
-                state = torch.load(str(p), map_location="cpu", weights_only=True)
+            with resources.as_file(model_path) as model_file:
+                state = torch.load(
+                    str(model_file), map_location="cpu", weights_only=True
+                )
             model.load_state_dict(state)
             model.eval()
             cls.__model = model
@@ -194,8 +194,7 @@ class InRollsFnData:
         year: int | None = None,
         dataset: str = "v2_1k",
     ) -> pd.DataFrame:
-        """
-        Predict gender from Indian first names using Electoral Roll statistics.
+        """Predict gender from Indian first names using Electoral Roll statistics.
 
         This function enriches the input DataFrame with gender statistics from the Indian
         Electoral Rolls database. For names not found in the database, it automatically
@@ -246,7 +245,6 @@ class InRollsFnData:
             1   rahul       0.008      0.992
             2  anjali       0.989      0.011
         """
-
         if namecol and namecol not in df.columns:
             print(f"No column `{namecol}` in the DataFrame")
             return df
@@ -296,7 +294,7 @@ class InRollsFnData:
             adf["prop_male"] = adf["n_male"] / n
             adf["prop_third_gender"] = adf["n_third_gender"] / n
             cls.__df = adf
-            cls.__df = cls.__df[["first_name"] + IN_ROLLS_COLS]
+            cls.__df = cls.__df[["first_name", *IN_ROLLS_COLS]]
             cls.__df.rename(columns={"first_name": "__first_name"}, inplace=True)
         rdf = pd.merge(df, cls.__df, how="left", on="__first_name")
 
@@ -314,8 +312,7 @@ class InRollsFnData:
 
     @staticmethod
     def list_states(dataset: str = "v2_1k") -> np.ndarray:
-        """
-        Get list of available states in the specified dataset.
+        """Get list of available states in the specified dataset.
 
         This method returns all unique states/union territories available in the
         chosen dataset version for filtering and analysis.
@@ -342,8 +339,7 @@ predict_fn_gender = InRollsFnData.predict_fn_gender
 
 
 def main(argv: list[str] = sys.argv[1:]) -> int:
-    """
-    Command-line interface for naampy gender prediction.
+    """Command-line interface for naampy gender prediction.
 
     This function provides a command-line interface to process CSV files and
     add gender predictions based on first names using Indian Electoral Roll data.
