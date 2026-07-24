@@ -3,6 +3,9 @@
 !.gitignore
 !.gitattributes
 !.travis.yml
+!.copier-answers.yml
+!.pre-commit-config.yaml
+!.codespellrc
 *.pyc
 *.log
 ./data

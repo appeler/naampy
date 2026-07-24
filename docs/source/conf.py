@@ -43,11 +43,11 @@ extensions = [
     "myst_nb",  # MyST-NB handles both .md and .ipynb files
 ]
 
-# Source file configuration - MyST-NB handles both .md and .ipynb
+# Source file configuration - MyST-NB registers parsers for .md and .ipynb
+# itself, so they're intentionally omitted here (an explicit `None` filetype
+# is rejected by modern Sphinx).
 source_suffix = {
     ".rst": "restructuredtext",
-    ".md": None,  # Let MyST-NB handle markdown files
-    ".ipynb": None,  # Let MyST-NB handle notebook files
 }
 
 # Set markdown as primary source

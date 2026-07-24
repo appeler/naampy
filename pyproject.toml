@@ -7,8 +7,8 @@ name = "naampy"
 version = "0.8.0"
 description = "Infer Gender from Indian Names"
 readme = "README.md"
-requires-python = ">=3.11,<3.14"
-license = { text = "MIT" }
+requires-python = ">=3.11"
+license = "MIT"
 authors = [
   { name = "Gaurav Sood", email = "gsood07@gmail.com" },
   { name = "Suriyan Laohaprapanon", email = "suriyant@gmail.com" },
@@ -17,7 +17,6 @@ authors = [
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
-  "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
@@ -33,39 +32,25 @@ dependencies = [
   "requests>=2.25.0",
   "tqdm>=4.60.0",
 ]
-
-[project.optional-dependencies]
-docs = [
-    "sphinx>=7.0",
-    "furo>=2024.1.29",
-    "sphinx-autodoc-typehints>=1.25",
-    "sphinx-copybutton>=0.5",
-    "myst-parser>=2.0",
-    "myst-nb>=1.1.0",
-    "ipykernel>=6.0.0",
-    "jupytext>=1.15.0",
-    "matplotlib>=3.5.0",
-    "seaborn>=0.11.0",
-    "jupyter>=1.0",
-]
+license-files = ["LICENSE"]
 
 [dependency-groups]
-dev = [
-    "pytest>=7.0",
-    "pytest-cov>=4.0",
-    "pytest-xdist>=3.0",
-    "ruff>=0.7.0",
-    "mypy>=1.0",
-    "types-requests>=2.25.0",
-    "types-tqdm>=4.0",
-    "pandas-stubs>=2.0",
-    "pre-commit>=3.0",
-    "pydoclint>=0.8.0",
-]
+dev = ["pytest>=7.0", "pytest-cov>=4.0", "pytest-xdist>=3.0", "ruff>=0.7.0", "types-requests>=2.25.0", "types-tqdm>=4.0", "pandas-stubs>=2.0", "pre-commit>=3.0", "pydoclint>=0.8.0", "pyright>=1.1.390"]
 test = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
     "pytest-xdist>=3.0",
+]
+docs = [
+    "sphinx>=8",
+    "furo",
+    "myst-parser",
+    "myst-nb>=1.1.0",
+    "sphinx-autodoc-typehints>=1.25",
+    "sphinx-copybutton",
+    "ipykernel>=6.0.0",
+    "jupytext>=1.15.0",
+    "py-canon @ git+https://github.com/gojiplus/py-canon@v1",
 ]
 
 [project.urls]
@@ -73,7 +58,7 @@ Homepage = "https://github.com/appeler/naampy"
 Documentation = "https://appeler.github.io/naampy/"
 Repository = "https://github.com/appeler/naampy"
 Issues = "https://github.com/appeler/naampy/issues"
-Changelog = "https://github.com/appeler/naampy/blob/main/CHANGELOG.md"
+Changelog = "https://github.com/appeler/naampy/blob/master/CHANGELOG.md"
 
 [project.scripts]
 in_rolls_fn_gender = "naampy.in_rolls_fn:main"
@@ -87,53 +72,34 @@ module-root = ""
 [tool.ruff]
 line-length = 88
 target-version = "py311"
+# Restored from the pre-adopt config: exploratory/training scripts, the
+# Streamlit demo, and notebooks are not part of the shipped package and were
+# intentionally out of lint scope (mirrors [tool.deptry] extend_exclude below).
 exclude = [
-    ".git",
-    "__pycache__",
-    "build",
-    "dist",
-    ".venv",
     "docs",
-    ".eggs",
+    "model_training",
+    "streamlit",
     "naampy/data",
     "*.ipynb",
 ]
 
 [tool.ruff.lint]
-select = [
-    "E",  # pycodestyle errors
-    "W",  # pycodestyle warnings
-    "F",  # pyflakes
-    "I",  # isort
-    "B",  # flake8-bugbear
-    "C4", # flake8-comprehensions
-    "UP", # pyupgrade
-]
-ignore = [
-    "E501",  # line too long (handled by formatter)
-    "B008",  # do not perform function calls in argument defaults
-    "C901",  # too complex
-]
+external = ["DOC"]
+select = ["E", "W", "F", "I", "B", "C4", "UP", "N", "D", "S", "SIM", "T20", "PT", "RUF"]
+ignore = ["D203", "D213", "B008", "C901", "E501"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
-"__init__.py" = ["F401"]  # imported but unused
-"tests/*" = ["S101"]  # use of assert
-
-[tool.ruff.lint.isort]
-known-first-party = ["naampy"]
-
-# Ruff formatting configuration (replaces black)
-[tool.ruff.format]
-quote-style = "double"
-indent-style = "space"
-skip-magic-trailing-comma = false
-line-ending = "auto"
-
-# isort configuration
-[tool.isort]
-profile = "black"
-line_length = 88
-known_first_party = ["naampy"]
+# Tests are written against unittest.TestCase (self.assertX); PT rules push
+# toward bare `assert`, which would mean rewriting every assertion in the
+# suite for a style choice, not a bug. S101 (assert) doesn't apply to
+# unittest-style tests either way, but is excluded for consistency.
+"tests/**" = ["S101", "S110", "D", "PT"]
+# load_naampy_data/main() print user-facing progress and CLI output
+# (download/cache status, argparse echo, "saving output to" messages).
+"naampy/in_rolls_fn.py" = ["T201"]
 
 [tool.pytest.ini_options]
 minversion = "7.0"
@@ -179,21 +145,6 @@ exclude_lines = [
 ]
 
 # mypy configuration
-[tool.mypy]
-python_version = "3.11"
-warn_return_any = true
-warn_unused_configs = true
-check_untyped_defs = true
-warn_redundant_casts = true
-warn_unused_ignores = true
-warn_no_return = true
-show_error_codes = true
-
-[[tool.mypy.overrides]]
-module = "tests.*"
-ignore_errors = true
-
-# deptry configuration
 [tool.deptry]
 # Ignore docs dependencies that are actually used in conf.py but not detected
 per_rule_ignores = {DEP002 = ["sphinx", "furo", "sphinx-autodoc-typehints", "sphinx-copybutton", "myst-parser"]}
@@ -204,9 +155,12 @@ extend_exclude = ["model_training", "streamlit", ".*\\.ipynb$"]
 [tool.pydoclint]
 style = "google"
 arg-type-hints-in-docstring = false
-arg-type-hints-in-signature = true
-check-return-types = true
-check-yield-types = true
-check-arg-order = true
-require-return-section-when-returning-nothing = false
-exclude = '\.git|\.tox|__pycache__|build|dist|\.venv|docs|\.eggs|naampy/data|.*\.ipynb$|model_training|streamlit'
+check-return-types = false
+check-class-attributes = false
+allow-init-docstring = true
+exclude = '\.venv|tests|docs'
+
+
+[tool.pyright]
+include = ["naampy"]
+typeCheckingMode = "standard"
