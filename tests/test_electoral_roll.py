@@ -11,8 +11,10 @@ import unittest
 import pandas as pd
 
 from naampy.in_rolls_fn import in_rolls_fn_gender
+from tests import requires_network
 
 
+@requires_network
 class TestElectoralRoll(unittest.TestCase):
     """Test electoral roll gender prediction functionality."""
 
@@ -111,16 +113,16 @@ class TestElectoralRoll(unittest.TestCase):
 
         # Proportion columns should be between 0 and 1
         for col in ["prop_female", "prop_male", "prop_third_gender"]:
-            if col in result.columns:
-                valid_props = result[col].dropna()
-                self.assertTrue(all(valid_props >= 0), f"{col} has values < 0")
-                self.assertTrue(all(valid_props <= 1), f"{col} has values > 1")
+            self.assertIn(col, result.columns)
+            valid_props = result[col].dropna()
+            self.assertTrue(all(valid_props >= 0), f"{col} has values < 0")
+            self.assertTrue(all(valid_props <= 1), f"{col} has values > 1")
 
         # Count columns should be non-negative
         for col in ["n_female", "n_male", "n_third_gender"]:
-            if col in result.columns:
-                valid_counts = result[col].dropna()
-                self.assertTrue(all(valid_counts >= 0), f"{col} has negative values")
+            self.assertIn(col, result.columns)
+            valid_counts = result[col].dropna()
+            self.assertTrue(all(valid_counts >= 0), f"{col} has negative values")
 
     def test_proportion_sum_consistency(self):
         """Test that gender proportions sum to approximately 1 for valid data."""

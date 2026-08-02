@@ -11,8 +11,10 @@ import unittest
 import pandas as pd
 
 from naampy.in_rolls_fn import in_rolls_fn_gender
+from tests import requires_network
 
 
+@requires_network
 class TestIntegration(unittest.TestCase):
     """Test integration between electoral roll data and ML model."""
 
@@ -42,25 +44,26 @@ class TestIntegration(unittest.TestCase):
         # Check that all names have some form of prediction
         self.assertEqual(len(result), 4)
 
-        # yasmin (should be in electoral data - highly female)
+        # A row is resolved from exactly one source: the rolls, or the model.
+        self.assertIn("pred_gender", result.columns)
+        for _idx, row in result.iterrows():
+            self.assertFalse(
+                pd.notna(row["prop_female"]) and pd.notna(row["pred_gender"]),
+                f"Name '{row['name']}' was resolved from both sources",
+            )
+
+        # yasmin and vivek are common enough to be in every dataset version.
         yasmin_row = result[result["name"] == "yasmin"].iloc[0]
-        if pd.notna(yasmin_row["prop_female"]):
-            self.assertTrue(yasmin_row["prop_female"] > 0.9)
-        elif pd.notna(yasmin_row.get("pred_gender")):
-            self.assertEqual(yasmin_row["pred_gender"], "female")
+        self.assertTrue(yasmin_row["prop_female"] > 0.9)
 
-        # vivek (should be in electoral data - highly male)
         vivek_row = result[result["name"] == "vivek"].iloc[0]
-        if pd.notna(vivek_row["prop_female"]):
-            self.assertTrue(vivek_row["prop_female"] < 0.1)
-        elif pd.notna(vivek_row.get("pred_gender")):
-            self.assertEqual(vivek_row["pred_gender"], "male")
+        self.assertTrue(vivek_row["prop_female"] < 0.1)
 
-        # nabha/kiara should have some form of prediction
+        # nabha/kiara are Latin-script, so they resolve one way or the other
         for name in ["nabha", "kiara"]:
             name_row = result[result["name"] == name].iloc[0]
             has_electoral = pd.notna(name_row["prop_female"])
-            has_ml = pd.notna(name_row.get("pred_gender"))
+            has_ml = pd.notna(name_row["pred_gender"])
 
             self.assertTrue(
                 has_electoral or has_ml,
@@ -78,7 +81,7 @@ class TestIntegration(unittest.TestCase):
         for _idx, row in result.iterrows():
             name = row["name"]
             has_electoral = pd.notna(row["prop_female"])
-            has_ml = pd.notna(row.get("pred_gender"))
+            has_ml = pd.notna(row["pred_gender"])
 
             # Each name should have either electoral data OR ML prediction
             self.assertTrue(
@@ -124,7 +127,7 @@ class TestIntegration(unittest.TestCase):
                 gender = "female" if row["prop_female"] > 0.5 else "male"
                 confidence = max(row["prop_female"], 1 - row["prop_female"])
                 source = "electoral"
-            elif pd.notna(row.get("pred_gender")):
+            elif pd.notna(row["pred_gender"]):
                 # Use ML prediction
                 gender = row["pred_gender"]
                 confidence = row["pred_prob"]
@@ -172,7 +175,7 @@ class TestIntegration(unittest.TestCase):
                 self.assertEqual(row1["prop_female"], row2["prop_female"])
 
             # ML predictions should be identical
-            if pd.notna(row1.get("pred_gender")):
+            if pd.notna(row1["pred_gender"]):
                 self.assertEqual(row1["pred_gender"], row2["pred_gender"])
                 self.assertEqual(row1["pred_prob"], row2["pred_prob"])
 
@@ -188,7 +191,7 @@ class TestIntegration(unittest.TestCase):
         # Calculate quality metrics
         total_names = len(quality_test_df)
         found_in_electoral = result["prop_female"].notna().sum()
-        ml_predictions = result.get("pred_gender", pd.Series()).notna().sum()
+        ml_predictions = result["pred_gender"].notna().sum()
 
         # Count names that are likely problematic (very short)
         short_names = (quality_test_df["name"].str.len() <= 1).sum()
@@ -236,7 +239,7 @@ class TestIntegration(unittest.TestCase):
                 for _idx, row in name_rows.iterrows():
                     if pd.notna(first_row["prop_female"]):
                         self.assertEqual(row["prop_female"], first_row["prop_female"])
-                    if pd.notna(first_row.get("pred_gender")):
+                    if pd.notna(first_row["pred_gender"]):
                         self.assertEqual(row["pred_gender"], first_row["pred_gender"])
                         self.assertEqual(row["pred_prob"], first_row["pred_prob"])
 
@@ -246,19 +249,13 @@ class TestIntegration(unittest.TestCase):
 
         # Test different datasets
         datasets = ["v2_1k", "v2", "v1"]
-        results = {}
 
         for dataset in datasets:
-            try:
-                results[dataset] = in_rolls_fn_gender(
-                    test_names, "name", dataset=dataset
-                )
-                # Should have same structure regardless of dataset
-                self.assertEqual(len(results[dataset]), 2)
-                self.assertIn("prop_female", results[dataset].columns)
-            except Exception:
-                # Some datasets might not be available in test environment
-                pass
+            result = in_rolls_fn_gender(test_names, "name", dataset=dataset)
+            # Should have same structure regardless of dataset
+            self.assertEqual(len(result), 2)
+            self.assertIn("prop_female", result.columns)
+            self.assertIn("pred_gender", result.columns)
 
 
 if __name__ == "__main__":

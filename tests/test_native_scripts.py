@@ -12,8 +12,10 @@ import unittest
 import pandas as pd
 
 from naampy.in_rolls_fn import in_rolls_fn_gender
+from tests import requires_network
 
 
+@requires_network
 class TestNativeScripts(unittest.TestCase):
     """Test native Indian language script support."""
 
@@ -191,16 +193,13 @@ class TestNativeScripts(unittest.TestCase):
         test_states = ["up", "bihar", "jharkhand", "mp"]
 
         for state in test_states:
-            try:
-                result = in_rolls_fn_gender(
-                    test_df, "name", state=state, dataset="v2_native"
-                )
-                # Should not crash and should return data
-                self.assertEqual(len(result), 1)
-                self.assertIn("name", result.columns)
-            except Exception:
-                # Some states might not be available, which is okay
-                pass
+            result = in_rolls_fn_gender(
+                test_df, "name", state=state, dataset="v2_native"
+            )
+            # A state with no rows for this name yields NaN, not an exception
+            self.assertEqual(len(result), 1)
+            self.assertIn("name", result.columns)
+            self.assertIn("prop_female", result.columns)
 
     def test_native_script_data_consistency(self):
         """Test that native script data is internally consistent."""

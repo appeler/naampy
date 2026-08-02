@@ -77,8 +77,7 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "numpy": ("https://numpy.org/doc/stable", None),
     "pandas": ("https://pandas.pydata.org/docs", None),
-    # TensorFlow doesn't provide objects.inv file
-    # 'tensorflow': ('https://www.tensorflow.org/api_docs/python', None),
+    "torch": ("https://docs.pytorch.org/docs/stable", None),
 }
 
 # Copy button settings
@@ -122,8 +121,6 @@ nb_custom_formats = {
 
 exclude_patterns = ["naampy.tests*", "_build", "Thumbs.db", ".DS_Store"]
 
-# Autodoc exclusions - mock TensorFlow to prevent hanging
-autodoc_mock_imports = ["tensorflow", "tensorflow.keras"]
 add_module_names = False
 
 

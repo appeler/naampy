@@ -8,6 +8,8 @@ Tests pure neural network-based gender prediction without electoral roll data.
 
 import unittest
 
+import pandas as pd
+
 from naampy.in_rolls_fn import predict_fn_gender
 
 
@@ -106,20 +108,24 @@ class TestMLModel(unittest.TestCase):
 
     def test_empty_input(self):
         """Test ML model behavior with empty input."""
-        # TensorFlow model expects non-empty input, so this should handle gracefully
-        try:
-            result = predict_fn_gender([])
-            # If it succeeds, should return empty DataFrame with correct columns
-            self.assertEqual(len(result), 0)
-            expected_cols = ["name", "pred_gender", "pred_prob"]
-            for col in expected_cols:
-                self.assertIn(col, result.columns)
-        except ValueError as e:
-            # TensorFlow models may not handle empty input, which is acceptable behavior
-            self.assertIn("empty", str(e).lower())
-        except Exception as e:
-            # Other exceptions are not expected
-            self.fail(f"Unexpected exception with empty input: {e}")
+        result = predict_fn_gender([])
+
+        self.assertEqual(len(result), 0)
+        for col in ["name", "pred_gender", "pred_prob"]:
+            self.assertIn(col, result.columns)
+
+    def test_unreadable_names_are_not_scored(self):
+        """Names with no a-z characters come back unscored rather than guessed."""
+        result = predict_fn_gender(["हेमा", "ಅಂಕಿತಾ", "123", "priya"])
+
+        for i in range(3):
+            self.assertTrue(
+                pd.isna(result.iloc[i]["pred_gender"]),
+                f"row {i} was assigned a gender with nothing to score",
+            )
+            self.assertTrue(pd.isna(result.iloc[i]["pred_prob"]))
+
+        self.assertEqual(result.iloc[3]["pred_gender"], "female")
 
     def test_single_name_input(self):
         """Test ML model with single name input."""
@@ -188,7 +194,7 @@ class TestMLModel(unittest.TestCase):
         for i in range(n):
             if i % 97 == 0:
                 # No a-z characters at all -> encode_name([]) -> skipped in the
-                # batched model call, must keep the neutral 0.5 default.
+                # batched model call, must come back unscored.
                 names.append(str(i))
                 unencodable_positions.add(i)
             else:
@@ -201,7 +207,8 @@ class TestMLModel(unittest.TestCase):
             row = result.iloc[i]
             self.assertEqual(row["name"], name)
             if i in unencodable_positions:
-                self.assertAlmostEqual(row["pred_prob"], 0.5, places=6)
+                self.assertTrue(pd.isna(row["pred_gender"]))
+                self.assertTrue(pd.isna(row["pred_prob"]))
             elif name == "priya":
                 self.assertEqual(row["pred_gender"], "female")
             elif name == "rahul":
