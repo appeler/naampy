@@ -266,9 +266,9 @@ class InRollsFnData:
         # naampy columns left over from a previous run so re-running on our own
         # output is idempotent instead of producing `_x`/`_y` merge suffixes.
         rdf = df.drop(columns=[c for c in OUTPUT_COLS if c in df.columns])
-        rdf["__first_name"] = (
-            rdf[namecol].astype("string").str.strip().str.lower().replace("", pd.NA)
-        )
+        first_name = rdf[namecol].astype("string").str.strip().str.lower()
+        # Whitespace-only names strip to "", which is not a name; treat it as missing.
+        rdf["__first_name"] = first_name.mask(first_name == "")
 
         cache_key = (dataset, state, year)
         if cls.__df is None or cls.__cache_key != cache_key:

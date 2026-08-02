@@ -112,7 +112,15 @@ addopts = [
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
 ]
-filterwarnings = ["error"]
+filterwarnings = [
+    "error",
+    # pandas 2.2 guards against chained assignment by testing
+    # `sys.getrefcount(self) <= 3` inside DataFrame.__setitem__. Python 3.14's
+    # refcounting changes make that heuristic fire on every ordinary
+    # `df[col] = value`, so the warning says nothing about our code. Drop this
+    # once the pandas pin moves past the <2.3.0 ceiling.
+    "ignore:ChainedAssignmentError:FutureWarning",
+]
 
 # Coverage configuration (optional)
 # To run with coverage: pytest --cov=naampy --cov-report=term-missing --cov-report=html
