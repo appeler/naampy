@@ -20,6 +20,7 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Topic :: Scientific/Engineering :: Information Analysis",
   "Topic :: Software Development :: Libraries :: Python Modules",
   "Topic :: Utilities"
@@ -28,7 +29,7 @@ keywords = ["gender", "names"]
 dependencies = [
   "torch>=2.0.0",
   "numpy>=1.21.0",
-  "pandas>=1.5.0,<2.3.0",
+  "pandas>=2.0.0",
   "requests>=2.25.0",
   "tqdm>=4.60.0",
 ]
@@ -112,15 +113,7 @@ addopts = [
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
 ]
-filterwarnings = [
-    "error",
-    # pandas 2.2 guards against chained assignment by testing
-    # `sys.getrefcount(self) <= 3` inside DataFrame.__setitem__. Python 3.14's
-    # refcounting changes make that heuristic fire on every ordinary
-    # `df[col] = value`, so the warning says nothing about our code. Drop this
-    # once the pandas pin moves past the <2.3.0 ceiling.
-    "ignore:ChainedAssignmentError:FutureWarning",
-]
+filterwarnings = ["error"]
 
 # Coverage configuration (optional)
 # To run with coverage: pytest --cov=naampy --cov-report=term-missing --cov-report=html

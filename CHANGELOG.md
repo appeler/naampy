@@ -55,6 +55,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   example notebook spelled `maharashtra` — a value the data never contained.
 - Dataverse-downloading tests are now opt-in via `NAAMPY_NETWORK_TESTS=1`; the
   default suite runs offline against fabricated fixtures.
+- Raised the pandas ceiling: the pin was `>=1.5.0,<2.3.0`, which held CI's
+  Python 3.14 job on pandas 2.2.3 — a 2024 release with no 3.14 wheels, built
+  from source, whose chained-assignment guard tests `sys.getrefcount(self) <= 3`
+  and so misfires on every ordinary `df[col] = value` under 3.14's refcounting.
+  Now `>=2.0.0`, which resolves to pandas 3.x where copy-on-write is the default
+  and that machinery is gone. Adds the Python 3.14 classifier.
 - Adopted [py-canon](https://github.com/gojiplus/py-canon) fleet conventions:
   reusable CI/docs/release workflows, `pyright` in place of `mypy`, expanded
   `ruff` rule set, dependency groups for docs tooling, and PEP 639 license
