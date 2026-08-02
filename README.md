@@ -1,6 +1,6 @@
 # naampy: Infer Sociodemographic Characteristics from Indian Names
 
-[![image](https://github.com/appeler/naampy/actions/workflows/test.yml/badge.svg)](https://github.com/appeler/naampy/actions/workflows/test.yml)
+[![CI](https://github.com/appeler/naampy/actions/workflows/ci.yml/badge.svg)](https://github.com/appeler/naampy/actions/workflows/ci.yml)
 [![Documentation](https://github.com/appeler/naampy/actions/workflows/docs.yml/badge.svg)](https://github.com/appeler/naampy/actions/workflows/docs.yml)
 [![image](https://img.shields.io/pypi/v/naampy.svg)](https://pypi.python.org/pypi/naampy)
 [![image](https://static.pepy.tech/badge/naampy)](https://pepy.tech/project/naampy)
