@@ -1,40 +1,12 @@
-"""Shared helpers: n-gram indexing, app data paths, and file downloads."""
+"""Shared helpers: app data paths and file downloads."""
 
 import logging
 import os
+import tempfile
 from os import path
-from pathlib import Path
 
 import requests
 from tqdm import tqdm
-
-
-def find_ngrams(vocab: list, text: str, n: int) -> list:
-    """Find and return list of the index of n-grams in the vocabulary list.
-
-    Generate the n-grams of the specific text, find them in the vocabulary list
-    and return the list of index have been found.
-
-    Args:
-        vocab: Vocabulary list.
-        text: Input text
-        n: N-grams
-
-    Returns:
-        list: List of the index of n-grams in the vocabulary list.
-
-    """
-    wi = []
-
-    a = zip(*[text[i:] for i in range(n)], strict=False)
-    for i in a:
-        w = "".join(i)
-        try:
-            idx = vocab.index(w)
-        except ValueError:
-            idx = 0
-        wi.append(idx)
-    return wi
 
 
 def get_app_file_path(app_name: str, filename: str) -> str:
@@ -61,8 +33,9 @@ def get_app_file_path(app_name: str, filename: str) -> str:
 def download_file(url: str, target: str) -> bool:
     """Download a file from a URL with progress tracking.
 
-    Downloads a file from the given URL to the target location with a progress bar.
-    Handles HTTP errors and provides logging for success/failure.
+    Downloads to a temporary file alongside the target and renames it into place
+    only once the transfer completes, so an interrupted download can never leave a
+    truncated file that later runs would mistake for a valid cache entry.
 
     Args:
         url: URL to download the file from
@@ -75,22 +48,41 @@ def download_file(url: str, target: str) -> bool:
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
     }
 
-    response = requests.get(url, headers=headers, stream=True, timeout=30)
+    target = path.expanduser(target)
+    tmp_path = None
+    try:
+        response = requests.get(url, headers=headers, stream=True, timeout=30)
+        response.raise_for_status()
 
-    if response.status_code != 200:
-        logging.error(
-            f"ERROR: Failed to download file from {url}. Status code: {response.status_code}"
-        )
+        total_size = int(response.headers.get("Content-Length", 0))
+        fd, tmp_path = tempfile.mkstemp(dir=path.dirname(target) or ".", suffix=".part")
+        written = 0
+        with (
+            os.fdopen(fd, "wb") as f,
+            tqdm(
+                total=total_size, unit="B", unit_scale=True, unit_divisor=1024
+            ) as pbar,
+        ):
+            for data in response.iter_content(chunk_size=4096):
+                f.write(data)
+                written += len(data)
+                pbar.update(len(data))
+
+        if total_size and written != total_size:
+            logging.error(
+                f"ERROR: Truncated download from {url}: got {written} bytes, "
+                f"expected {total_size}"
+            )
+            return False
+
+        os.replace(tmp_path, target)
+        tmp_path = None
+    except (requests.RequestException, OSError) as exc:
+        logging.error(f"ERROR: Failed to download file from {url}: {exc}")
         return False
-
-    total_size = int(response.headers.get("Content-Length", 0))
-    with (
-        open(Path(target).expanduser(), "wb") as f,
-        tqdm(total=total_size, unit="B", unit_scale=True, unit_divisor=1024) as pbar,
-    ):
-        for data in response.iter_content(chunk_size=4096):
-            f.write(data)
-            pbar.update(len(data))
+    finally:
+        if tmp_path is not None and path.exists(tmp_path):
+            os.remove(tmp_path)
 
     logging.info(f"Successfully downloaded file from {url} to {target}")
 

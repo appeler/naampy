@@ -1,5 +1,4 @@
-pandas>=0.19.2
-tensorflow==2.21.*
+pandas>=1.5.0
 requests
 tqdm
 numpy

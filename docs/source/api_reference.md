@@ -44,8 +44,8 @@ These are the two primary functions you'll use with naampy:
 The following dataset versions are available:
 
 - **v1**: 12 states dataset (legacy)
-- **v2**: Full 30 states dataset
-- **v2_1k**: 30 states with 1000+ name occurrences (recommended default)
+- **v2**: Full 31 states dataset
+- **v2_1k**: 31 states with 1000+ name occurrences (recommended default)
 - **v2_native**: Native language dataset (16 states, no ML fallback)
 - **v2_en**: English transliteration of v2_native
 

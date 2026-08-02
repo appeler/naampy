@@ -1,16 +1,12 @@
-import sys
-from contextlib import contextmanager
+"""Shared test helpers."""
 
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
+import os
+import unittest
 
-
-@contextmanager
-def capture(command, *args, **kwargs):
-    out, sys.stdout = sys.stdout, StringIO()
-    command(*args, **kwargs)
-    sys.stdout.seek(0)
-    yield sys.stdout.read()
-    sys.stdout = out
+#: Tests that download the multi-hundred-megabyte Dataverse datasets are opt-in.
+#: The rest of the suite runs offline against fabricated fixtures, so a default
+#: `pytest` run is fast and does not depend on an external host being up.
+requires_network = unittest.skipUnless(
+    os.environ.get("NAAMPY_NETWORK_TESTS"),
+    "set NAAMPY_NETWORK_TESTS=1 to run tests that download Dataverse datasets",
+)

@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "naampy"
-version = "0.8.0"
+version = "0.9.0"
 description = "Infer Gender from Indian Names"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -20,6 +20,7 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Topic :: Scientific/Engineering :: Information Analysis",
   "Topic :: Software Development :: Libraries :: Python Modules",
   "Topic :: Utilities"
@@ -28,7 +29,7 @@ keywords = ["gender", "names"]
 dependencies = [
   "torch>=2.0.0",
   "numpy>=1.21.0",
-  "pandas>=1.5.0,<2.3.0",
+  "pandas>=2.0.0",
   "requests>=2.25.0",
   "tqdm>=4.60.0",
 ]
@@ -112,10 +113,7 @@ addopts = [
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
 ]
-filterwarnings = [
-    # Ignore numpy scalar conversion warnings from Keras/TensorFlow
-    "ignore:Conversion of an array with ndim > 0 to a scalar is deprecated:DeprecationWarning",
-]
+filterwarnings = ["error"]
 
 # Coverage configuration (optional)
 # To run with coverage: pytest --cov=naampy --cov-report=term-missing --cov-report=html

@@ -19,8 +19,8 @@ from .utils import download_file, get_app_file_path
 #:
 #: Dataset versions:
 #:     - v1: 12 states dataset
-#:     - v2: Full 30 states dataset
-#:     - v2_1k: 30 states with 1000+ name occurrences (recommended)
+#:     - v2: Full 31 states dataset
+#:     - v2_1k: 31 states with 1000+ name occurrences (recommended)
 #:     - v2_native: Native language scripts dataset (16 states)
 #:     - v2_en: English transliteration of v2_native
 IN_ROLLS_DATA = {
@@ -44,23 +44,26 @@ IN_ROLLS_COLS = [
     "prop_third_gender",
 ]
 
+#: Every column :func:`in_rolls_fn_gender` may append. Dropped from the input before
+#: merging so that re-running naampy on its own output stays idempotent.
+OUTPUT_COLS = [*IN_ROLLS_COLS, "pred_gender", "pred_prob"]
+
 
 class InRollsFnData:
     """Main class for handling Indian Electoral Roll data and gender prediction.
 
     This class provides methods to predict gender based on Indian first names using
     two approaches:
-    1. Statistical data from Indian Electoral Rolls (31 states and union territories)
+
+    1. Statistical data from Indian Electoral Rolls (up to 31 states and UTs)
     2. Machine learning model for names not found in the electoral data
 
     The class maintains cached data and models for efficient repeated predictions.
     """
 
     __df = None
-    __state = None
-    __year = None
+    __cache_key: tuple[str, str | None, int | None] | None = None
     __model = None
-    __dataset = None
 
     @staticmethod
     def load_naampy_data(dataset: str) -> str:
@@ -72,8 +75,8 @@ class InRollsFnData:
         Args:
             dataset: Version of the dataset to load. Options are:
                 - 'v1': 12 states dataset
-                - 'v2': Full 30 states dataset
-                - 'v2_1k': 30 states with 1000+ name occurrences (default)
+                - 'v2': Full 31 states dataset
+                - 'v2_1k': 31 states with 1000+ name occurrences (default)
                 - 'v2_native': Native language dataset (16 states)
                 - 'v2_en': English transliteration of v2_native
 
@@ -112,23 +115,24 @@ class InRollsFnData:
         Returns:
             pd.DataFrame: DataFrame containing:
                 - name: Input first name (lowercased)
-                - pred_gender: Predicted gender ('male' or 'female')
-                - pred_prob: Confidence score for the prediction (0.0 to 1.0)
+                - pred_gender: Predicted gender ('male' or 'female'), or None
+                - pred_prob: Confidence score for the prediction (0.0 to 1.0), or NaN
 
         Note:
             - Names are classified as 'female' if predicted probability > 0.5
-            - Names are classified as 'male' if predicted probability ≤ 0.5
-            - The model handles character sequences up to 24 characters
-            - Model accuracy: RMSE of 0.22 on test data
+            - Names are classified as 'male' if predicted probability <= 0.5
+            - The model reads a-z only. A name with no a-z characters (for example
+              one written in Devanagari) has nothing to score, so it comes back as
+              None / NaN rather than being assigned a gender at 0.5 confidence.
 
         Example:
-            >>> names = ['Priya', 'Rahul', 'Unknown_Name']
+            >>> names = ['Priya', 'Rahul', 'हेमा']
             >>> result = InRollsFnData.predict_fn_gender(names)
             >>> print(result)
-                  name pred_gender  pred_prob
-            0    priya      female      0.945
-            1    rahul        male      0.876
-            2  unknown_name  female      0.623
+                name pred_gender  pred_prob
+            0  priya      female      0.945
+            1  rahul        male      0.876
+            2   हेमा        None        NaN
         """
         import torch
 
@@ -161,7 +165,10 @@ class InRollsFnData:
             cls.__model = model
 
         names = [str(n).lower() for n in first_names]
-        probs = [0.5] * len(names)  # neutral default for names with no in-vocab chars
+        # Names with no in-vocab characters (e.g. pure Devanagari) are left as NaN:
+        # the model has nothing to score, and a 0.5 default would otherwise be
+        # rendered as a confident-looking "male".
+        probs = np.full(len(names), np.nan)
         valid_rows: list[int] = []
         valid_enc: list[list[int]] = []
         for i, nm in enumerate(names):
@@ -178,9 +185,10 @@ class InRollsFnData:
             for r, pv in zip(rows, p, strict=True):
                 probs[r] = pv
 
-        probs_arr = np.array(probs)
-        gender = np.where(probs_arr > 0.5, "female", "male")
-        score = np.where(probs_arr > 0.5, probs_arr, 1 - probs_arr)
+        scored = ~np.isnan(probs)
+        gender = np.full(len(names), None, dtype=object)
+        gender[scored] = np.where(probs[scored] > 0.5, "female", "male")
+        score = np.where(probs > 0.5, probs, 1 - probs)
         return pd.DataFrame(
             data={"name": names, "pred_gender": gender, "pred_prob": score}
         )
@@ -206,32 +214,37 @@ class InRollsFnData:
             state: Specific Indian state to use for analysis.
                 Available states: andaman, andhra, arunachal, assam, bihar, chandigarh,
                 dadra, daman, delhi, goa, gujarat, haryana, himachal, jharkhand, jk,
-                karnataka, kerala, maharashtra, manipur, meghalaya, mizoram, mp,
+                karnataka, kerala, maharastra, manipur, meghalaya, mizoram, mp,
                 nagaland, odisha, puducherry, punjab, rajasthan, sikkim, tripura,
                 up, uttarakhand. Defaults to None (all states).
             year: Specific birth year to filter data by.
                 Defaults to None (all years).
             dataset: Dataset version to use. Options:
                 - 'v1': 12 states dataset
-                - 'v2': Full 30 states dataset
+                - 'v2': Full 31 states dataset
                 - 'v2_1k': 1000+ occurrences dataset (default, good balance)
                 - 'v2_native': Native language dataset (no ML fallback)
                 - 'v2_en': English transliteration dataset
 
         Returns:
-            pd.DataFrame: Enhanced DataFrame with additional columns:
+            pd.DataFrame: A copy of the input with these columns appended:
                 - n_female: Count of females with this name
                 - n_male: Count of males with this name
                 - n_third_gender: Count of third gender individuals
                 - prop_female: Proportion female (0.0 to 1.0)
                 - prop_male: Proportion male (0.0 to 1.0)
                 - prop_third_gender: Proportion third gender (0.0 to 1.0)
-                - pred_gender: ML prediction for names not in database
+                - pred_gender: ML prediction for names not in the database
                 - pred_prob: ML prediction confidence score
 
+            The two ML columns are always present unless dataset is 'v2_native',
+            and hold None / NaN for rows that were resolved from the rolls.
+
         Note:
-            - Names are automatically cleaned (stripped and lowercased)
-            - For names not in electoral data, ML predictions are added
+            - Names are matched after stripping and lowercasing; the input column
+              itself is returned unchanged
+            - The input DataFrame is not modified; a copy is returned
+            - Rows with a missing or empty name stay NaN in every appended column
             - Data is cached after first download for faster subsequent use
             - Third gender category reflects Indian electoral roll classifications
 
@@ -241,23 +254,24 @@ class InRollsFnData:
             >>> result = in_rolls_fn_gender(df, 'name')
             >>> print(result[['name', 'prop_female', 'prop_male']].head())
                  name  prop_female  prop_male
-            0   priya       0.994      0.006
-            1   rahul       0.008      0.992
-            2  anjali       0.989      0.011
+            0   Priya       0.994      0.006
+            1   Rahul       0.008      0.992
+            2  Anjali       0.989      0.011
         """
-        if namecol and namecol not in df.columns:
+        if not namecol or namecol not in df.columns:
             print(f"No column `{namecol}` in the DataFrame")
             return df
 
-        df["__first_name"] = df[namecol].str.strip().str.lower()
+        # Work on a copy so the caller's frame is never mutated, and drop any
+        # naampy columns left over from a previous run so re-running on our own
+        # output is idempotent instead of producing `_x`/`_y` merge suffixes.
+        rdf = df.drop(columns=[c for c in OUTPUT_COLS if c in df.columns])
+        first_name = rdf[namecol].astype("string").str.strip().str.lower()
+        # Whitespace-only names strip to "", which is not a name; treat it as missing.
+        rdf["__first_name"] = first_name.mask(first_name == "")
 
-        if (
-            cls.__df is None
-            or cls.__state != state
-            or cls.__year != year
-            or cls.__dataset != dataset
-        ):
-            cls.__dataset = dataset
+        cache_key = (dataset, state, year)
+        if cls.__df is None or cls.__cache_key != cache_key:
             data_path = InRollsFnData.load_naampy_data(dataset)
             adf = pd.read_csv(
                 data_path,
@@ -270,41 +284,41 @@ class InRollsFnData:
                     "n_third_gender",
                 ],
             )
-            agg_dict = {"n_female": "sum", "n_male": "sum", "n_third_gender": "sum"}
-            if state and year:
-                adf = adf[(adf.state == state) & (adf.birth_year == year)].copy()
-                del adf["birth_year"]
-                del adf["state"]
-            elif state:
-                adf = adf.groupby(["state", "first_name"]).agg(agg_dict).reset_index()
-                adf = adf[adf.state == state].copy()
-                del adf["state"]
-            elif year:
-                adf = (
-                    adf.groupby(["birth_year", "first_name"])
-                    .agg(agg_dict)
-                    .reset_index()
-                )
-                adf = adf[adf.birth_year == year].copy()
-                del adf["birth_year"]
-            else:
-                adf = adf.groupby(["first_name"]).agg(agg_dict).reset_index()
-            n = adf["n_female"] + adf["n_male"] + adf["n_third_gender"]
+            if state is not None:
+                adf = adf[adf.state == state]
+            if year is not None:
+                adf = adf[adf.birth_year == year]
+            # Always collapse to one row per name: guarantees a unique merge key
+            # regardless of how many (state, birth_year) rows survived the filter.
+            adf = adf.groupby("first_name", as_index=False).agg(
+                {"n_female": "sum", "n_male": "sum", "n_third_gender": "sum"}
+            )
+            n = (adf["n_female"] + adf["n_male"] + adf["n_third_gender"]).replace(
+                0, np.nan
+            )
             adf["prop_female"] = adf["n_female"] / n
             adf["prop_male"] = adf["n_male"] / n
             adf["prop_third_gender"] = adf["n_third_gender"] / n
+            adf = adf[["first_name", *IN_ROLLS_COLS]].rename(
+                columns={"first_name": "__first_name"}
+            )
+            adf["__first_name"] = adf["__first_name"].astype("string")
             cls.__df = adf
-            cls.__df = cls.__df[["first_name", *IN_ROLLS_COLS]]
-            cls.__df.rename(columns={"first_name": "__first_name"}, inplace=True)
-        rdf = pd.merge(df, cls.__df, how="left", on="__first_name")
+            cls.__cache_key = cache_key
+        rdf = pd.merge(rdf, cls.__df, how="left", on="__first_name")
 
         if dataset != "v2_native":
-            # if name does not exist in database
-            not_in_db_names = rdf[rdf["prop_female"].isna()]
-            if len(not_in_db_names.values) > 0:
-                mdf = predict_fn_gender(not_in_db_names["__first_name"].tolist())
-                rdf.at[not_in_db_names.index, "pred_gender"] = mdf["pred_gender"].values
-                rdf.at[not_in_db_names.index, "pred_prob"] = mdf["pred_prob"].values
+            # Declare the ML columns unconditionally so the output schema does not
+            # depend on whether any name happened to miss the lookup.
+            rdf["pred_gender"] = pd.Series(None, index=rdf.index, dtype="object")
+            rdf["pred_prob"] = pd.Series(np.nan, index=rdf.index, dtype="float64")
+            # Rows with no usable name are left as NaN rather than handed to the
+            # model, which would otherwise score the literal string "nan".
+            missing = rdf.index[rdf["prop_female"].isna() & rdf["__first_name"].notna()]
+            if len(missing) > 0:
+                mdf = predict_fn_gender(rdf.loc[missing, "__first_name"].tolist())
+                rdf.loc[missing, "pred_gender"] = mdf["pred_gender"].to_numpy()
+                rdf.loc[missing, "pred_prob"] = mdf["pred_prob"].to_numpy()
 
         del rdf["__first_name"]
 
@@ -338,23 +352,25 @@ in_rolls_fn_gender = InRollsFnData.in_rolls_fn_gender
 predict_fn_gender = InRollsFnData.predict_fn_gender
 
 
-def main(argv: list[str] = sys.argv[1:]) -> int:
+def main(argv: list[str] | None = None) -> int:
     """Command-line interface for naampy gender prediction.
 
     This function provides a command-line interface to process CSV files and
     add gender predictions based on first names using Indian Electoral Roll data.
 
     Args:
-        argv: Command line arguments.
-            Defaults to sys.argv[1:].
+        argv: Command line arguments. Defaults to sys.argv[1:].
 
     Returns:
-        int: Exit code (0 for success, -1 for error)
+        int: Exit code (0 for success, 1 for error)
 
     Example:
         $ in_rolls_fn_gender input.csv -f first_name -o output.csv
         $ in_rolls_fn_gender input.csv -f name -s kerala -y 1990
     """
+    if argv is None:
+        argv = sys.argv[1:]
+
     title = (
         "Appends Electoral roll columns prop_female, n_female, n_male n_third_gender"
     )
@@ -366,11 +382,13 @@ def main(argv: list[str] = sys.argv[1:]) -> int:
         required=True,
         help="Name of column containing the first name",
     )
+    # Deliberately not an argparse `choices=`: that would download and parse the
+    # dataset just to build the parser, so even `--help` would pay for it. The
+    # state is validated after parsing, against the dataset the user actually asked for.
     parser.add_argument(
         "-s",
         "--state",
         default=None,
-        choices=InRollsFnData.list_states(),
         help="State name of Indian electoral rolls data (default=all)",
     )
     parser.add_argument(
@@ -392,7 +410,7 @@ def main(argv: list[str] = sys.argv[1:]) -> int:
         default="v2_1k",
         choices=["v1", "v2", "v2_1k", "v2_native", "v2_en"],
         help="Select the dataset. v1 is 12 states,"
-        + " v2 and v2_1k for 30 states with 100 and 1,000"
+        + " v2 and v2_1k for 31 states with 100 and 1,000"
         + " first name occurrences respectively"
         + " v2_native is the native language dataset of"
         + " 16 states with 10 first name occurrences per state,"
@@ -404,11 +422,20 @@ def main(argv: list[str] = sys.argv[1:]) -> int:
 
     print(args)
 
+    if args.state is not None:
+        valid_states = InRollsFnData.list_states(args.dataset)
+        if args.state not in valid_states:
+            print(
+                f"State `{args.state}` not in dataset `{args.dataset}`. "
+                f"Available: {', '.join(sorted(valid_states))}"
+            )
+            return 1
+
     df = pd.read_csv(args.input)
 
-    if args.first_name and (args.first_name not in df.columns):
+    if args.first_name not in df.columns:
         print(f"Column `{args.first_name}` not found in the input file")
-        return -1
+        return 1
 
     rdf = in_rolls_fn_gender(df, args.first_name, args.state, args.year, args.dataset)
 

@@ -38,7 +38,7 @@ def analyze_by_region(df, name_col, regions):
     return results
 
 # Compare regional differences
-regions = ['delhi', 'kerala', 'maharashtra']
+regions = ['delhi', 'kerala', 'maharastra']
 regional_data = analyze_by_region(df, 'first_name', regions)
 ```
 
