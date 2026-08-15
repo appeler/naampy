@@ -91,11 +91,11 @@ import pandas as pd
 from naampy import in_rolls_fn_gender, predict_fn_gender
 
 # Create a DataFrame with names
-names_df = pd.DataFrame({'name': ['Priyanka', 'Rahul', 'Anjali']})
+names_df = pd.DataFrame({"name": ["Priyanka", "Rahul", "Anjali"]})
 
 # Get gender predictions from electoral roll data
-result = in_rolls_fn_gender(names_df, 'name')
-print(result[['name', 'prop_female', 'prop_male']])
+result = in_rolls_fn_gender(names_df, "name")
+print(result[["name", "prop_female", "prop_male"]])
 ```
 
 ### Using the ML Model
@@ -104,7 +104,7 @@ For names not in the electoral roll database:
 
 ```python
 # Use the neural network model for predictions
-names = ['Aadhya', 'Reyansh', 'Kiara']
+names = ["Aadhya", "Reyansh", "Kiara"]
 predictions = predict_fn_gender(names)
 print(predictions)
 ```
@@ -120,11 +120,11 @@ import pandas as pd
 from naampy import in_rolls_fn_gender
 
 # Sample data
-names = [{'name': 'gaurav'}, {'name': 'yasmin'}, {'name': 'deepti'}]
+names = [{"name": "gaurav"}, {"name": "yasmin"}, {"name": "deepti"}]
 df = pd.DataFrame(names)
 
-result = in_rolls_fn_gender(df, 'name')
-print(result[['name', 'n_male', 'n_female', 'prop_female', 'prop_male']])
+result = in_rolls_fn_gender(df, "name")
+print(result[["name", "n_male", "n_female", "prop_female", "prop_male"]])
 ```
 
 **Output:**
