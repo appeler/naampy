@@ -2013,14 +2013,14 @@ wheels = [
 
 [[package]]
 name = "sphinx-autodoc-typehints"
-version = "2.3.0"
+version = "3.6.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "sphinx" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/74/cd/03e7b917230dc057922130a79ba0240df1693bfd76727ea33fae84b39138/sphinx_autodoc_typehints-2.3.0.tar.gz", hash = "sha256:535c78ed2d6a1bad393ba9f3dfa2602cf424e2631ee207263e07874c38fde084", size = 40709, upload-time = "2024-08-29T16:25:48.343Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/1d/f6/bdd93582b2aaad2cfe9eb5695a44883c8bc44572dd3c351a947acbb13789/sphinx_autodoc_typehints-3.6.1.tar.gz", hash = "sha256:fa0b686ae1b85965116c88260e5e4b82faec3687c2e94d6a10f9b36c3743e2fe", size = 37563, upload-time = "2026-01-02T15:23:46.543Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a0/f3/e0a4ce49da4b6f4e4ce84b3c39a0677831884cb9d8a87ccbf1e9e56e53ac/sphinx_autodoc_typehints-2.3.0-py3-none-any.whl", hash = "sha256:3098e2c6d0ba99eacd013eb06861acc9b51c6e595be86ab05c08ee5506ac0c67", size = 19836, upload-time = "2024-08-29T16:25:46.707Z" },
+    { url = "https://files.pythonhosted.org/packages/dc/6a/c0360b115c81d449b3b73bf74b64ca773464d5c7b1b77bda87c5e874853b/sphinx_autodoc_typehints-3.6.1-py3-none-any.whl", hash = "sha256:dd818ba31d4c97f219a8c0fcacef280424f84a3589cedcb73003ad99c7da41ca", size = 20869, upload-time = "2026-01-02T15:23:45.194Z" },
 ]
 
 [[package]]
