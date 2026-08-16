@@ -4,11 +4,11 @@
 import argparse
 import os
 import sys
-from importlib import resources
 
 import numpy as np
 import pandas as pd
 
+from ._resources import resolve_model
 from .utils import download_file, get_app_file_path
 
 #: Harvard Dataverse URLs for Indian Electoral Roll datasets.
@@ -150,16 +150,13 @@ class InRollsFnData:
         if len(first_names) == 0:
             return pd.DataFrame(columns=["name", "pred_gender", "pred_prob"])
 
-        # Load the bundled char-BiLSTM once (lazy; cached on the class).
+        # Load the pinned char-BiLSTM once (lazy; cached on the class).
         if cls.__model is None:
             model = CharBiLSTM(
                 VOCAB_SIZE, 1, LSTM_EMB, LSTM_HIDDEN, LSTM_LAYERS, LSTM_DROPOUT
             )
-            model_path = resources.files(__package__) / "model" / "gender_lstm.pt"
-            with resources.as_file(model_path) as model_file:
-                state = torch.load(
-                    str(model_file), map_location="cpu", weights_only=True
-                )
+            model_path = resolve_model("gender_lstm.pt")
+            state = torch.load(model_path, map_location="cpu", weights_only=True)
             model.load_state_dict(state)
             model.eval()
             cls.__model = model

@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/appeler/naampy/actions/workflows/ci.yml/badge.svg)](https://github.com/appeler/naampy/actions/workflows/ci.yml)
 [![Documentation](https://github.com/appeler/naampy/actions/workflows/docs.yml/badge.svg)](https://github.com/appeler/naampy/actions/workflows/docs.yml)
+[![Model](https://img.shields.io/badge/%F0%9F%A4%97-model-yellow)](https://huggingface.co/gojiberries/naampy)
 [![image](https://img.shields.io/pypi/v/naampy.svg)](https://pypi.python.org/pypi/naampy)
 [![image](https://static.pepy.tech/badge/naampy)](https://pepy.tech/project/naampy)
 

@@ -1,10 +1,10 @@
 [build-system]
-requires = ["uv_build>=0.9.13,<0.12.0"]
-build-backend = "uv_build"
+requires = ["hatchling", "uv-dynamic-versioning"]
+build-backend = "hatchling.build"
 
 [project]
 name = "naampy"
-version = "0.9.0"
+dynamic = ["version"]
 description = "Infer Gender from Indian Names"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -32,6 +32,7 @@ dependencies = [
   "pandas>=2.0.0",
   "requests>=2.25.0",
   "tqdm>=4.60.0",
+  "huggingface-hub>=0.23",
 ]
 license-files = ["LICENSE"]
 
@@ -64,9 +65,15 @@ Changelog = "https://github.com/appeler/naampy/blob/master/CHANGELOG.md"
 [project.scripts]
 in_rolls_fn_gender = "naampy.in_rolls_fn:main"
 
-[tool.uv.build-backend]
-module-name = "naampy"
-module-root = ""
+[tool.hatch.version]
+source = "uv-dynamic-versioning"
+
+[tool.uv-dynamic-versioning]
+vcs = "git"
+style = "pep440"
+
+[tool.hatch.build.targets.wheel]
+packages = ["naampy"]
 
 
 # Ruff configuration
@@ -109,9 +116,12 @@ python_files = "test_*.py"
 addopts = [
     "-ra",
     "--strict-markers",
+    "-m",
+    "not live",
 ]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "live: reaches Hugging Face and is deselected by default",
 ]
 filterwarnings = ["error"]
 
