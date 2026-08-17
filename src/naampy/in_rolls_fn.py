@@ -53,6 +53,17 @@ IN_ROLLS_COLS = [
 OUTPUT_COLS = [*IN_ROLLS_COLS, "pred_gender", "pred_prob"]
 
 
+def _require_dataset(dataset: str) -> None:
+    """Reject unknown dataset keys before any input-dependent fast path.
+
+    Raises:
+        ValueError: If dataset is not a published electoral-roll table.
+    """
+    if dataset not in IN_ROLLS_DATA:
+        choices = ", ".join(sorted(IN_ROLLS_DATA))
+        raise ValueError(f"Unknown dataset {dataset!r}; choose one of: {choices}")
+
+
 class InRollsFnData:
     """Main class for handling Indian Electoral Roll data and gender prediction.
 
@@ -97,9 +108,7 @@ class InRollsFnData:
                 path = InRollsFnData.load_naampy_data("v2_1k")
                 print(f"Data cached at: {path}")
         """
-        if dataset not in IN_ROLLS_DATA:
-            choices = ", ".join(sorted(IN_ROLLS_DATA))
-            raise ValueError(f"Unknown dataset {dataset!r}; choose one of: {choices}")
+        _require_dataset(dataset)
 
         data_path = Path(get_app_file_path("naampy", f"naampy_{dataset}.parquet"))
         if data_path.exists():
@@ -270,6 +279,7 @@ class InRollsFnData:
                 result = in_rolls_fn_gender(df, "name")
                 print(result[["name", "prop_female", "prop_male"]].head())
         """
+        _require_dataset(dataset)
         if not namecol or namecol not in df.columns:
             print(f"No column `{namecol}` in the DataFrame")
             return df.copy()

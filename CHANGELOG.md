@@ -13,7 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Preserve meaningful input indices, including duplicate index values, while
   appending electoral-roll results.
-- Reject unavailable states and state/year combinations instead of silently
+- Reject unknown datasets, unavailable states, and unavailable state/year
+  combinations instead of silently returning an inconsistent schema or
   treating every name as an electoral miss and returning neural predictions.
 - Return the documented empty output schema without downloading a dataset when
   the input DataFrame has no rows.

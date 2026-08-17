@@ -182,6 +182,13 @@ class TestOutputContract(FixtureTestCase):
         load.assert_not_called()
         self.assertEqual(result.columns.tolist(), ["name", *OUTPUT_COLS])
 
+    def test_empty_input_still_rejects_an_unknown_dataset(self):
+        """Dataset validation does not depend on whether input rows exist."""
+        with self.assertRaisesRegex(ValueError, "Unknown dataset 'not-a-dataset'"):
+            in_rolls_fn_gender(
+                pd.DataFrame({"name": []}), "name", dataset="not-a-dataset"
+            )
+
     def test_rerunning_on_own_output_is_idempotent(self):
         """Feeding naampy's output back in must not crash or duplicate columns."""
         df = pd.DataFrame({"name": ["priya", "aadhyashree"]})
