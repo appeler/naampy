@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Tests for integration between electoral roll and ML model functionality.
 

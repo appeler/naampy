@@ -20,10 +20,4 @@ jobs:
       pages: write
       id-token: write
     with:
-      # naampy predates the docs/ flat-layout convention: real Sphinx source
-      # (myst-nb notebook rendering, custom furo sidebars) lives in docs/source.
-      docs-dir: docs/source
-      # Docstring "Example:" blocks use >>> prompts for illustration (some
-      # require live network/data access) and aren't meant to run as doctests.
-      run-doctests: false
       deploy: ${{ github.event_name == 'push' }}

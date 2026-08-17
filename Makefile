@@ -6,7 +6,7 @@ help:
 	@echo "  dev        Install package in development mode with all dependencies"
 	@echo "  test       Run tests without coverage"
 	@echo "  test-cov   Run tests with coverage"
-	@echo "  lint       Run linting checks (ruff, mypy, pydoclint)"
+	@echo "  lint       Run linting checks (ruff, pyright, pydoclint)"
 	@echo "  format     Format code with ruff"
 	@echo "  clean      Remove build artifacts and cache files"
 	@echo "  docs       Build documentation"
@@ -16,20 +16,19 @@ install:
 	uv pip install .
 
 dev:
-	uv sync --group dev --group test
-	uv pip install -e ".[docs]"
+	uv sync --all-groups
 	uv run pre-commit install
 
 test:
-	uv run --group test pytest tests/ -v
+	uv run pytest
 
 test-cov:
-	uv run --group test pytest --cov=naampy --cov-report=term-missing --cov-report=html -v
+	uv run pytest --cov=naampy --cov-report=term-missing --cov-report=html
 
 lint:
 	uv run ruff check .
-	uv run mypy naampy --ignore-missing-imports
-	uv run pydoclint naampy/
+	uv run pyright
+	uv run pydoclint src/
 
 format:
 	uv run ruff format .
@@ -50,8 +49,7 @@ clean:
 	find . -type f -name "*~" -delete
 
 docs:
-	cd docs && make clean && make html
-	@echo "Documentation built at docs/_build/html/index.html"
+	uv run sphinx-build -W --keep-going -b html docs docs/_build/html
 
-build: clean
+build:
 	uv build

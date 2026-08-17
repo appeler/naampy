@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/appeler/naampy/actions/workflows/ci.yml/badge.svg)](https://github.com/appeler/naampy/actions/workflows/ci.yml)
 [![Documentation](https://github.com/appeler/naampy/actions/workflows/docs.yml/badge.svg)](https://github.com/appeler/naampy/actions/workflows/docs.yml)
+[![Model](https://img.shields.io/badge/%F0%9F%A4%97-model-yellow)](https://huggingface.co/gojiberries/naampy)
 [![image](https://img.shields.io/pypi/v/naampy.svg)](https://pypi.python.org/pypi/naampy)
 [![image](https://static.pepy.tech/badge/naampy)](https://pepy.tech/project/naampy)
 
@@ -127,14 +128,6 @@ result = in_rolls_fn_gender(df, "name")
 print(result[["name", "n_male", "n_female", "prop_female", "prop_male"]])
 ```
 
-**Output:**
-```
-     name    n_male  n_female  prop_female  prop_male
-0  gaurav   25625.0      47.0     0.001831   0.998169
-1  yasmin      58.0    6079.0     0.990549   0.009451
-2  deepti      35.0    5784.0     0.993985   0.006015
-```
-
 ### Machine Learning Predictions
 
 ```python
@@ -146,20 +139,12 @@ predictions = predict_fn_gender(names)
 print(predictions)
 ```
 
-**Output:**
-```
-      name pred_gender  pred_prob
-0    nabha      female   0.755028
-1  hrithik        male   0.922181
-2    kiara      female   0.614125
-3  reyansh        male   0.891234
-```
 <!-- END:detailed_usage -->
 
 <!-- START:functionality -->
 ## How it Works
 
-When you first run `in_rolls_fn_gender`, it downloads data from [Harvard Dataverse](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/WZGJBM) to a local cache folder. Subsequent runs use the cached data for faster performance.
+When you first run `in_rolls_fn_gender`, it downloads the selected raw table from [Harvard Dataverse](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/WZGJBM), validates its schema, and stores a typed Parquet cache under `~/.naampy`. The downloaded CSV.gz is only a temporary transport file and is removed after conversion. Subsequent runs use the Parquet cache.
 
 The package provides two complementary approaches:
 
@@ -185,11 +170,3 @@ Suriyan Laohaprapanon, Gaurav Sood, and Rajashekar Chintalapati
 - [appeler/outkast](https://github.com/appeler/outkast) — Map last names to caste categories
 - [appeler/parsernaam](https://github.com/appeler/parsernaam) — AI-powered name parsing
 <!-- END:links -->
-
-## 🔗 Adjacent Repositories
-
-- [appeler/pranaam](https://github.com/appeler/pranaam) — pranaam: predict religion based on name
-- [appeler/outkast](https://github.com/appeler/outkast) — Using data from over 140M+ Indians from the SECC 2011, we map last names to caste (SC, ST, Other)
-- [appeler/parsernaam](https://github.com/appeler/parsernaam) — AI name parsing. Predict first or last name using a DL model.
-- [appeler/namesexdata](https://github.com/appeler/namesexdata) — Data on international first names and sex of people with that name
-- [appeler/graphic_names](https://github.com/appeler/graphic_names) — Infer the gender of person with a particular first name using Google image search and Clarifai

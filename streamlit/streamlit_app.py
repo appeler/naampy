@@ -80,8 +80,7 @@ def app():
                     "uttarakhand",
                 ],
             )
-            if state == "all":
-                state = ""
+            state = {"all": None, "maharashtra": "maharastra"}.get(state, state)
             function = sidebar_options[selected_function]
             if st.button("Run"):
                 transformed_df = function(df, namecol=fname_col, state=state)

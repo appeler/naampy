@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-08-17
+
+### Fixed
+
+- Preserve meaningful input indices, including duplicate index values, while
+  appending electoral-roll results.
+- Reject unknown datasets, unavailable states, and unavailable state/year
+  combinations instead of silently returning an inconsistent schema or
+  treating every name as an electoral miss and returning neural predictions.
+- Return the documented empty output schema without downloading a dataset when
+  the input DataFrame has no rows.
+- Map the Streamlit app's “all states” and Maharashtra selections to the
+  national lookup and the source table's legacy state key, respectively.
+- Preserve caller-owned `pred_gender` and `pred_prob` columns when using the
+  native dataset, which does not produce those fields.
+- Keep the model-training entry point working after the package moved under
+  `src/`.
+
+### Changed
+
+- Store the runtime electoral-roll cache as Zstandard-compressed Parquet with an
+  explicit Arrow schema. Dataverse CSV.gz files are now temporary transport
+  inputs that are validated, converted atomically, and removed.
+- Move the gender checkpoint out of the wheel and into
+  `gojiberries/naampy` on Hugging Face at an immutable revision. Controlled
+  deployments can continue to use `NAAMPY_MODEL_DIR`.
+- Adopt the current py-canon structure: `src/` package layout, `uv_build`,
+  static package version, reusable workflows, and flat Sphinx documentation.
+- Replace the executed notebook documentation stack with ordinary Markdown and
+  remove unsupported hand-written prediction and model-performance numbers.
+
 ## [0.9.0] - 2026-08-02
 
 ### Fixed
@@ -19,7 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the model, which scored the literal string `"nan"` and returned a
   confident-looking gender for a row that had no name at all.
 - Names with no `a-z` characters (Devanagari, Gujarati, Kannada, …) now return
-  `None`/`NaN` instead of being labelled `"male"` at 0.5 confidence, which is
+  `None`/`NaN` instead of being labeled `"male"` at 0.5 confidence, which is
   what the previous neutral-probability default produced.
 - Re-running `in_rolls_fn_gender` on its own output no longer raises. Existing
   naampy columns are dropped before the merge (previously they became
@@ -95,6 +126,8 @@ Versions prior to 0.5.0 predate this changelog; see the
 [commit history](https://github.com/appeler/naampy/commits/master) for
 details.
 
-[Unreleased]: https://github.com/appeler/naampy/compare/v0.6.0...master
+[Unreleased]: https://github.com/appeler/naampy/commits/master
+[0.10.0]: https://github.com/appeler/naampy/compare/v0.9.0...master
+[0.9.0]: https://github.com/appeler/naampy/compare/v0.6.0...v0.9.0
 [0.6.0]: https://github.com/appeler/naampy/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/appeler/naampy/compare/v0.3.0...v0.5.0
