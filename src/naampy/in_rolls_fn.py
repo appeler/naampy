@@ -56,6 +56,9 @@ OUTPUT_COLS = [*IN_ROLLS_COLS, "pred_gender", "pred_prob"]
 def _require_dataset(dataset: str) -> None:
     """Reject unknown dataset keys before any input-dependent fast path.
 
+    Args:
+        dataset: Published electoral-roll dataset key.
+
     Raises:
         ValueError: If dataset is not a published electoral-roll table.
     """
@@ -107,7 +110,7 @@ class InRollsFnData:
 
                 path = InRollsFnData.load_naampy_data("v2_1k")
                 print(f"Data cached at: {path}")
-        """
+        """  # noqa: DOC503
         _require_dataset(dataset)
 
         data_path = Path(get_app_file_path("naampy", f"naampy_{dataset}.parquet"))
