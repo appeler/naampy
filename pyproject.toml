@@ -4,6 +4,7 @@ build-backend = "uv_build"
 
 [tool.uv.build-backend]
 module-name = "naampy"
+source-exclude = [".DS_Store", "Thumbs.db"]
 
 [project]
 name = "naampy"
