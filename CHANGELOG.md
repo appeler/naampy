@@ -18,8 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   treating every name as an electoral miss and returning neural predictions.
 - Return the documented empty output schema without downloading a dataset when
   the input DataFrame has no rows.
-- Make the Streamlit app's default “all states” selection request the national
-  lookup instead of passing an invalid blank state.
+- Map the Streamlit app's “all states” and Maharashtra selections to the
+  national lookup and the source table's legacy state key, respectively.
 - Preserve caller-owned `pred_gender` and `pred_prob` columns when using the
   native dataset, which does not produce those fields.
 - Keep the model-training entry point working after the package moved under

@@ -8,8 +8,7 @@ from unittest import mock
 import pandas as pd
 
 
-def test_all_states_selection_uses_national_lookup() -> None:
-    """The default UI choice must map to the core API's ``None`` sentinel."""
+def _run_electoral_action(selected_state: str) -> mock.Mock:
     streamlit = mock.MagicMock()
     app_path = Path(__file__).parents[1] / "streamlit" / "streamlit_app.py"
     spec = spec_from_file_location("naampy_streamlit_app", app_path)
@@ -22,7 +21,7 @@ def test_all_states_selection_uses_national_lookup() -> None:
     action = "Append Electoral Roll Data to First Name"
     streamlit.sidebar.selectbox.return_value = action
     streamlit.file_uploader.return_value = StringIO("name\nPriya\n")
-    streamlit.selectbox.side_effect = ["name", "all"]
+    streamlit.selectbox.side_effect = ["name", selected_state]
     streamlit.button.return_value = True
     prediction = pd.DataFrame({"name": ["Priya"]})
     function = mock.Mock(return_value=prediction)
@@ -32,4 +31,16 @@ def test_all_states_selection_uses_national_lookup() -> None:
     app_module.app()
 
     function.assert_called_once()
+    return function
+
+
+def test_all_states_selection_uses_national_lookup() -> None:
+    """The default UI choice must map to the core API's ``None`` sentinel."""
+    function = _run_electoral_action("all")
     assert function.call_args.kwargs["state"] is None
+
+
+def test_maharashtra_selection_uses_published_dataset_key() -> None:
+    """The correctly spelled UI label must map to the source table's legacy key."""
+    function = _run_electoral_action("maharashtra")
+    assert function.call_args.kwargs["state"] == "maharastra"
