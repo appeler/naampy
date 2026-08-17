@@ -47,7 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the model, which scored the literal string `"nan"` and returned a
   confident-looking gender for a row that had no name at all.
 - Names with no `a-z` characters (Devanagari, Gujarati, Kannada, …) now return
-  `None`/`NaN` instead of being labelled `"male"` at 0.5 confidence, which is
+  `None`/`NaN` instead of being labeled `"male"` at 0.5 confidence, which is
   what the previous neutral-probability default produced.
 - Re-running `in_rolls_fn_gender` on its own output no longer raises. Existing
   naampy columns are dropped before the merge (previously they became
@@ -123,9 +123,8 @@ Versions prior to 0.5.0 predate this changelog; see the
 [commit history](https://github.com/appeler/naampy/commits/master) for
 details.
 
-[Unreleased]: https://github.com/appeler/naampy/compare/v0.10.0...master
-[0.10.0]: https://github.com/appeler/naampy/compare/v0.9.0...v0.10.0
+[Unreleased]: https://github.com/appeler/naampy/commits/master
+[0.10.0]: https://github.com/appeler/naampy/compare/v0.9.0...master
 [0.9.0]: https://github.com/appeler/naampy/compare/v0.6.0...v0.9.0
-[0.8.0]: https://github.com/appeler/naampy/compare/v0.6.0...v0.8.0
 [0.6.0]: https://github.com/appeler/naampy/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/appeler/naampy/compare/v0.3.0...v0.5.0

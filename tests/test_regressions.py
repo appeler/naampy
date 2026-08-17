@@ -237,7 +237,7 @@ class TestOutputContract(FixtureTestCase):
 class TestNonLatinNames(FixtureTestCase):
     """Names the character model cannot read must not be given a gender."""
 
-    def test_devanagari_name_is_not_labelled_male(self):
+    def test_devanagari_name_is_not_labeled_male(self):
         """A name with no a-z characters comes back unscored under an English dataset."""
         df = pd.DataFrame({"name": ["हेमा", "ಅಂಕಿತಾ", "priya"]})
 
