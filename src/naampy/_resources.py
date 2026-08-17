@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-from importlib.resources import files
 from pathlib import Path
 
 HF_REPO = "gojiberries/naampy"
@@ -18,10 +17,6 @@ def resolve_model(filename: str) -> str:
         candidate = Path(override) / filename
         if candidate.is_file():
             return str(candidate)
-
-    packaged = Path(str(files("naampy") / "model" / filename))
-    if packaged.is_file():
-        return str(packaged)
 
     from huggingface_hub import hf_hub_download
 

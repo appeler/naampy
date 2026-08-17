@@ -1,15 +1,19 @@
-#!/usr/bin/env python
 """Gender prediction from Indian first names using Electoral Roll data."""
 
 import argparse
-import os
+import logging
 import sys
+import tempfile
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
 from ._resources import resolve_model
+from ._tables import csv_to_parquet, validate_parquet
 from .utils import download_file, get_app_file_path
+
+LOGGER = logging.getLogger(__name__)
 
 #: Harvard Dataverse URLs for Indian Electoral Roll datasets.
 #:
@@ -81,24 +85,35 @@ class InRollsFnData:
                 - 'v2_en': English transliteration of v2_native
 
         Returns:
-            str: Local file path to the downloaded/cached dataset
+            str: Local path to the typed Parquet cache.
 
         Raises:
-            Exception: If the dataset download fails
+            ValueError: If dataset is unknown or its data violates the schema.
+            RuntimeError: If the dataset download fails.
 
         Example:
-            >>> path = InRollsFnData.load_naampy_data('v2_1k')
-            >>> print(f"Data cached at: {path}")
+            .. code-block:: python
+
+                path = InRollsFnData.load_naampy_data("v2_1k")
+                print(f"Data cached at: {path}")
         """
-        data_fn = f"naampy_{dataset}.csv.gz"
-        data_path = get_app_file_path("naampy", data_fn)
-        if not os.path.exists(data_path):
-            print(f"Downloading naampy data from the server ({data_fn})...")
-            if not download_file(IN_ROLLS_DATA[dataset], data_path):
-                raise Exception("ERROR: Cannot download naampy data file")
-        else:
-            print(f"Using cached naampy data from local ({data_path})...")
-        return data_path
+        if dataset not in IN_ROLLS_DATA:
+            choices = ", ".join(sorted(IN_ROLLS_DATA))
+            raise ValueError(f"Unknown dataset {dataset!r}; choose one of: {choices}")
+
+        data_path = Path(get_app_file_path("naampy", f"naampy_{dataset}.parquet"))
+        if data_path.exists():
+            validate_parquet(data_path)
+            LOGGER.info("Using cached naampy data from %s", data_path)
+            return str(data_path)
+
+        LOGGER.info("Downloading naampy dataset %s", dataset)
+        with tempfile.TemporaryDirectory(dir=data_path.parent) as scratch:
+            raw_path = Path(scratch) / f"naampy_{dataset}.csv.gz"
+            if not download_file(IN_ROLLS_DATA[dataset], str(raw_path)):
+                raise RuntimeError(f"Cannot download naampy dataset {dataset!r}")
+            csv_to_parquet(raw_path, data_path)
+        return str(data_path)
 
     @classmethod
     def predict_fn_gender(cls, first_names: list[str]) -> pd.DataFrame:
@@ -126,13 +141,11 @@ class InRollsFnData:
               None / NaN rather than being assigned a gender at 0.5 confidence.
 
         Example:
-            >>> names = ['Priya', 'Rahul', 'हेमा']
-            >>> result = InRollsFnData.predict_fn_gender(names)
-            >>> print(result)
-                name pred_gender  pred_prob
-            0  priya      female      0.945
-            1  rahul        male      0.876
-            2   हेमा        None        NaN
+            .. code-block:: python
+
+                names = ["Priya", "Rahul", "हेमा"]
+                result = InRollsFnData.predict_fn_gender(names)
+                print(result)
         """
         import torch
 
@@ -237,6 +250,9 @@ class InRollsFnData:
             The two ML columns are always present unless dataset is 'v2_native',
             and hold None / NaN for rows that were resolved from the rolls.
 
+        Raises:
+            ValueError: If dataset, state, or year is not available.
+
         Note:
             - Names are matched after stripping and lowercasing; the input column
               itself is returned unchanged
@@ -246,33 +262,42 @@ class InRollsFnData:
             - Third gender category reflects Indian electoral roll classifications
 
         Example:
-            >>> import pandas as pd
-            >>> df = pd.DataFrame({'name': ['Priya', 'Rahul', 'Anjali']})
-            >>> result = in_rolls_fn_gender(df, 'name')
-            >>> print(result[['name', 'prop_female', 'prop_male']].head())
-                 name  prop_female  prop_male
-            0   Priya       0.994      0.006
-            1   Rahul       0.008      0.992
-            2  Anjali       0.989      0.011
+            .. code-block:: python
+
+                import pandas as pd
+
+                df = pd.DataFrame({"name": ["Priya", "Rahul", "Anjali"]})
+                result = in_rolls_fn_gender(df, "name")
+                print(result[["name", "prop_female", "prop_male"]].head())
         """
         if not namecol or namecol not in df.columns:
             print(f"No column `{namecol}` in the DataFrame")
-            return df
+            return df.copy()
 
         # Work on a copy so the caller's frame is never mutated, and drop any
         # naampy columns left over from a previous run so re-running on our own
         # output is idempotent instead of producing `_x`/`_y` merge suffixes.
-        rdf = df.drop(columns=[c for c in OUTPUT_COLS if c in df.columns])
+        output_cols = IN_ROLLS_COLS if dataset == "v2_native" else OUTPUT_COLS
+        rdf = df.drop(columns=[c for c in output_cols if c in df.columns])
         first_name = rdf[namecol].astype("string").str.strip().str.lower()
         # Whitespace-only names strip to "", which is not a name; treat it as missing.
         rdf["__first_name"] = first_name.mask(first_name == "")
 
+        if rdf.empty:
+            for column in IN_ROLLS_COLS:
+                dtype = "Int64" if column.startswith("n_") else "float64"
+                rdf[column] = pd.Series(index=rdf.index, dtype=dtype)
+            if dataset != "v2_native":
+                rdf["pred_gender"] = pd.Series(index=rdf.index, dtype="object")
+                rdf["pred_prob"] = pd.Series(index=rdf.index, dtype="float64")
+            return rdf.drop(columns="__first_name")
+
         cache_key = (dataset, state, year)
         if cls.__df is None or cls.__cache_key != cache_key:
             data_path = InRollsFnData.load_naampy_data(dataset)
-            adf = pd.read_csv(
+            adf = pd.read_parquet(
                 data_path,
-                usecols=[
+                columns=[
                     "state",
                     "birth_year",
                     "first_name",
@@ -281,8 +306,20 @@ class InRollsFnData:
                     "n_third_gender",
                 ],
             )
+            if state is not None and state not in set(adf["state"]):
+                choices = ", ".join(sorted(adf["state"].unique()))
+                raise ValueError(
+                    f"State {state!r} is not in dataset {dataset!r}; "
+                    f"choose one of: {choices}"
+                )
             if state is not None:
                 adf = adf[adf.state == state]
+            if year is not None and year not in set(adf["birth_year"]):
+                scope = f"state {state!r}" if state is not None else "all states"
+                raise ValueError(
+                    f"Birth year {year!r} is not available for {scope} "
+                    f"in dataset {dataset!r}"
+                )
             if year is not None:
                 adf = adf[adf.birth_year == year]
             # Always collapse to one row per name: guarantees a unique merge key
@@ -302,7 +339,11 @@ class InRollsFnData:
             adf["__first_name"] = adf["__first_name"].astype("string")
             cls.__df = adf
             cls.__cache_key = cache_key
-        rdf = pd.merge(rdf, cls.__df, how="left", on="__first_name")
+        lookup = cls.__df.set_index("__first_name")
+        for column in IN_ROLLS_COLS:
+            rdf[column] = rdf["__first_name"].map(lookup[column])
+        for column in ("n_male", "n_female", "n_third_gender"):
+            rdf[column] = rdf[column].astype("Int64")
 
         if dataset != "v2_native":
             # Declare the ML columns unconditionally so the output schema does not
@@ -311,8 +352,8 @@ class InRollsFnData:
             rdf["pred_prob"] = pd.Series(np.nan, index=rdf.index, dtype="float64")
             # Rows with no usable name are left as NaN rather than handed to the
             # model, which would otherwise score the literal string "nan".
-            missing = rdf.index[rdf["prop_female"].isna() & rdf["__first_name"].notna()]
-            if len(missing) > 0:
+            missing = rdf["prop_female"].isna() & rdf["__first_name"].notna()
+            if missing.any():
                 mdf = predict_fn_gender(rdf.loc[missing, "__first_name"].tolist())
                 rdf.loc[missing, "pred_gender"] = mdf["pred_gender"].to_numpy()
                 rdf.loc[missing, "pred_prob"] = mdf["pred_prob"].to_numpy()
@@ -336,12 +377,13 @@ class InRollsFnData:
             np.ndarray: Array of state names available in the dataset.
 
         Example:
-            >>> states = InRollsFnData.list_states('v2_1k')
-            >>> print(f"Available states: {', '.join(states[:5])}...")
-            Available states: andaman, andhra, arunachal, assam, bihar...
+            .. code-block:: python
+
+                states = InRollsFnData.list_states("v2_1k")
+                print(f"Available states: {', '.join(states[:5])}...")
         """
         data_path = InRollsFnData.load_naampy_data(dataset)
-        adf = pd.read_csv(data_path, usecols=["state"])
+        adf = pd.read_parquet(data_path, columns=["state"])
         return adf.state.unique()
 
 

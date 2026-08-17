@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Tests for ML model functionality (predict_fn_gender).
 

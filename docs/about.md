@@ -1,6 +1,6 @@
 # About naampy
 
-```{include} ../../README.md
+```{include} ../README.md
 :start-after: <!-- START:description -->
 :end-before: <!-- END:description -->
 ```
@@ -44,21 +44,9 @@ When a name doesn't exist in the electoral roll database, naampy uses a machine 
 - **Training Data**: Indian electoral roll names
 - **Classification**: Names with predicted proportion < 0.5 are classified as male, otherwise female
 
-### Model Performance
-
-On test data:
-- **MSE (Mean Squared Error)**: 0.05
-- **RMSE (Root Mean Squared Error)**: 0.22
-
 The model handles the fact that some names are shared between men and women, as shown in the distribution of female proportions:
 
 ![Female Proportion Distribution](images/female_prop.png)
-
-### Inference Results
-
-The model shows strong performance across different name types:
-
-![Out-of-Sample Inference Results](images/infer_oos.png)
 
 ## Important Considerations
 

@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Offline regression tests for correctness bugs in the inference path.
 
@@ -9,16 +7,18 @@ known counts rather than on whatever the live Dataverse files happen to contain.
 Each test fails against the pre-fix implementation.
 """
 
-import gzip
-import os
 import tempfile
 import unittest
+from pathlib import Path
 from unittest import mock
 
 import pandas as pd
+import pyarrow as pa
+import pyarrow.parquet as pq
 import requests
 
-from naampy.in_rolls_fn import InRollsFnData, in_rolls_fn_gender
+from naampy._tables import ROLL_SCHEMA, csv_to_parquet, validate_parquet
+from naampy.in_rolls_fn import OUTPUT_COLS, InRollsFnData, in_rolls_fn_gender
 from naampy.utils import download_file
 
 # state, birth_year, first_name, n_female, n_male, n_third_gender.
@@ -40,20 +40,11 @@ class FixtureTestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        """Write the fabricated lookup table to a gzipped CSV on disk."""
+        """Write the fabricated lookup table to typed Parquet on disk."""
         cls._tmpdir = tempfile.TemporaryDirectory()
-        cls.fixture_path = os.path.join(cls._tmpdir.name, "naampy_fixture.csv.gz")
-        pd.DataFrame(
-            FIXTURE_ROWS,
-            columns=[
-                "state",
-                "birth_year",
-                "first_name",
-                "n_female",
-                "n_male",
-                "n_third_gender",
-            ],
-        ).to_csv(cls.fixture_path, index=False, compression="gzip")
+        cls.fixture_path = Path(cls._tmpdir.name) / "naampy_fixture.parquet"
+        rows = [dict(zip(ROLL_SCHEMA.names, row, strict=True)) for row in FIXTURE_ROWS]
+        pq.write_table(pa.Table.from_pylist(rows, schema=ROLL_SCHEMA), cls.fixture_path)
 
     @classmethod
     def tearDownClass(cls):
@@ -103,6 +94,23 @@ class TestCacheInvalidation(FixtureTestCase):
 
         self.assertEqual(first.loc[0, "n_female"], second.loc[0, "n_female"])
         self.assertEqual(first.loc[0, "n_female"], 300)
+
+    def test_unknown_state_is_rejected(self):
+        """A state typo must not silently turn every row into an ML fallback."""
+        with self.assertRaisesRegex(ValueError, "State 'punajb' is not in dataset"):
+            in_rolls_fn_gender(
+                pd.DataFrame({"name": ["priya"]}), "name", state="punajb"
+            )
+
+    def test_unknown_state_year_is_rejected(self):
+        """A year unavailable for the requested state is reported explicitly."""
+        with self.assertRaisesRegex(ValueError, "Birth year 1900.*state 'delhi'"):
+            in_rolls_fn_gender(
+                pd.DataFrame({"name": ["priya"]}),
+                "name",
+                state="delhi",
+                year=1900,
+            )
 
 
 class TestMissingNames(FixtureTestCase):
@@ -166,6 +174,14 @@ class TestOutputContract(FixtureTestCase):
 
         pd.testing.assert_frame_equal(df, before)
 
+    def test_empty_input_does_not_load_the_dataset(self):
+        """An empty frame gets the output schema without a network or disk lookup."""
+        with mock.patch.object(InRollsFnData, "load_naampy_data") as load:
+            result = in_rolls_fn_gender(pd.DataFrame({"name": []}), "name")
+
+        load.assert_not_called()
+        self.assertEqual(result.columns.tolist(), ["name", *OUTPUT_COLS])
+
     def test_rerunning_on_own_output_is_idempotent(self):
         """Feeding naampy's output back in must not crash or duplicate columns."""
         df = pd.DataFrame({"name": ["priya", "aadhyashree"]})
@@ -176,6 +192,39 @@ class TestOutputContract(FixtureTestCase):
         suffixed = [c for c in second.columns if c.endswith(("_x", "_y"))]
         self.assertEqual(suffixed, [], f"merge produced suffixed columns: {suffixed}")
         pd.testing.assert_frame_equal(first, second)
+
+    def test_existing_output_columns_are_replaced_without_suffixes(self):
+        """Documented outputs replace collisions and retain their canonical names."""
+        df = pd.DataFrame({"name": ["priya"], "n_female": [-1], "prop_female": [-1.0]})
+
+        result = in_rolls_fn_gender(df, "name")
+
+        self.assertEqual(result.loc[0, "n_female"], 400)
+        self.assertEqual(result.columns.tolist().count("n_female"), 1)
+        self.assertFalse(any(column.endswith(("_x", "_y")) for column in result))
+
+    def test_meaningful_duplicate_index_is_preserved(self):
+        """Lookup enrichment preserves index values, names, and duplicates."""
+        df = pd.DataFrame(
+            {"name": ["priya", "rahul"]},
+            index=pd.Index([7, 7], name="respondent_id"),
+        )
+
+        result = in_rolls_fn_gender(df, "name")
+
+        pd.testing.assert_index_equal(result.index, df.index)
+        self.assertEqual(result["n_female"].tolist(), [400, 0])
+
+    def test_native_lookup_preserves_unrelated_prediction_columns(self):
+        """Native mode does not delete columns it does not produce."""
+        df = pd.DataFrame(
+            {"name": ["priya"], "pred_gender": ["reviewed"], "pred_prob": [1.0]}
+        )
+
+        result = in_rolls_fn_gender(df, "name", dataset="v2_native")
+
+        self.assertEqual(result.loc[0, "pred_gender"], "reviewed")
+        self.assertEqual(result.loc[0, "pred_prob"], 1.0)
 
     def test_missing_namecol_returns_input_unchanged(self):
         """An absent or empty name column is reported, not raised."""
@@ -219,7 +268,8 @@ class TestDownloadFile(unittest.TestCase):
         """Create a scratch directory for download targets."""
         self._tmpdir = tempfile.TemporaryDirectory()
         self.addCleanup(self._tmpdir.cleanup)
-        self.target = os.path.join(self._tmpdir.name, "naampy_data.csv.gz")
+        self.scratch = Path(self._tmpdir.name)
+        self.target = self.scratch / "naampy_data.csv.gz"
 
     def _response(self, chunks, status=200, length=None):
         """Build a stub requests response yielding the given chunks.
@@ -248,9 +298,11 @@ class TestDownloadFile(unittest.TestCase):
         ):
             self.assertTrue(download_file("http://example.invalid/f", self.target))
 
-        with open(self.target, "rb") as fh:
+        with self.target.open("rb") as fh:
             self.assertEqual(fh.read(), b"abcdef")
-        self.assertEqual(os.listdir(self._tmpdir.name), ["naampy_data.csv.gz"])
+        self.assertEqual(
+            [path.name for path in self.scratch.iterdir()], [self.target.name]
+        )
 
     def test_interrupted_download_leaves_no_file(self):
         """A mid-stream failure leaves neither a target nor a partial file."""
@@ -265,8 +317,8 @@ class TestDownloadFile(unittest.TestCase):
         ):
             self.assertFalse(download_file("http://example.invalid/f", self.target))
 
-        self.assertFalse(os.path.exists(self.target))
-        self.assertEqual(os.listdir(self._tmpdir.name), [])
+        self.assertFalse(self.target.exists())
+        self.assertEqual(list(self.scratch.iterdir()), [])
 
     def test_truncated_download_is_rejected(self):
         """A short read against a known Content-Length is treated as a failure."""
@@ -276,8 +328,8 @@ class TestDownloadFile(unittest.TestCase):
         ):
             self.assertFalse(download_file("http://example.invalid/f", self.target))
 
-        self.assertFalse(os.path.exists(self.target))
-        self.assertEqual(os.listdir(self._tmpdir.name), [])
+        self.assertFalse(self.target.exists())
+        self.assertEqual(list(self.scratch.iterdir()), [])
 
     def test_http_error_is_reported(self):
         """A non-200 response returns False without writing anything."""
@@ -286,18 +338,64 @@ class TestDownloadFile(unittest.TestCase):
         ):
             self.assertFalse(download_file("http://example.invalid/f", self.target))
 
-        self.assertFalse(os.path.exists(self.target))
-        self.assertEqual(os.listdir(self._tmpdir.name), [])
+        self.assertFalse(self.target.exists())
+        self.assertEqual(list(self.scratch.iterdir()), [])
 
 
 class TestFixtureSanity(FixtureTestCase):
     """Guard the fixture itself so a broken fixture cannot mask a real failure."""
 
     def test_fixture_is_readable(self):
-        """The gzipped fixture holds the rows the other tests assert on."""
-        with gzip.open(self.fixture_path, "rt") as fh:
-            rows = fh.read().strip().splitlines()
-        self.assertEqual(len(rows), len(FIXTURE_ROWS) + 1)
+        """The Parquet fixture holds the rows the other tests assert on."""
+        table = pq.read_table(self.fixture_path)
+        self.assertEqual(table.num_rows, len(FIXTURE_ROWS))
+        self.assertTrue(table.schema.equals(ROLL_SCHEMA, check_metadata=False))
+
+
+class TestTypedCache(unittest.TestCase):
+    """The downloaded CSV transport becomes a validated Parquet cache."""
+
+    def setUp(self):
+        """Create scratch paths for source and cache files."""
+        self._tmpdir = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmpdir.cleanup)
+        self.source = Path(self._tmpdir.name) / "rolls.csv.gz"
+        self.target = Path(self._tmpdir.name) / "rolls.parquet"
+
+    def _write_source(self, rows=FIXTURE_ROWS):
+        """Write source rows in the Dataverse transport format."""
+        frame = pd.DataFrame(rows, columns=ROLL_SCHEMA.names)
+        frame["birth_year"] = frame["birth_year"].astype(float)
+        frame.to_csv(self.source, index=False, compression="gzip")
+
+    def test_conversion_has_the_declared_schema(self):
+        """A valid source is atomically converted to the canonical schema."""
+        self._write_source()
+
+        result = csv_to_parquet(self.source, self.target)
+
+        self.assertEqual(result, self.target)
+        self.assertEqual(validate_parquet(result), self.target)
+        self.assertEqual(pq.read_table(result).num_rows, len(FIXTURE_ROWS))
+
+    def test_missing_names_are_dropped_during_conversion(self):
+        """Rows with no lookup key are not retained in the runtime table."""
+        self._write_source([*FIXTURE_ROWS, ("delhi", 1990, None, 1, 0, 0)])
+
+        csv_to_parquet(self.source, self.target)
+
+        table = pq.read_table(self.target)
+        self.assertEqual(table.num_rows, len(FIXTURE_ROWS))
+        self.assertEqual(table.column("first_name").null_count, 0)
+
+    def test_negative_counts_are_rejected_without_a_cache(self):
+        """Invalid counts fail conversion and leave no durable cache."""
+        self._write_source([("kerala", 1985, "priya", -1, 0, 0)])
+
+        with self.assertRaisesRegex(ValueError, "contains negatives"):
+            csv_to_parquet(self.source, self.target)
+
+        self.assertFalse(self.target.exists())
 
 
 if __name__ == "__main__":

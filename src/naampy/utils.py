@@ -3,10 +3,12 @@
 import logging
 import os
 import tempfile
-from os import path
+from pathlib import Path
 
 import requests
 from tqdm import tqdm
+
+LOGGER = logging.getLogger(__name__)
 
 
 def get_app_file_path(app_name: str, filename: str) -> str:
@@ -22,12 +24,9 @@ def get_app_file_path(app_name: str, filename: str) -> str:
     Returns:
         str: Full path to the file in the application data directory
     """
-    user_dir = path.expanduser("~")
-    app_data_dir = path.join(user_dir, "." + app_name)
-    if not path.exists(app_data_dir):
-        os.makedirs(app_data_dir)
-    file_path = path.join(app_data_dir, filename)
-    return file_path
+    app_data_dir = Path.home() / f".{app_name}"
+    app_data_dir.mkdir(parents=True, exist_ok=True)
+    return str(app_data_dir / filename)
 
 
 def download_file(url: str, target: str) -> bool:
@@ -48,14 +47,16 @@ def download_file(url: str, target: str) -> bool:
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
     }
 
-    target = path.expanduser(target)
-    tmp_path = None
+    target_path = Path(target).expanduser()
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path: Path | None = None
     try:
         response = requests.get(url, headers=headers, stream=True, timeout=30)
         response.raise_for_status()
 
         total_size = int(response.headers.get("Content-Length", 0))
-        fd, tmp_path = tempfile.mkstemp(dir=path.dirname(target) or ".", suffix=".part")
+        fd, tmp_name = tempfile.mkstemp(dir=target_path.parent, suffix=".part")
+        tmp_path = Path(tmp_name)
         written = 0
         with (
             os.fdopen(fd, "wb") as f,
@@ -69,21 +70,23 @@ def download_file(url: str, target: str) -> bool:
                 pbar.update(len(data))
 
         if total_size and written != total_size:
-            logging.error(
-                f"ERROR: Truncated download from {url}: got {written} bytes, "
-                f"expected {total_size}"
+            LOGGER.error(
+                "Truncated download from %s: got %s bytes, expected %s",
+                url,
+                written,
+                total_size,
             )
             return False
 
-        os.replace(tmp_path, target)
+        tmp_path.replace(target_path)
         tmp_path = None
     except (requests.RequestException, OSError) as exc:
-        logging.error(f"ERROR: Failed to download file from {url}: {exc}")
+        LOGGER.error("Failed to download file from %s: %s", url, exc)
         return False
     finally:
-        if tmp_path is not None and path.exists(tmp_path):
-            os.remove(tmp_path)
+        if tmp_path is not None:
+            tmp_path.unlink(missing_ok=True)
 
-    logging.info(f"Successfully downloaded file from {url} to {target}")
+    LOGGER.info("Successfully downloaded file from %s to %s", url, target_path)
 
     return True

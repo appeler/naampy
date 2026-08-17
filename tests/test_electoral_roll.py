@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Tests for electoral roll functionality (in_rolls_fn_gender).
 

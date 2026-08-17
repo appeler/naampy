@@ -10,7 +10,7 @@
 *.log
 ./data
 build/
-naampy.egg-info/
+*.egg-info/
 lit/
 dist/
 venv/

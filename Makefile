@@ -6,7 +6,7 @@ help:
 	@echo "  dev        Install package in development mode with all dependencies"
 	@echo "  test       Run tests without coverage"
 	@echo "  test-cov   Run tests with coverage"
-	@echo "  lint       Run linting checks (ruff, mypy, pydoclint)"
+	@echo "  lint       Run linting checks (ruff, pyright, pydoclint)"
 	@echo "  format     Format code with ruff"
 	@echo "  clean      Remove build artifacts and cache files"
 	@echo "  docs       Build documentation"
@@ -28,7 +28,7 @@ test-cov:
 lint:
 	uv run ruff check .
 	uv run pyright
-	uv run pydoclint naampy/
+	uv run pydoclint src/
 
 format:
 	uv run ruff format .
@@ -49,7 +49,7 @@ clean:
 	find . -type f -name "*~" -delete
 
 docs:
-	uv run sphinx-build -W --keep-going -b html docs/source docs/_build/html
+	uv run sphinx-build -W --keep-going -b html docs docs/_build/html
 
 build:
 	uv build

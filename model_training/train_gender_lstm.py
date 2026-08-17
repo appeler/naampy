@@ -5,7 +5,7 @@ global ``first_name -> female_prop`` target (weighted by count), trains a torch 
 with a single sigmoid output. CPU-trainable.
 
     python train_gender_lstm.py --data model_training/data/naampy_v3.csv.gz \
-        --out naampy/model/gender_lstm.pt --epochs 12
+        --out gender_lstm.pt --epochs 12
 """
 
 import argparse
@@ -20,7 +20,7 @@ import pandas as pd
 
 NAAMPY_ROOT = Path(__file__).resolve().parents[1]
 # Import nnets.py directly (not the naampy package) to avoid the package __init__'s imports.
-sys.path.insert(0, str(NAAMPY_ROOT / "naampy"))
+sys.path.insert(0, str(NAAMPY_ROOT / "src" / "naampy"))
 
 import torch  # noqa: E402
 import torch.nn.functional as F  # noqa: E402

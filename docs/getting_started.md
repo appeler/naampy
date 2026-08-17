@@ -2,12 +2,12 @@
 
 This guide will help you install naampy and make your first predictions.
 
-```{include} ../../README.md
+```{include} ../README.md
 :start-after: <!-- START:installation -->
 :end-before: <!-- END:installation -->
 ```
 
-```{include} ../../README.md
+```{include} ../README.md
 :start-after: <!-- START:quick_start -->
 :end-before: <!-- END:quick_start -->
 ```
@@ -33,7 +33,7 @@ The function returns a DataFrame with:
 - **pred_gender**: Predicted gender ('male' or 'female')
 - **pred_prob**: Confidence score for the prediction (0-1)
 
-```{include} ../../README.md
+```{include} ../README.md
 :start-after: <!-- START:functionality -->
 :end-before: <!-- END:functionality -->
 ```
