@@ -64,7 +64,11 @@ dev = [
     "pandas-stubs>=2.0",
     { include-group = "test" },
 ]
-test = ["pytest>=8", "pytest-cov>=6"]
+test = [
+    "pytest>=8",
+    "pytest-cov>=6",
+    { include-group = "training" },
+]
 docs = [
     "sphinx>=8",
     "furo",

@@ -710,6 +710,9 @@ dev = [
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "ruff" },
+    { name = "scikit-learn" },
+    { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
+    { name = "scipy", version = "1.18.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
 ]
 docs = [
     { name = "furo" },
@@ -721,6 +724,9 @@ docs = [
 test = [
     { name = "pytest" },
     { name = "pytest-cov" },
+    { name = "scikit-learn" },
+    { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
+    { name = "scipy", version = "1.18.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
 ]
 training = [
     { name = "scikit-learn" },
@@ -747,6 +753,8 @@ dev = [
     { name = "pytest", specifier = ">=8" },
     { name = "pytest-cov", specifier = ">=6" },
     { name = "ruff", specifier = ">=0.14" },
+    { name = "scikit-learn", specifier = ">=1.8" },
+    { name = "scipy", specifier = ">=1.17" },
 ]
 docs = [
     { name = "furo" },
@@ -758,6 +766,8 @@ docs = [
 test = [
     { name = "pytest", specifier = ">=8" },
     { name = "pytest-cov", specifier = ">=6" },
+    { name = "scikit-learn", specifier = ">=1.8" },
+    { name = "scipy", specifier = ">=1.17" },
 ]
 training = [
     { name = "scikit-learn", specifier = ">=1.8" },
