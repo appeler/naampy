@@ -124,6 +124,7 @@ def balanced_calibration_test_split(
             (counts[held_out] * (1 - proportions[held_out])).sum() / 2,
         ]
     )
+    balance_scale = np.where(target > 0, target, 1.0)
     totals = [np.zeros(4), np.zeros(4)]
     partitions: tuple[list[int], list[int]] = ([], [])
     ordered = sorted(held_out.tolist(), key=lambda index: (-counts[index], index))
@@ -140,14 +141,15 @@ def balanced_calibration_test_split(
         for side in (0, 1):
             candidate = [totals[0].copy(), totals[1].copy()]
             candidate[side] += contribution
-            costs.append(np.square((candidate[0] - candidate[1]) / target).sum())
+            costs.append(np.square((candidate[0] - candidate[1]) / balance_scale).sum())
         selected_side = 0 if costs[0] <= costs[1] else 1
         totals[selected_side] += contribution
         partitions[selected_side].append(index)
-    return (
-        np.asarray(partitions[0], dtype=np.int64),
-        np.asarray(partitions[1], dtype=np.int64),
-    )
+    calibration = np.asarray(partitions[0], dtype=np.int64)
+    test = np.asarray(partitions[1], dtype=np.int64)
+    if len(calibration) == 0 or len(test) == 0:
+        raise RuntimeError("balanced split unexpectedly produced an empty partition")
+    return calibration, test
 
 
 def _partition_balance_cost(

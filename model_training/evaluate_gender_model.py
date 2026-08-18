@@ -14,6 +14,7 @@ import hashlib
 import json
 import logging
 import math
+import os
 import tempfile
 from pathlib import Path
 from typing import Any, cast
@@ -34,7 +35,7 @@ from model_training.evaluation import (
     stratified_name_split,
 )
 from model_training.train_gender_lstm import load_names
-from naampy._resources import HF_REPO, HF_REVISION, resolve_model
+from naampy._resources import HF_REPO, HF_REVISION, MODEL_DIR_ENV, resolve_model
 from naampy.nnets import (
     LSTM_DROPOUT,
     LSTM_EMB,
@@ -47,6 +48,12 @@ from naampy.nnets import (
 
 LOGGER = logging.getLogger(__name__)
 SHIPPED_CHECKPOINT_SPLIT_SEED = 0
+SHIPPED_CHECKPOINT_DATA_SHA256 = (
+    "a548226d9fe4c1dd7193d79487f51e55d77ad58e327b1b58e966b910e484ccf4"
+)
+SHIPPED_GENDER_MODEL_SHA256 = (
+    "98fdcfe9016b48e3a2639c6f2c55eb9d2a56946a51dea6ac0a0c64fafc33b9f7"
+)
 
 
 def file_sha256(path: Path) -> str:
@@ -56,6 +63,22 @@ def file_sha256(path: Path) -> str:
         while chunk := source.read(1024 * 1024):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def verify_shipped_evaluation_artifacts(data_path: Path, model_path: Path) -> None:
+    """Verify the exact data and checkpoint used by the shipped-model audit."""
+    if file_sha256(data_path) != SHIPPED_CHECKPOINT_DATA_SHA256:
+        raise ValueError(
+            "--data does not match the immutable input used to train the shipped "
+            "checkpoint; evaluate a custom data/model pair with --model and "
+            "--training-manifest"
+        )
+    if file_sha256(model_path) != SHIPPED_GENDER_MODEL_SHA256:
+        raise ValueError(
+            "the resolved gender_lstm.pt does not match the checkpoint pinned by "
+            "Naampy; evaluate a custom checkpoint with --model and "
+            "--training-manifest"
+        )
 
 
 @torch.no_grad()
@@ -217,23 +240,43 @@ def main() -> None:
         except (KeyError, TypeError, ValueError, json.JSONDecodeError) as error:
             parser.error(str(error))
 
+    shipped_model_path: Path | None = None
+    if arguments.model is None:
+        if arguments.training_manifest is not None:
+            parser.error("--training-manifest requires --model")
+        shipped_model_path = Path(resolve_model("gender_lstm.pt"))
+        try:
+            verify_shipped_evaluation_artifacts(arguments.data, shipped_model_path)
+        except ValueError as error:
+            parser.error(str(error))
+
     names, encoded_names, female_proportions, person_counts = load_names(
         arguments.data, max_source_rows
     )
     proportions = np.asarray(female_proportions)
     counts = np.asarray(person_counts)
     if arguments.model is None:
-        if arguments.training_manifest is not None:
-            parser.error("--training-manifest requires --model")
-        model_path = Path(resolve_model("gender_lstm.pt"))
+        if shipped_model_path is None:
+            raise RuntimeError("shipped checkpoint path was not resolved")
+        model_path = shipped_model_path
         training_indices, held_out_indices = legacy_development_split(
             len(names), seed=SHIPPED_CHECKPOINT_SPLIT_SEED
         )
         calibration_indices, test_indices = balanced_calibration_test_split(
             held_out_indices, proportions, counts
         )
+        local_model_directory = os.environ.get(MODEL_DIR_ENV)
+        expected_local_path = (
+            Path(local_model_directory) / model_path.name
+            if local_model_directory
+            else None
+        )
         model_provenance = {
-            "source": "hugging_face_hub",
+            "source": (
+                "verified_local_mirror"
+                if expected_local_path == model_path
+                else "hugging_face_hub"
+            ),
             "repository": HF_REPO,
             "revision": HF_REVISION,
         }

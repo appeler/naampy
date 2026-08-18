@@ -7,8 +7,10 @@ import pytest
 import torch
 
 from model_training.evaluate_gender_model import (
+    SHIPPED_CHECKPOINT_DATA_SHA256,
     file_sha256,
     load_verified_training_split,
+    verify_shipped_evaluation_artifacts,
 )
 from model_training.evaluation import name_membership_sha256, stratified_name_split
 from model_training.train_gender_lstm import load_names
@@ -55,6 +57,34 @@ def _write_smoke_data(path):
         }
     )
     table.to_csv(path, index=False, compression="gzip")
+
+
+def test_shipped_evaluation_rejects_unverified_data(tmp_path):
+    data_path = tmp_path / "data.csv.gz"
+    model_path = tmp_path / "gender_lstm.pt"
+    data_path.write_bytes(b"unverified data")
+    model_path.write_bytes(b"unverified checkpoint")
+
+    with pytest.raises(ValueError, match="--data does not match"):
+        verify_shipped_evaluation_artifacts(data_path, model_path)
+
+
+def test_shipped_evaluation_rejects_unverified_checkpoint(tmp_path, monkeypatch):
+    data_path = tmp_path / "data.csv.gz"
+    model_path = tmp_path / "gender_lstm.pt"
+    data_path.write_bytes(b"data hash is replaced below")
+    model_path.write_bytes(b"unverified checkpoint")
+    monkeypatch.setattr(
+        "model_training.evaluate_gender_model.file_sha256",
+        lambda path: (
+            SHIPPED_CHECKPOINT_DATA_SHA256
+            if path == data_path
+            else "unverified-checkpoint"
+        ),
+    )
+
+    with pytest.raises(ValueError, match="does not match the checkpoint"):
+        verify_shipped_evaluation_artifacts(data_path, model_path)
 
 
 def test_custom_checkpoint_evaluation_reports_local_provenance(tmp_path):

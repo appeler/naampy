@@ -68,6 +68,20 @@ def test_balanced_calibration_test_split_preserves_held_out_names():
     assert abs(counts[calibration].sum() - counts[test].sum()) <= counts.max()
 
 
+@pytest.mark.parametrize("proportion", [0.0, 1.0])
+def test_balanced_calibration_test_split_supports_single_class_targets(proportion):
+    proportions = np.full(8, proportion)
+    counts = np.arange(1, 9)
+    held_out = np.arange(8)
+
+    calibration, test = balanced_calibration_test_split(held_out, proportions, counts)
+
+    assert len(calibration) > 0
+    assert len(test) > 0
+    assert set(calibration).isdisjoint(test)
+    assert set(np.concatenate((calibration, test))) == set(held_out)
+
+
 def test_stratified_split_is_deterministic_disjoint_and_exhaustive():
     proportions = np.linspace(0, 1, 1_000)
     counts = np.arange(1, 1_001)
