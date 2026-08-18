@@ -7,9 +7,7 @@
 :maxdepth: 2
 :hidden:
 
-getting_started
-user_guide
-examples/usage_examples
 api_reference
-about
+model_card
+data
 ```

@@ -1,16 +1,14 @@
-"""Re-transliterate naampy's native-script first names with the eroll corpora.
+"""Retransliterate Naampy's native-script first names with the eroll corpora.
 
-Reads naampy's ``v2_native`` (state, first_name[native], birth_year, gender counts) and romanizes
-each native first name via the per-language word-map corpora harvested in eroll_transliteration,
-then re-aggregates ``(state, birth_year, first_name_en)`` -> gender counts. Produces a cleaner
-English first-name->gender dataset (no roll re-harvest).
+The program romanizes each v2_native first name with its language corpus, then
+reaggregates state, birth year, and romanized first name to source-label counts.
 
 Run in eroll's 3.13 venv (has ``eroll`` + the corpora under ``eroll_transliteration/data/``):
 
     .../eroll_transliteration/.venv/bin/python retransliterate_native.py \
-        --native /tmp/naampy_v2_native.csv.gz \
-        --v2 /tmp/naampy_v2.csv.gz \
-        --out model_training/data/naampy_v3.csv.gz
+        --native-table /tmp/naampy_v2_native.csv.gz \
+        --published-v2-table /tmp/naampy_v2.csv.gz \
+        --output model_training/data/naampy_v3.csv.gz
 """
 
 import argparse
@@ -27,8 +25,7 @@ import pandas as pd
 
 LOGGER = logging.getLogger(__name__)
 
-# naampy state slug -> eroll corpus language.
-NAAMPY_STATE2LANG = {
+STATE_TO_LANGUAGE = {
     "assam": "bengali",
     "tripura": "bengali",
     "bihar": "hindi",
@@ -48,32 +45,42 @@ NAAMPY_STATE2LANG = {
 }
 
 
-def to_ascii(s: str) -> str:
-    """Lowercase ASCII letters + spaces only (mirror of instate name_tables.to_ascii)."""
-    s = unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode("ascii")
-    s = "".join(c if (c.isascii() and c.isalpha()) or c == " " else " " for c in s)
-    return " ".join(s.split()).strip().lower()
+def normalize_romanized_name(name: str) -> str:
+    """Return lowercase ASCII letters and normalized spaces."""
+    ascii_name = (
+        unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode("ascii")
+    )
+    letters_and_spaces = "".join(
+        character
+        if (character.isascii() and character.isalpha()) or character == " "
+        else " "
+        for character in ascii_name
+    )
+    return " ".join(letters_and_spaces.split()).strip().lower()
 
 
-def _lang_config():
+def _load_language_corpus_configuration():
     """Return language-specific corpus paths and native-script patterns."""
     from eroll.states import STATES
 
-    out: dict[str, tuple[Path, re.Pattern[str]]] = {}
-    for cfg in STATES.values():
-        out.setdefault(cfg.language, (cfg.corpus_csv, cfg.native_run))
-    return out
+    language_configuration: dict[str, tuple[Path, re.Pattern[str]]] = {}
+    for state_configuration in STATES.values():
+        language_configuration.setdefault(
+            state_configuration.language,
+            (state_configuration.corpus_csv, state_configuration.native_run),
+        )
+    return language_configuration
 
 
-def _load_word_map(corpus_csv) -> dict[str, str]:
-    word_map: dict[str, str] = {}
-    with gzip.open(corpus_csv, "rt", encoding="utf-8", newline="") as fh:
-        reader = csv.reader(fh)
+def _load_transliteration_map(corpus_path: Path) -> dict[str, str]:
+    transliteration_by_native_text: dict[str, str] = {}
+    with gzip.open(corpus_path, "rt", encoding="utf-8", newline="") as corpus_file:
+        reader = csv.reader(corpus_file)
         next(reader, None)
         for row in reader:
             if len(row) >= 2:
-                word_map[row[0]] = row[1]
-    return word_map
+                transliteration_by_native_text[row[0]] = row[1]
+    return transliteration_by_native_text
 
 
 def write_deterministic_gzip_csv(table: pd.DataFrame, output_path: Path) -> None:
@@ -112,86 +119,144 @@ def write_deterministic_gzip_csv(table: pd.DataFrame, output_path: Path) -> None
         temporary_path.unlink(missing_ok=True)
 
 
-def romanize(name: str, word_map: dict[str, str], native_run: re.Pattern[str]) -> str:
+def romanize_first_name(
+    name: str,
+    transliteration_by_native_text: dict[str, str],
+    native_text_pattern: re.Pattern[str],
+) -> str:
     """Romanize a native first name; '' if any native run remains (not in the corpus)."""
-    sub = native_run.sub(lambda m: word_map.get(m.group(0), m.group(0)), name)
-    if native_run.search(sub):
+    romanized_name = native_text_pattern.sub(
+        lambda match: transliteration_by_native_text.get(
+            match.group(0), match.group(0)
+        ),
+        name,
+    )
+    if native_text_pattern.search(romanized_name):
         return ""
-    return to_ascii(sub)
+    return normalize_romanized_name(romanized_name)
 
 
 def main() -> None:
     """Retransliterate native names and write the aggregated v3 table."""
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--native", required=True, help="naampy v2_native csv.gz")
-    ap.add_argument("--out", required=True, help="output v3 csv.gz")
-    ap.add_argument(
-        "--v2",
+    argument_parser = argparse.ArgumentParser()
+    argument_parser.add_argument(
+        "--native-table", required=True, help="naampy v2_native csv.gz"
+    )
+    argument_parser.add_argument("--output", required=True, help="output v3 csv.gz")
+    argument_parser.add_argument(
+        "--published-v2-table",
         default=None,
         help="naampy v2 csv.gz; if given, merge v2's non-native states in (full coverage).",
     )
-    args = ap.parse_args()
+    arguments = argument_parser.parse_args()
 
-    df = pd.read_csv(args.native, dtype={"first_name": str})
-    df = df[df.state.isin(NAAMPY_STATE2LANG)].copy()
-    langcfg = _lang_config()
-    df["fn_en"] = ""
+    native_roll_table = pd.read_csv(arguments.native_table, dtype={"first_name": str})
+    native_roll_table = native_roll_table[
+        native_roll_table.state.isin(STATE_TO_LANGUAGE)
+    ].copy()
+    language_configuration = _load_language_corpus_configuration()
+    native_roll_table["romanized_first_name"] = ""
 
     # Process one language at a time so only one (large) word-map is resident.
-    for lang in sorted(set(NAAMPY_STATE2LANG.values())):
-        states = [s for s, lng in NAAMPY_STATE2LANG.items() if lng == lang]
-        mask = df.state.isin(states)
-        corpus_csv, native_run = langcfg[lang]
+    for language in sorted(set(STATE_TO_LANGUAGE.values())):
+        states = [
+            state
+            for state, state_language in STATE_TO_LANGUAGE.items()
+            if state_language == language
+        ]
+        language_state_rows = native_roll_table.state.isin(states)
+        corpus_path, native_text_pattern = language_configuration[language]
         LOGGER.info(
             "Loading %s for %s %s states",
-            corpus_csv.name,
+            corpus_path.name,
             len(states),
-            lang,
+            language,
         )
-        word_map = _load_word_map(corpus_csv)
-        uniq = df.loc[mask, "first_name"].dropna().unique()
-        romap = {nm: romanize(nm, word_map, native_run) for nm in uniq}
-        df.loc[mask, "fn_en"] = df.loc[mask, "first_name"].map(romap)
-        del word_map, romap
-        kept = df.loc[mask & (df.fn_en != "")]
-        wt = df.loc[mask, ["n_female", "n_male", "n_third_gender"]].to_numpy().sum()
-        wtk = kept[["n_female", "n_male", "n_third_gender"]].to_numpy().sum()
+        transliteration_by_native_text = _load_transliteration_map(corpus_path)
+        unique_native_names = (
+            native_roll_table.loc[language_state_rows, "first_name"].dropna().unique()
+        )
+        romanized_name_by_native_name = {
+            native_name: romanize_first_name(
+                native_name,
+                transliteration_by_native_text,
+                native_text_pattern,
+            )
+            for native_name in unique_native_names
+        }
+        native_roll_table.loc[language_state_rows, "romanized_first_name"] = (
+            native_roll_table.loc[language_state_rows, "first_name"].map(
+                romanized_name_by_native_name
+            )
+        )
+        del transliteration_by_native_text, romanized_name_by_native_name
+        retained_rows = native_roll_table.loc[
+            language_state_rows & (native_roll_table.romanized_first_name != "")
+        ]
+        label_count_columns = ["n_female", "n_male", "n_third_gender"]
+        source_label_record_count = (
+            native_roll_table.loc[language_state_rows, label_count_columns]
+            .to_numpy()
+            .sum()
+        )
+        retained_source_label_record_count = (
+            retained_rows[label_count_columns].to_numpy().sum()
+        )
         LOGGER.info(
             "%s: %s unique names; retained %.1f%% of represented records",
-            lang,
-            f"{len(uniq):,}",
-            100 * wtk / max(1, wt),
+            language,
+            f"{len(unique_native_names):,}",
+            100
+            * retained_source_label_record_count
+            / max(1, source_label_record_count),
         )
 
-    # Keep rows with a valid English name (len>2), re-aggregate, recompute prop_female.
-    out = df[(df.fn_en.str.len() > 2)].copy()
-    out["first_name"] = out["fn_en"]
-    agg = out.groupby(["state", "birth_year", "first_name"], as_index=False)[
-        ["n_female", "n_male", "n_third_gender"]
-    ].sum()
-    tot = (agg.n_female + agg.n_male + agg.n_third_gender).clip(lower=1)
-    agg["prop_female"] = agg.n_female / tot
+    romanized_rows = native_roll_table[
+        native_roll_table.romanized_first_name.str.len() > 2
+    ].copy()
+    romanized_rows["first_name"] = romanized_rows["romanized_first_name"]
+    aggregated_roll_table = romanized_rows.groupby(
+        ["state", "birth_year", "first_name"], as_index=False
+    )[["n_female", "n_male", "n_third_gender"]].sum()
+    represented_source_label_record_count = (
+        aggregated_roll_table.n_female
+        + aggregated_roll_table.n_male
+        + aggregated_roll_table.n_third_gender
+    ).clip(lower=1)
+    aggregated_roll_table["prop_female"] = (
+        aggregated_roll_table.n_female / represented_source_label_record_count
+    )
 
-    if args.v2:  # keep v2's non-native states for full coverage; native states use v3
-        v2 = pd.read_csv(args.v2, dtype={"first_name": str})
-        others = v2[~v2.state.isin(NAAMPY_STATE2LANG)]
+    if arguments.published_v2_table:
+        published_v2_table = pd.read_csv(
+            arguments.published_v2_table, dtype={"first_name": str}
+        )
+        non_retransliterated_rows = published_v2_table[
+            ~published_v2_table.state.isin(STATE_TO_LANGUAGE)
+        ]
         LOGGER.info(
             "Combining %s retransliterated states with %s v2 states",
-            agg.state.nunique(),
-            others.state.nunique(),
+            aggregated_roll_table.state.nunique(),
+            non_retransliterated_rows.state.nunique(),
         )
-        agg = pd.concat([agg, others[agg.columns]], ignore_index=True)
+        aggregated_roll_table = pd.concat(
+            [
+                aggregated_roll_table,
+                non_retransliterated_rows[aggregated_roll_table.columns],
+            ],
+            ignore_index=True,
+        )
 
-    agg = agg.sort_values(
+    aggregated_roll_table = aggregated_roll_table.sort_values(
         ["state", "birth_year", "first_name"], kind="mergesort"
     ).reset_index(drop=True)
-    outp = Path(args.out)
-    write_deterministic_gzip_csv(agg, outp)
+    output_path = Path(arguments.output)
+    write_deterministic_gzip_csv(aggregated_roll_table, output_path)
     LOGGER.info(
         "Wrote %s state-year-name rows and %s unique English names to %s",
-        f"{len(agg):,}",
-        f"{agg.first_name.nunique():,}",
-        outp,
+        f"{len(aggregated_roll_table):,}",
+        f"{aggregated_roll_table.first_name.nunique():,}",
+        output_path,
     )
 
 

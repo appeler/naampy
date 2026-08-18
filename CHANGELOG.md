@@ -7,24 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-08-18
+
 ### Added
 
-- Add a developmental evaluation report for the current character BiLSTM with
-  name-weighted and person-weighted probability metrics, name-cluster bootstrap
-  intervals, artifact hashes, fixed split provenance, and explicit limitations.
-- Document the v2 and local v3 model-data dictionary, recodes, split contract,
-  hybrid lookup join contract, and unresolved provenance questions.
+- Add `estimate_first_name_pattern`, which returns a calibrated nullable score,
+  explicit abstention status, supported-script status, and immutable model
+  provenance.
+- Add `lookup_first_name_composition`, which returns exact global female and male
+  source-label counts and shares from a public typed lookup artifact. It never
+  falls back to the learned model.
+- Add deterministic typed Parquet exporters and strict manifests for private
+  model-development data and the public global lookup.
+- Add gated development, final-fit, calibration, and test commands. Each stage
+  verifies the data and prior artifact hashes before loading its permitted
+  partitions.
 
 ### Changed
 
-- Use separate name-level training, validation, calibration, and final test
-  partitions for future training. Select the checkpoint on validation log loss,
-  fit logistic calibration on the calibration partition, and write a hashed
-  training manifest with final test results.
-- Type-check and lint the maintained model training and evaluation tools.
-- Make v3 CSV.gz construction byte-deterministic and include its construction
-  program in source distributions. The unpublished inputs and transliteration
-  corpora still prevent an independent end-to-end reproduction claim.
+- Replace the single raw PyTorch checkpoint with a two-member SafeTensors
+  ensemble and a positive-slope logit calibration transform.
+- Separate exact lookup from learned estimation. The package no longer assigns
+  a hard gender label or describes the larger class probability as confidence.
+- Normalize without deleting characters, transliterating, or truncating. Inputs
+  outside an artifact's domain now abstain with a stable reason.
+- Host runtime artifacts on Hugging Face and pin them by immutable revision.
+- Describe outputs as aggregate name-pattern estimates from electoral-roll
+  source labels, not observations of a person's gender identity.
+
+### Removed
+
+- Remove `in_rolls_fn_gender`, `predict_fn_gender`, their CSV command, and the
+  automatic lookup-to-model fallback.
+- Remove the Streamlit application and the runtime Dataverse downloader.
 
 ## [0.10.0] - 2026-08-17
 
@@ -145,8 +160,9 @@ Versions prior to 0.5.0 predate this changelog; see the
 [commit history](https://github.com/appeler/naampy/commits/master) for
 details.
 
-[Unreleased]: https://github.com/appeler/naampy/commits/master
-[0.10.0]: https://github.com/appeler/naampy/compare/v0.9.0...master
+[Unreleased]: https://github.com/appeler/naampy/compare/v0.11.0...master
+[0.11.0]: https://github.com/appeler/naampy/compare/v0.10.0...v0.11.0
+[0.10.0]: https://github.com/appeler/naampy/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/appeler/naampy/compare/v0.6.0...v0.9.0
 [0.6.0]: https://github.com/appeler/naampy/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/appeler/naampy/compare/v0.3.0...v0.5.0

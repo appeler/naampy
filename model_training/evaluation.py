@@ -56,10 +56,10 @@ class LogisticCalibration:
 
 @dataclass(frozen=True)
 class ProbabilityMetrics:
-    """Aggregate-composition and expected individual-label metrics."""
+    """Aggregate-composition and expected registration-record metrics."""
 
     majority_name_label_accuracy: float
-    expected_person_accuracy: float
+    expected_record_accuracy: float
     expected_female_precision: float
     expected_female_recall: float
     expected_male_recall: float
@@ -97,7 +97,7 @@ def legacy_development_split(
 def balanced_calibration_test_split(
     held_out_indices: np.ndarray,
     female_proportions: np.ndarray,
-    person_counts: np.ndarray,
+    record_counts: np.ndarray,
 ) -> tuple[np.ndarray, np.ndarray]:
     """Balance an existing held-out set into calibration and test halves.
 
@@ -106,7 +106,7 @@ def balanced_calibration_test_split(
     female count, and male count. The algorithm is deterministic.
     """
     proportions, counts = _validated_targets_and_weights(
-        female_proportions, person_counts
+        female_proportions, record_counts
     )
     held_out = np.asarray(held_out_indices, dtype=np.int64)
     if held_out.ndim != 1 or len(held_out) < 2:
@@ -257,7 +257,7 @@ def _refine_partition_balance(
 
 def stratified_name_split(
     female_proportions: np.ndarray,
-    person_counts: np.ndarray,
+    record_counts: np.ndarray,
     *,
     seed: int = 0,
     training_fraction: float = 0.70,
@@ -275,7 +275,7 @@ def stratified_name_split(
     target distributions.
     """
     proportions, counts = _validated_targets_and_weights(
-        female_proportions, person_counts
+        female_proportions, record_counts
     )
     if len(counts) < 4:
         raise ValueError(
@@ -451,7 +451,7 @@ def probability_metrics(
         majority_name_label_accuracy=float(
             np.average(predicted_labels == majority_name_labels, weights=weights)
         ),
-        expected_person_accuracy=float(
+        expected_record_accuracy=float(
             np.average(
                 np.where(predicted_labels, targets, 1 - targets), weights=weights
             )
@@ -561,11 +561,11 @@ def fit_logistic_calibration(
 def split_summary(
     split: NameDatasetSplit,
     female_proportions: np.ndarray,
-    person_counts: np.ndarray,
+    record_counts: np.ndarray,
 ) -> dict[str, dict[str, float | int]]:
     """Summarize support and composition for each split partition."""
     proportions, counts = _validated_targets_and_weights(
-        female_proportions, person_counts
+        female_proportions, record_counts
     )
     summary: dict[str, dict[str, float | int]] = {}
     for partition_name, indices in (
@@ -581,11 +581,11 @@ def split_summary(
 def partition_summary(
     indices: np.ndarray,
     female_proportions: np.ndarray,
-    person_counts: np.ndarray,
+    record_counts: np.ndarray,
 ) -> dict[str, float | int]:
     """Summarize support and composition for one nonempty partition."""
     proportions, counts = _validated_targets_and_weights(
-        female_proportions, person_counts
+        female_proportions, record_counts
     )
     selected_indices = np.asarray(indices, dtype=np.int64)
     if selected_indices.ndim != 1 or len(selected_indices) == 0:
@@ -593,32 +593,32 @@ def partition_summary(
     if selected_indices.min() < 0 or selected_indices.max() >= len(counts):
         raise ValueError("indices contain an out-of-range value")
     selected_counts = counts[selected_indices]
-    total_people = selected_counts.sum()
+    total_records = selected_counts.sum()
     return {
         "names": len(selected_indices),
-        "people": int(total_people),
+        "represented_records": int(total_records),
         "female_share": float(
             np.average(proportions[selected_indices], weights=selected_counts)
         ),
-        "effective_names": float(total_people**2 / np.square(selected_counts).sum()),
-        "largest_name_share": float(selected_counts.max() / total_people),
+        "effective_names": float(total_records**2 / np.square(selected_counts).sum()),
+        "largest_name_share": float(selected_counts.max() / total_records),
     }
 
 
 def report_metrics(
     probabilities: np.ndarray,
     female_proportions: np.ndarray,
-    person_counts: np.ndarray,
+    record_counts: np.ndarray,
 ) -> dict[str, dict[str, Any]]:
-    """Return name-weighted and person-weighted metrics."""
+    """Return name-weighted and represented-record-weighted metrics."""
     return {
         "name_weighted": probability_metrics(
             probabilities,
             female_proportions,
-            np.ones_like(person_counts, dtype=np.float64),
+            np.ones_like(record_counts, dtype=np.float64),
         ).as_dict(),
-        "person_weighted": probability_metrics(
-            probabilities, female_proportions, person_counts
+        "record_weighted": probability_metrics(
+            probabilities, female_proportions, record_counts
         ).as_dict(),
     }
 

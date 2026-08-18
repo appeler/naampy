@@ -1,5 +1,13 @@
-"""naampy: infer gender from Indian first names."""
+"""Population-level pattern estimates and exact compositions from first names."""
 
-from .in_rolls_fn import InRollsFnData, in_rolls_fn_gender, predict_fn_gender
+from importlib.metadata import version
 
-__all__ = ["InRollsFnData", "in_rolls_fn_gender", "predict_fn_gender"]
+from .inference import estimate_first_name_pattern, lookup_first_name_composition
+
+__version__ = version("naampy")
+
+__all__ = [
+    "__version__",
+    "estimate_first_name_pattern",
+    "lookup_first_name_composition",
+]
