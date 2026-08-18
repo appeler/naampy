@@ -5,6 +5,14 @@ build-backend = "uv_build"
 [tool.uv.build-backend]
 module-name = "naampy"
 source-exclude = [".DS_Store", "Thumbs.db"]
+source-include = [
+    "model_training/DATA.md",
+    "model_training/__init__.py",
+    "model_training/evaluate_gender_model.py",
+    "model_training/evaluation.py",
+    "model_training/reports/*.json",
+    "model_training/train_gender_lstm.py",
+]
 
 [project]
 name = "naampy"
@@ -77,7 +85,6 @@ line-length = 88
 target-version = "py311"
 exclude = [
     "docs",
-    "model_training",
     "streamlit",
     "src/naampy/data",
     "*.ipynb",
@@ -160,5 +167,10 @@ allow-init-docstring = true
 exclude = '\.venv|tests|docs'
 
 [tool.pyright]
-include = ["src"]
+include = [
+    "src",
+    "model_training/evaluate_gender_model.py",
+    "model_training/evaluation.py",
+    "model_training/train_gender_lstm.py",
+]
 typeCheckingMode = "standard"

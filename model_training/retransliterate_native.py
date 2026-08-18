@@ -14,12 +14,15 @@ Run in eroll's 3.13 venv (has ``eroll`` + the corpora under ``eroll_transliterat
 import argparse
 import csv
 import gzip
+import logging
 import re
 import unicodedata
 from pathlib import Path
 
 import pandas as pd
 from eroll.states import STATES
+
+LOGGER = logging.getLogger(__name__)
 
 # naampy state slug -> eroll corpus language.
 NAAMPY_STATE2LANG = {
@@ -50,7 +53,7 @@ def to_ascii(s: str) -> str:
 
 
 def _lang_config():
-    """language -> (corpus_csv Path, native_run regex), taken from the eroll STATES registry."""
+    """Return language-specific corpus paths and native-script patterns."""
     out: dict[str, tuple[Path, re.Pattern[str]]] = {}
     for cfg in STATES.values():
         out.setdefault(cfg.language, (cfg.corpus_csv, cfg.native_run))
@@ -77,6 +80,7 @@ def romanize(name: str, word_map: dict[str, str], native_run: re.Pattern[str]) -
 
 
 def main() -> None:
+    """Retransliterate native names and write the aggregated v3 table."""
     ap = argparse.ArgumentParser()
     ap.add_argument("--native", required=True, help="naampy v2_native csv.gz")
     ap.add_argument("--out", required=True, help="output v3 csv.gz")
@@ -97,9 +101,11 @@ def main() -> None:
         states = [s for s, lng in NAAMPY_STATE2LANG.items() if lng == lang]
         mask = df.state.isin(states)
         corpus_csv, native_run = langcfg[lang]
-        print(
-            f"[{lang}] loading {corpus_csv.name} for {len(states)} states ...",
-            flush=True,
+        LOGGER.info(
+            "Loading %s for %s %s states",
+            corpus_csv.name,
+            len(states),
+            lang,
         )
         word_map = _load_word_map(corpus_csv)
         uniq = df.loc[mask, "first_name"].dropna().unique()
@@ -109,9 +115,11 @@ def main() -> None:
         kept = df.loc[mask & (df.fn_en != "")]
         wt = df.loc[mask, ["n_female", "n_male", "n_third_gender"]].to_numpy().sum()
         wtk = kept[["n_female", "n_male", "n_third_gender"]].to_numpy().sum()
-        print(
-            f"[{lang}] {len(uniq):,} uniq names; weight kept {wtk / max(1, wt):.1%}",
-            flush=True,
+        LOGGER.info(
+            "%s: %s unique names; retained %.1f%% of represented records",
+            lang,
+            f"{len(uniq):,}",
+            100 * wtk / max(1, wt),
         )
 
     # Keep rows with a valid English name (len>2), re-aggregate, recompute prop_female.
@@ -126,10 +134,10 @@ def main() -> None:
     if args.v2:  # keep v2's non-native states for full coverage; native states use v3
         v2 = pd.read_csv(args.v2, dtype={"first_name": str})
         others = v2[~v2.state.isin(NAAMPY_STATE2LANG)]
-        print(
-            f"[merge] v3 native {agg.state.nunique()} states + v2 "
-            f"{others.state.nunique()} non-native states",
-            flush=True,
+        LOGGER.info(
+            "Combining %s retransliterated states with %s v2 states",
+            agg.state.nunique(),
+            others.state.nunique(),
         )
         agg = pd.concat([agg, others[agg.columns]], ignore_index=True)
 
@@ -137,12 +145,14 @@ def main() -> None:
     outp = Path(args.out)
     outp.parent.mkdir(parents=True, exist_ok=True)
     agg.to_csv(outp, index=False, compression="gzip")
-    print(
-        f"[v3] {len(agg):,} (state,year,first_name_en) rows "
-        f"({agg.first_name.nunique():,} unique english names) -> {outp}",
-        flush=True,
+    LOGGER.info(
+        "Wrote %s state-year-name rows and %s unique English names to %s",
+        f"{len(agg):,}",
+        f"{agg.first_name.nunique():,}",
+        outp,
     )
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     main()

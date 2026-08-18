@@ -5,6 +5,7 @@ import logging
 import sys
 import tempfile
 from pathlib import Path
+from typing import Any, cast
 
 import numpy as np
 import pandas as pd
@@ -35,8 +36,7 @@ IN_ROLLS_DATA = {
     "v2_en": "https://dataverse.harvard.edu/api/v1/access/datafile/6457224",
     # v3: native first names re-romanized via the eroll corpora + v2's non-native states
     # (31 states, full coverage). Build: model_training/retransliterate_native.py. After
-    # uploading naampy_v3.csv.gz to Dataverse, add its datafile URL here and default to it.
-    # "v3": "https://dataverse.harvard.edu/api/v1/access/datafile/<ID>",
+    # publishing naampy_v3.csv.gz, add its immutable URL here and default to it.
 }
 
 IN_ROLLS_COLS = [
@@ -79,7 +79,7 @@ class InRollsFnData:
     The class maintains cached data and models for efficient repeated predictions.
     """
 
-    __df = None
+    __df: pd.DataFrame | None = None
     __cache_key: tuple[str, str | None, int | None] | None = None
     __model = None
 
@@ -173,7 +173,13 @@ class InRollsFnData:
         )
 
         if len(first_names) == 0:
-            return pd.DataFrame(columns=["name", "pred_gender", "pred_prob"])
+            return pd.DataFrame(
+                {
+                    "name": pd.Series(dtype="object"),
+                    "pred_gender": pd.Series(dtype="object"),
+                    "pred_prob": pd.Series(dtype="float64"),
+                }
+            )
 
         # Load the pinned char-BiLSTM once (lazy; cached on the class).
         if cls.__model is None:
@@ -308,16 +314,19 @@ class InRollsFnData:
         cache_key = (dataset, state, year)
         if cls.__df is None or cls.__cache_key != cache_key:
             data_path = InRollsFnData.load_naampy_data(dataset)
-            adf = pd.read_parquet(
-                data_path,
-                columns=[
-                    "state",
-                    "birth_year",
-                    "first_name",
-                    "n_female",
-                    "n_male",
-                    "n_third_gender",
-                ],
+            adf = cast(
+                "pd.DataFrame",
+                pd.read_parquet(
+                    data_path,
+                    columns=[
+                        "state",
+                        "birth_year",
+                        "first_name",
+                        "n_female",
+                        "n_male",
+                        "n_third_gender",
+                    ],
+                ),
             )
             if state is not None and state not in set(adf["state"]):
                 choices = ", ".join(sorted(adf["state"].unique()))
@@ -337,24 +346,37 @@ class InRollsFnData:
                 adf = adf[adf.birth_year == year]
             # Always collapse to one row per name: guarantees a unique merge key
             # regardless of how many (state, birth_year) rows survived the filter.
-            adf = adf.groupby("first_name", as_index=False).agg(
-                {"n_female": "sum", "n_male": "sum", "n_third_gender": "sum"}
+            table_for_aggregation: Any = adf
+            adf = cast(
+                "pd.DataFrame",
+                table_for_aggregation.groupby("first_name", as_index=False).agg(
+                    {
+                        "n_female": "sum",
+                        "n_male": "sum",
+                        "n_third_gender": "sum",
+                    }
+                ),
             )
-            n = (adf["n_female"] + adf["n_male"] + adf["n_third_gender"]).replace(
-                0, np.nan
-            )
-            adf["prop_female"] = adf["n_female"] / n
-            adf["prop_male"] = adf["n_male"] / n
-            adf["prop_third_gender"] = adf["n_third_gender"] / n
-            adf = adf[["first_name", *IN_ROLLS_COLS]].rename(
-                columns={"first_name": "__first_name"}
+            total_count = cast(
+                "Any",
+                adf["n_female"] + adf["n_male"] + adf["n_third_gender"],
+            ).replace(0, np.nan)
+            adf["prop_female"] = adf["n_female"] / total_count
+            adf["prop_male"] = adf["n_male"] / total_count
+            adf["prop_third_gender"] = adf["n_third_gender"] / total_count
+            selected_columns: Any = adf[["first_name", *IN_ROLLS_COLS]]
+            adf = cast(
+                "pd.DataFrame",
+                selected_columns.rename(columns={"first_name": "__first_name"}),
             )
             adf["__first_name"] = adf["__first_name"].astype("string")
             cls.__df = adf
             cls.__cache_key = cache_key
-        lookup = cls.__df.set_index("__first_name")
+        lookup_frame = cast("pd.DataFrame", cls.__df)
+        lookup = lookup_frame.set_index("__first_name")
         for column in IN_ROLLS_COLS:
-            rdf[column] = rdf["__first_name"].map(lookup[column])
+            lookup_values: Any = lookup[column]
+            rdf[column] = rdf["__first_name"].map(lookup_values)
         for column in ("n_male", "n_female", "n_third_gender"):
             rdf[column] = rdf[column].astype("Int64")
 

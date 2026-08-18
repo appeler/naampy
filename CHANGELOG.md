@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add a reproducible evaluation report for the current character BiLSTM with
+  name-weighted and person-weighted probability metrics, name-cluster bootstrap
+  intervals, artifact hashes, and explicit developmental-evidence limitations.
+- Document the v2 and local v3 model-data dictionary, recodes, split contract,
+  hybrid lookup join contract, and unresolved provenance questions.
+
+### Changed
+
+- Use separate name-level training, validation, calibration, and final test
+  partitions for future training. Select the checkpoint on validation log loss,
+  fit logistic calibration on the calibration partition, and write a hashed
+  training manifest with final test results.
+- Type-check and lint the maintained model training and evaluation tools.
+
 ## [0.10.0] - 2026-08-17
 
 ### Fixed
