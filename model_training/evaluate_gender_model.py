@@ -165,6 +165,12 @@ def load_verified_training_split(
     )
     if manifest.get("schema_version") != 2:
         raise ValueError("training manifest must use schema version 2")
+    for metadata_field in ("target", "reference_population"):
+        metadata_value = manifest.get(metadata_field)
+        if not isinstance(metadata_value, str) or not metadata_value.strip():
+            raise ValueError(
+                f"training manifest {metadata_field} must be a nonempty string"
+            )
     if manifest["data"]["sha256"] != file_sha256(data_path):
         raise ValueError("training manifest data hash does not match --data")
     if manifest["model"]["sha256"] != file_sha256(model_path):
@@ -283,6 +289,11 @@ def main() -> None:
         data_artifact_encoding = (
             "legacy pandas gzip output predating the canonical deterministic writer"
         )
+        target_description = "female share among female and male electoral-roll labels"
+        reference_population = (
+            "aggregated Indian electoral-roll registration records represented "
+            "in the local naampy v3 construction"
+        )
         split_method = (
             "original seeded 80/20 unique-name split; held-out names balanced "
             "into calibration and test halves by support and label composition"
@@ -341,6 +352,8 @@ def main() -> None:
         data_artifact_encoding = training_manifest["data"].get(
             "artifact_encoding", "unspecified"
         )
+        target_description = training_manifest["target"]
+        reference_population = training_manifest["reference_population"]
         split_method = training_manifest["split"]["method"]
         split_provenance = {
             "seed": training_manifest["split"]["seed"],
@@ -403,11 +416,8 @@ def main() -> None:
     report = {
         "schema_version": 2,
         "evidence_role": "developmental",
-        "target": "female share among female and male electoral-roll labels",
-        "reference_population": (
-            "aggregated Indian electoral-roll registration records represented "
-            "in the local naampy v3 construction"
-        ),
+        "target": target_description,
+        "reference_population": reference_population,
         "limitations": limitations,
         "data": {
             "filename": arguments.data.name,

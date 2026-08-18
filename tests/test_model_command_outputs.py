@@ -101,6 +101,8 @@ def test_custom_checkpoint_evaluation_reports_local_provenance(tmp_path):
     )
     manifest = {
         "schema_version": 2,
+        "target": "female share in a custom labeled source",
+        "reference_population": "custom research records",
         "data": {"sha256": file_sha256(data_path)},
         "model": {"sha256": file_sha256(model_path)},
         "training": {"hyperparameters": {"max_source_rows": None}},
@@ -157,6 +159,8 @@ def test_custom_checkpoint_evaluation_reports_local_provenance(tmp_path):
     assert report["model"]["provenance"]["training_manifest"]["sha256"] == (
         file_sha256(manifest_path)
     )
+    assert report["target"] == "female share in a custom labeled source"
+    assert report["reference_population"] == "custom research records"
     assert report["split"]["seed"] == 37
     assert report["metrics"]["balanced_test_raw"]["intervals"]["seed"] == 91
 
@@ -268,6 +272,8 @@ def test_custom_manifest_rejects_inconsistent_test_fraction(tmp_path):
     )
     manifest = {
         "schema_version": 2,
+        "target": "female share in a custom labeled source",
+        "reference_population": "custom research records",
         "data": {"sha256": file_sha256(data_path)},
         "model": {"sha256": file_sha256(model_path)},
         "training": {"hyperparameters": {"max_source_rows": None}},
