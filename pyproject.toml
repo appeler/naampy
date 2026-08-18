@@ -1,10 +1,19 @@
 [build-system]
-requires = ["uv_build>=0.11.32,<0.13"]
+requires = ["uv_build>=0.12.5,<0.13"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]
 module-name = "naampy"
 source-exclude = [".DS_Store", "Thumbs.db"]
+source-include = [
+    "model_training/DATA.md",
+    "model_training/__init__.py",
+    "model_training/evaluate_gender_model.py",
+    "model_training/evaluation.py",
+    "model_training/reports/*.json",
+    "model_training/retransliterate_native.py",
+    "model_training/train_gender_lstm.py",
+]
 
 [project]
 name = "naampy"
@@ -36,7 +45,7 @@ dependencies = [
   "pandas>=2.0.0",
   "requests>=2.25.0",
   "tqdm>=4.60.0",
-  "huggingface-hub>=0.23",
+  "huggingface-hub>=1.27.0",
   "pyarrow>=16",
 ]
 license-files = ["LICENSE"]
@@ -77,7 +86,6 @@ line-length = 88
 target-version = "py311"
 exclude = [
     "docs",
-    "model_training",
     "streamlit",
     "src/naampy/data",
     "*.ipynb",
@@ -160,5 +168,10 @@ allow-init-docstring = true
 exclude = '\.venv|tests|docs'
 
 [tool.pyright]
-include = ["src"]
+include = [
+    "src",
+    "model_training/evaluate_gender_model.py",
+    "model_training/evaluation.py",
+    "model_training/train_gender_lstm.py",
+]
 typeCheckingMode = "standard"
