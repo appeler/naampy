@@ -346,6 +346,34 @@ def test_model_bundle_digest_changes_with_validated_artifact(
     assert set(original_digest) <= set("0123456789abcdef")
 
 
+def test_local_overrides_report_local_artifact_provenance(
+    configured_runtime: None, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("NAAMPY_MODEL_DIR", str(tmp_path / "model"))
+    monkeypatch.setenv("NAAMPY_LOOKUP_TABLE_DIR", str(tmp_path / "lookup"))
+    inference._cached_default_model_bundle.cache_clear()
+    inference._cached_default_lookup_bundle.cache_clear()
+
+    estimates = estimate_first_name_pattern("Priya")
+    composition = lookup_first_name_composition("Priya")
+
+    assert estimates.loc[0, "model_repository"] == "local-artifact-directory"
+    assert estimates.loc[0, "model_revision"] == "local-artifact-directory"
+    model_bundle_sha256 = estimates.loc[0, "model_bundle_sha256"]
+    assert isinstance(model_bundle_sha256, str)
+    assert len(model_bundle_sha256) == 64
+    assert composition.loc[0, "lookup_artifact_repository"] == (
+        "local-artifact-directory"
+    )
+    assert composition.loc[0, "lookup_artifact_revision"] == (
+        "local-artifact-directory"
+    )
+
+    inference._cached_default_model_bundle.cache_clear()
+    inference._cached_default_lookup_bundle.cache_clear()
+    inference._load_composition_by_name.cache_clear()
+
+
 def test_estimate_has_explicit_nullable_dtypes(configured_runtime: None) -> None:
     estimates = estimate_first_name_pattern(["priya", None])
 

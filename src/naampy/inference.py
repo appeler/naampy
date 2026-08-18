@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from functools import cache
 from typing import Any, cast
 
 import pandas as pd
 
+from . import _resources
 from ._lookup_bundle import (
     FirstNameCompositionBundle,
     load_default_lookup_bundle,
@@ -245,12 +247,28 @@ def lookup_first_name_composition(
 
 @cache
 def _cached_default_model_bundle() -> NamePatternModelBundle:
-    return load_default_model_bundle()
+    bundle = load_default_model_bundle()
+    if os.environ.get(_resources.MODEL_DIRECTORY_ENVIRONMENT_VARIABLE) is None:
+        return bundle
+    return NamePatternModelBundle(
+        manifest=bundle.manifest,
+        models=bundle.models,
+        repository="local-artifact-directory",
+        revision="local-artifact-directory",
+    )
 
 
 @cache
 def _cached_default_lookup_bundle() -> FirstNameCompositionBundle:
-    return load_default_lookup_bundle()
+    bundle = load_default_lookup_bundle()
+    if os.environ.get(_resources.LOOKUP_TABLE_DIRECTORY_ENVIRONMENT_VARIABLE) is None:
+        return bundle
+    return FirstNameCompositionBundle(
+        manifest=bundle.manifest,
+        table_path=bundle.table_path,
+        repository="local-artifact-directory",
+        revision="local-artifact-directory",
+    )
 
 
 def _model_bundle_sha256(bundle: NamePatternModelBundle) -> str:

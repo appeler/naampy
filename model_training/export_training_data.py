@@ -35,6 +35,13 @@ PUBLICATION_INTENTS: Final = (
     "private_model_development",
     "public_release_candidate",
 )
+ALLOWED_PRIVACY_DECLARATIONS: Final = frozenset(
+    {
+        ("private", "private_model_development"),
+        ("restricted", "private_model_development"),
+        ("public", "public_release_candidate"),
+    }
+)
 DATAVERSE_DOI: Final = "10.7910/DVN/WZGJBM"
 DATAVERSE_LICENSE: Final = "CC0-1.0"
 NAAMPY_CONSTRUCTION_REVISION: Final = "2b15840cf0c63ddf6b5b81bf9ecf068d65d7722d"
@@ -347,6 +354,29 @@ def _source_code_hashes() -> dict[str, str]:
     }
 
 
+def _validate_privacy_declaration(
+    privacy_classification: object, publication_intent: object
+) -> None:
+    """Reject privacy classifications that contradict publication intent."""
+    if privacy_classification not in PRIVACY_CLASSIFICATIONS:
+        raise ValueError(
+            "privacy_classification must be one of "
+            f"{', '.join(PRIVACY_CLASSIFICATIONS)}"
+        )
+    if publication_intent not in PUBLICATION_INTENTS:
+        raise ValueError(
+            f"publication_intent must be one of {', '.join(PUBLICATION_INTENTS)}"
+        )
+    if (privacy_classification, publication_intent) not in (
+        ALLOWED_PRIVACY_DECLARATIONS
+    ):
+        raise ValueError(
+            "privacy_classification and publication_intent contradict each other: "
+            "private or restricted artifacts are for private model development; "
+            "public release candidates must be classified public"
+        )
+
+
 def export_training_data(
     source_path: Path,
     parquet_path: Path,
@@ -359,15 +389,7 @@ def export_training_data(
     """Export typed model-development data and return its manifest."""
     if minimum_name_support < 1:
         raise ValueError("minimum_name_support must be positive")
-    if privacy_classification not in PRIVACY_CLASSIFICATIONS:
-        raise ValueError(
-            "privacy_classification must be one of "
-            f"{', '.join(PRIVACY_CLASSIFICATIONS)}"
-        )
-    if publication_intent not in PUBLICATION_INTENTS:
-        raise ValueError(
-            f"publication_intent must be one of {', '.join(PUBLICATION_INTENTS)}"
-        )
+    _validate_privacy_declaration(privacy_classification, publication_intent)
     resolved_paths = {
         source_path.resolve(),
         parquet_path.resolve(),
@@ -494,10 +516,9 @@ def validate_training_data_export(
     if manifest.get("source", {}).get("provenance") != _source_provenance():
         raise ValueError("manifest source provenance is not recognized")
     privacy = manifest.get("privacy", {})
-    if privacy.get("classification") not in PRIVACY_CLASSIFICATIONS:
-        raise ValueError("manifest privacy classification is not recognized")
-    if privacy.get("publication_intent") not in PUBLICATION_INTENTS:
-        raise ValueError("manifest publication intent is not recognized")
+    _validate_privacy_declaration(
+        privacy.get("classification"), privacy.get("publication_intent")
+    )
     if manifest["output"]["sha256"] != file_sha256(parquet_path):
         raise ValueError("Parquet hash does not match the manifest")
     if source_path is not None and manifest["source"]["sha256"] != file_sha256(

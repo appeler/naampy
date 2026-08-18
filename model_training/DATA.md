@@ -75,8 +75,10 @@ a retained name between partitions. Its manifest records source, artifact,
 split-membership, and source-code hashes. Privacy classification and publication
 intent are required declarations. Privacy classification is one of `private`,
 `restricted`, or `public`; publication intent is either
-`private_model_development` or `public_release_candidate`. The manifest stores
-portable artifact filenames rather than machine-specific absolute paths.
+`private_model_development` or `public_release_candidate`. Private and restricted
+artifacts are limited to private model development; a public release candidate
+must be classified public. The manifest stores portable artifact filenames rather
+than machine-specific absolute paths.
 Creating this aggregate artifact does not make the raw v3 cells suitable for
 public release.
 
@@ -182,6 +184,10 @@ stored in private Hugging Face dataset repository `gojiberries/naampy-data` at
 revision `164a5e54e03254165a068cedd580ac2b42ae6bc5`. Public model and global
 lookup artifacts belong in `gojiberries/naampy` at immutable commit revisions.
 Runtime outputs report those revisions and the artifact hashes.
+The exporter source hashed by the private v0.11 training manifest is preserved at
+Git commit `a048c6adc536ed927969acbc6a95d716f76bfd54`. The release adds a
+metadata-only guard against contradictory privacy declarations without changing
+the frozen training table.
 
 ## Open provenance questions
 

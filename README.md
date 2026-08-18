@@ -132,8 +132,9 @@ The model and lookup manifests record the score target, reference population,
 label source, calibration population, script support, version, and artifact
 revision. Every model result also includes `model_bundle_sha256`, a stable
 fingerprint of the validated weights, architecture, target, and calibration
-contract. This distinguishes local bundles that do not have a repository
-revision. See the
+contract. For a local override, the repository and revision fields both report
+`local-artifact-directory`; the fingerprint identifies the validated model bundle.
+See the
 [model card](https://github.com/appeler/naampy/blob/master/MODEL_CARD.md) and
 [data contract](https://github.com/appeler/naampy/blob/master/model_training/DATA.md)
 for the evidence and data contracts.

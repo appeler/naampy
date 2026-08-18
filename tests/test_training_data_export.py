@@ -350,6 +350,40 @@ def test_export_rejects_unknown_privacy_metadata(
         )
 
 
+@pytest.mark.parametrize(
+    ("privacy_classification", "publication_intent"),
+    [
+        ("private", "public_release_candidate"),
+        ("restricted", "public_release_candidate"),
+        ("public", "private_model_development"),
+    ],
+)
+def test_export_rejects_contradictory_privacy_metadata(
+    tmp_path, privacy_classification, publication_intent
+):
+    source_path = tmp_path / "source.csv.gz"
+    _write_source_data(source_path)
+
+    with pytest.raises(ValueError, match="contradict each other"):
+        export_training_data(
+            source_path,
+            tmp_path / "training.parquet",
+            tmp_path / "training.json",
+            privacy_classification=privacy_classification,
+            publication_intent=publication_intent,
+        )
+
+
+def test_validator_rejects_contradictory_privacy_metadata(tmp_path):
+    _, parquet_path, manifest_path, _ = _export(tmp_path, "training")
+    manifest = json.loads(manifest_path.read_text())
+    manifest["privacy"]["publication_intent"] = "public_release_candidate"
+    manifest_path.write_text(json.dumps(manifest))
+
+    with pytest.raises(ValueError, match="contradict each other"):
+        validate_training_data_export(parquet_path, manifest_path)
+
+
 def test_manifest_is_valid_json_and_records_source_code_hashes(tmp_path):
     _, _, manifest_path, manifest = _export(tmp_path, "training")
 
