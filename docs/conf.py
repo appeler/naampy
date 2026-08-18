@@ -1,4 +1,4 @@
-"""Sphinx configuration — fleet standard via py-canon."""
+"""Configure Sphinx with py-canon."""
 
 from py_canon.sphinx import configure
 

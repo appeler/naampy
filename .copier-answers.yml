@@ -3,10 +3,10 @@ _commit: v1.0.1
 _src_path: gh:gojiplus/py-canon
 author_email: gsood07@gmail.com
 author_name: Gaurav Sood
-coverage_floor: 0
+coverage_floor: 80
 default_branch: master
-description: Infer Gender from Indian Names
-needs_cli: true
+description: Estimate population-level patterns in Indian first names
+needs_cli: false
 org: appeler
 package_name: naampy
 project_name: naampy

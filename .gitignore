@@ -17,9 +17,9 @@ venv/
 docs/_build/
 in_rolls_*.csv.gz
 
-# Build intermediates (regenerable / Dataverse-hosted): downloaded rolls + the rebuilt
-# first-name->gender table. Notebooks in model_training/data/ stay tracked; data files don't.
-# Lifecycle: code committed; gender_lstm.pt is pinned on Hugging Face; naampy_v3.csv.gz
-# is uploaded to Dataverse and downloaded at runtime (URL in in_rolls_fn.IN_ROLLS_DATA).
+# Raw electoral-roll transports come from Dataverse. Typed training data and model
+# artifacts are published separately on Hugging Face, not in the source package.
 model_training/data/*.csv.gz
 model_training/data/*.csv
+model_training/data/*.parquet
+model_training/**/*.safetensors

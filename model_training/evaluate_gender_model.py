@@ -35,19 +35,24 @@ from model_training.evaluation import (
     stratified_name_split,
 )
 from model_training.train_gender_lstm import load_names
-from naampy._resources import HF_REPO, HF_REVISION, MODEL_DIR_ENV, resolve_model
+from naampy._resources import (
+    MODEL_DIRECTORY_ENVIRONMENT_VARIABLE,
+    MODEL_REPOSITORY,
+    resolve_artifact,
+)
 from naampy.nnets import (
-    LSTM_DROPOUT,
-    LSTM_EMB,
-    LSTM_HIDDEN,
-    LSTM_LAYERS,
-    VOCAB_SIZE,
-    CharBiLSTM,
-    pad_encoded,
+    CHARACTER_VOCABULARY_SIZE,
+    LSTM_DROPOUT_PROBABILITY,
+    LSTM_EMBEDDING_DIMENSION,
+    LSTM_HIDDEN_DIMENSION,
+    LSTM_LAYER_COUNT,
+    CharacterBiLSTM,
+    pad_encoded_names,
 )
 
 LOGGER = logging.getLogger(__name__)
 SHIPPED_CHECKPOINT_SPLIT_SEED = 0
+SHIPPED_MODEL_REVISION = "f7f2b7ac62a17f9bbfd102bf88388f1e3da5322a"
 SHIPPED_CHECKPOINT_DATA_SHA256 = (
     "a548226d9fe4c1dd7193d79487f51e55d77ad58e327b1b58e966b910e484ccf4"
 )
@@ -83,13 +88,13 @@ def verify_shipped_evaluation_artifacts(data_path: Path, model_path: Path) -> No
 
 @torch.no_grad()
 def predict_probabilities(
-    model: CharBiLSTM, encoded_names: list[list[int]]
+    model: CharacterBiLSTM, encoded_names: list[list[int]]
 ) -> np.ndarray:
     """Return female probabilities for encoded names."""
     model.eval()
     probabilities: list[float] = []
     for start in range(0, len(encoded_names), 512):
-        inputs, lengths = pad_encoded(encoded_names[start : start + 512])
+        inputs, lengths = pad_encoded_names(encoded_names[start : start + 512])
         batch_probabilities = (
             torch.sigmoid(model(inputs, lengths)).squeeze(1).cpu().numpy()
         )
@@ -100,7 +105,7 @@ def predict_probabilities(
 def metric_report_with_intervals(
     probabilities: np.ndarray,
     female_proportions: np.ndarray,
-    person_counts: np.ndarray,
+    record_counts: np.ndarray,
     *,
     bootstrap_iterations: int,
     bootstrap_seed: int,
@@ -108,7 +113,7 @@ def metric_report_with_intervals(
     """Return point estimates and name-cluster bootstrap intervals."""
     return {
         "point_estimates": report_metrics(
-            probabilities, female_proportions, person_counts
+            probabilities, female_proportions, record_counts
         ),
         "intervals": {
             "method": "name-cluster percentile bootstrap",
@@ -118,14 +123,14 @@ def metric_report_with_intervals(
             "name_weighted": bootstrap_metric_intervals(
                 probabilities,
                 female_proportions,
-                np.ones_like(person_counts, dtype=np.float64),
+                np.ones_like(record_counts, dtype=np.float64),
                 iterations=bootstrap_iterations,
                 seed=bootstrap_seed,
             ),
-            "person_weighted": bootstrap_metric_intervals(
+            "record_weighted": bootstrap_metric_intervals(
                 probabilities,
                 female_proportions,
-                person_counts,
+                record_counts,
                 iterations=bootstrap_iterations,
                 seed=bootstrap_seed,
             ),
@@ -157,14 +162,14 @@ def load_verified_training_split(
     model_path: Path,
     names: list[str],
     female_proportions: np.ndarray,
-    person_counts: np.ndarray,
+    record_counts: np.ndarray,
 ) -> tuple[NameDatasetSplit, dict[str, Any]]:
     """Load and verify the split provenance for a custom checkpoint."""
     manifest = cast(
         "dict[str, Any]", json.loads(manifest_path.read_text(encoding="utf-8"))
     )
-    if manifest.get("schema_version") != 2:
-        raise ValueError("training manifest must use schema version 2")
+    if manifest.get("schema_version") != 3:
+        raise ValueError("training manifest must use schema version 3")
     for metadata_field in ("target", "reference_population"):
         metadata_value = manifest.get(metadata_field)
         if not isinstance(metadata_value, str) or not metadata_value.strip():
@@ -190,12 +195,12 @@ def load_verified_training_split(
     strata = split_manifest["strata"]
     split = stratified_name_split(
         female_proportions,
-        person_counts,
+        record_counts,
         seed=int(split_manifest["seed"]),
         training_fraction=declared_fractions["training"],
         validation_fraction=declared_fractions["validation"],
         calibration_fraction=declared_fractions["calibration"],
-        count_strata=int(strata["person_count_rank_bins"]),
+        count_strata=int(strata["record_count_rank_bins"]),
         proportion_strata=int(strata["female_proportion_bins"]),
     )
     expected_hashes = split_manifest["membership_sha256"]
@@ -250,17 +255,22 @@ def main() -> None:
     if arguments.model is None:
         if arguments.training_manifest is not None:
             parser.error("--training-manifest requires --model")
-        shipped_model_path = Path(resolve_model("gender_lstm.pt"))
+        shipped_model_path = resolve_artifact(
+            "gender_lstm.pt",
+            repository=MODEL_REPOSITORY,
+            revision=SHIPPED_MODEL_REVISION,
+            local_directory_environment_variable=(MODEL_DIRECTORY_ENVIRONMENT_VARIABLE),
+        )
         try:
             verify_shipped_evaluation_artifacts(arguments.data, shipped_model_path)
         except ValueError as error:
             parser.error(str(error))
 
-    names, encoded_names, female_proportions, person_counts = load_names(
+    names, encoded_names, female_proportions, record_counts = load_names(
         arguments.data, max_source_rows
     )
     proportions = np.asarray(female_proportions)
-    counts = np.asarray(person_counts)
+    counts = np.asarray(record_counts)
     if arguments.model is None:
         if shipped_model_path is None:
             raise RuntimeError("shipped checkpoint path was not resolved")
@@ -271,7 +281,7 @@ def main() -> None:
         calibration_indices, test_indices = balanced_calibration_test_split(
             held_out_indices, proportions, counts
         )
-        local_model_directory = os.environ.get(MODEL_DIR_ENV)
+        local_model_directory = os.environ.get(MODEL_DIRECTORY_ENVIRONMENT_VARIABLE)
         expected_local_path = (
             Path(local_model_directory) / model_path.name
             if local_model_directory
@@ -283,8 +293,8 @@ def main() -> None:
                 if expected_local_path == model_path
                 else "hugging_face_hub"
             ),
-            "repository": HF_REPO,
-            "revision": HF_REVISION,
+            "repository": MODEL_REPOSITORY,
+            "revision": SHIPPED_MODEL_REVISION,
         }
         data_artifact_encoding = (
             "legacy pandas gzip output predating the canonical deterministic writer"
@@ -363,7 +373,14 @@ def main() -> None:
             "summary": split_summary(custom_split, proportions, counts),
         }
         original_held_out_probabilities_required = False
-    model = CharBiLSTM(VOCAB_SIZE, 1, LSTM_EMB, LSTM_HIDDEN, LSTM_LAYERS, LSTM_DROPOUT)
+    model = CharacterBiLSTM(
+        CHARACTER_VOCABULARY_SIZE,
+        1,
+        LSTM_EMBEDDING_DIMENSION,
+        LSTM_HIDDEN_DIMENSION,
+        LSTM_LAYER_COUNT,
+        LSTM_DROPOUT_PROBABILITY,
+    )
     state = torch.load(model_path, map_location="cpu", weights_only=True)
     model.load_state_dict(state)
 
@@ -414,7 +431,7 @@ def main() -> None:
         )
 
     report = {
-        "schema_version": 2,
+        "schema_version": 3,
         "evidence_role": "developmental",
         "target": target_description,
         "reference_population": reference_population,
@@ -432,11 +449,11 @@ def main() -> None:
             "provenance": model_provenance,
             "architecture": {
                 "type": "character_bidirectional_lstm",
-                "vocabulary_size": VOCAB_SIZE,
-                "embedding_dimension": LSTM_EMB,
-                "hidden_dimension": LSTM_HIDDEN,
-                "layers": LSTM_LAYERS,
-                "dropout": LSTM_DROPOUT,
+                "vocabulary_size": CHARACTER_VOCABULARY_SIZE,
+                "embedding_dimension": LSTM_EMBEDDING_DIMENSION,
+                "hidden_dimension": LSTM_HIDDEN_DIMENSION,
+                "layers": LSTM_LAYER_COUNT,
+                "dropout": LSTM_DROPOUT_PROBABILITY,
             },
         },
         "split": {"method": split_method, **split_provenance},

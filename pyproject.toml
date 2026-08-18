@@ -6,19 +6,25 @@ build-backend = "uv_build"
 module-name = "naampy"
 source-exclude = [".DS_Store", "Thumbs.db"]
 source-include = [
+    "CHANGELOG.md",
+    "Citation.cff",
+    "MODEL_CARD.md",
     "model_training/DATA.md",
     "model_training/__init__.py",
     "model_training/evaluate_gender_model.py",
     "model_training/evaluation.py",
+    "model_training/export_lookup_table.py",
+    "model_training/export_training_data.py",
     "model_training/reports/*.json",
     "model_training/retransliterate_native.py",
+    "model_training/train_gender_ngram.py",
     "model_training/train_gender_lstm.py",
 ]
 
 [project]
 name = "naampy"
-version = "0.10.0"
-description = "Infer Gender from Indian Names"
+version = "0.11.0"
+description = "Estimate population-level patterns in Indian first names"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
@@ -38,15 +44,14 @@ classifiers = [
   "Topic :: Software Development :: Libraries :: Python Modules",
   "Topic :: Utilities"
 ]
-keywords = ["gender", "names"]
+keywords = ["first-names", "india", "name-patterns"]
 dependencies = [
   "torch>=2.0.0",
   "numpy>=1.21.0",
   "pandas>=2.0.0",
-  "requests>=2.25.0",
-  "tqdm>=4.60.0",
   "huggingface-hub>=1.27.0",
   "pyarrow>=16",
+  "safetensors>=0.8.0",
 ]
 license-files = ["LICENSE"]
 
@@ -56,18 +61,24 @@ dev = [
     "pyright>=1.1.390",
     "pre-commit>=4",
     "pydoclint>=0.9.1",
-    "types-requests>=2.25.0",
-    "types-tqdm>=4.0",
     "pandas-stubs>=2.0",
     { include-group = "test" },
 ]
-test = ["pytest>=8", "pytest-cov>=6"]
+test = [
+    "pytest>=8",
+    "pytest-cov>=6",
+    { include-group = "training" },
+]
 docs = [
     "sphinx>=8",
     "furo",
     "myst-parser",
     "sphinx-copybutton",
     "py-canon @ git+https://github.com/gojiplus/py-canon@v1",
+]
+training = [
+    "scikit-learn>=1.8",
+    "scipy>=1.17",
 ]
 
 [project.urls]
@@ -77,16 +88,12 @@ Repository = "https://github.com/appeler/naampy"
 Issues = "https://github.com/appeler/naampy/issues"
 Changelog = "https://github.com/appeler/naampy/blob/master/CHANGELOG.md"
 
-[project.scripts]
-in_rolls_fn_gender = "naampy.in_rolls_fn:main"
-
 # Ruff configuration
 [tool.ruff]
 line-length = 88
 target-version = "py311"
 exclude = [
     "docs",
-    "streamlit",
     "src/naampy/data",
     "*.ipynb",
 ]
@@ -109,7 +116,6 @@ convention = "google"
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101", "D", "ARG", "SLF", "PT", "S110"]
 "docs/**" = ["D"]
-"src/naampy/in_rolls_fn.py" = ["T201"]
 
 [tool.pytest.ini_options]
 minversion = "7.0"
@@ -156,7 +162,7 @@ exclude_lines = [
 
 [tool.deptry]
 per_rule_ignores = {DEP002 = ["sphinx", "furo", "sphinx-copybutton", "myst-parser"]}
-extend_exclude = ["model_training", "streamlit", ".*\\.ipynb$"]
+extend_exclude = ["model_training", ".*\\.ipynb$"]
 
 # pydoclint configuration
 [tool.pydoclint]
@@ -172,6 +178,9 @@ include = [
     "src",
     "model_training/evaluate_gender_model.py",
     "model_training/evaluation.py",
+    "model_training/export_lookup_table.py",
+    "model_training/export_training_data.py",
+    "model_training/train_gender_ngram.py",
     "model_training/train_gender_lstm.py",
 ]
 typeCheckingMode = "standard"

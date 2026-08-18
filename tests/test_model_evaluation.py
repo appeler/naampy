@@ -109,9 +109,11 @@ def test_stratified_split_preserves_support_and_target_composition():
 
     summary = split_summary(split, proportions, counts)
 
-    person_totals = np.array([values["people"] for values in summary.values()])
-    person_shares = person_totals / person_totals.sum()
-    assert person_shares == pytest.approx([0.70, 0.10, 0.10, 0.10], abs=0.02)
+    record_totals = np.array(
+        [values["represented_records"] for values in summary.values()]
+    )
+    record_shares = record_totals / record_totals.sum()
+    assert record_shares == pytest.approx([0.70, 0.10, 0.10, 0.10], abs=0.02)
     female_shares = [values["female_share"] for values in summary.values()]
     assert max(female_shares) - min(female_shares) < 0.02
 
@@ -225,7 +227,7 @@ def test_probability_metrics_match_hand_calculation():
     metrics = probability_metrics(probabilities, proportions, weights)
 
     assert metrics.majority_name_label_accuracy == pytest.approx(0.5)
-    assert metrics.expected_person_accuracy == pytest.approx(0.625)
+    assert metrics.expected_record_accuracy == pytest.approx(0.625)
     assert metrics.expected_female_precision == pytest.approx(0.625)
     assert metrics.expected_female_recall == pytest.approx(0.625)
     assert metrics.expected_male_recall == pytest.approx(0.625)

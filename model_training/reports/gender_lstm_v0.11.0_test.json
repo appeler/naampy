@@ -1,0 +1,368 @@
+{
+  "calibration_manifest": {
+    "filename": "calibration_manifest.json",
+    "sha256": "cafb30268a20b78e81457e33cf9b42f53abb25f8821c43978744b3f4d129350c"
+  },
+  "data": {
+    "exported_membership_sha256": {
+      "calibration": "458cb4b32d9d3ba0158301b5b69f48f675665ec017b80f782901b587e10154f8",
+      "test": "59b957a3ed613368ed01c97470d8fdd204b760ebe7f2c884aeff9b2abaa92c06",
+      "training": "95c1707c543283a69e2076fd6d85dae56bfc6cea8f671ab7100dd336efa2c27c",
+      "validation": "6e3c9c7439b0cad8dfe248b9cf12f9277aa7a467f46bf7bf1f6b8136e02dac81"
+    },
+    "manifest_filename": "naampy_v3_training.json",
+    "manifest_sha256": "da115008f069016ca5df17174074a465bf8a67fcdbe2a76dabcf55f5df04a7ca",
+    "parquet_filename": "naampy_v3_training.parquet",
+    "parquet_sha256": "5038fe0443b493ac03c5c4ea81945e294591f8a6fe4d161f75197228b790f8cc",
+    "split_seed": 0
+  },
+  "device": {
+    "requested": "cpu",
+    "resolved": "cpu"
+  },
+  "ensemble_manifest": {
+    "filename": "ensemble_manifest.json",
+    "sha256": "46fc518bcce3a9521b771a96cd0c5856f6c4da967b8bc93dcb7dd3f1c4d73676"
+  },
+  "limitations": [
+    "Outputs are aggregate electoral-roll label-pattern estimates, not individual identity labels.",
+    "The test report is valid only for the exact frozen artifact hashes recorded here."
+  ],
+  "metrics": {
+    "calibrated": {
+      "intervals": {
+        "confidence_level": 0.95,
+        "iterations": 1000,
+        "method": "name-cluster percentile bootstrap",
+        "name_weighted": {
+          "aggregate_composition_mean_squared_error": {
+            "estimate": 0.06235797810162758,
+            "lower": 0.060134185890965274,
+            "upper": 0.06460823121291433
+          },
+          "aggregate_composition_root_mean_squared_error": {
+            "estimate": 0.24971579465790222,
+            "lower": 0.245222727051868,
+            "upper": 0.25418149259102923
+          },
+          "calibration_error_10_bins": {
+            "estimate": 0.017068588858966602,
+            "lower": 0.014491269049169458,
+            "upper": 0.0221809565956603
+          },
+          "expected_binary_brier_score": {
+            "estimate": 0.14648792917930759,
+            "lower": 0.143721762934308,
+            "upper": 0.14938226092453946
+          },
+          "expected_binary_log_loss": {
+            "estimate": 0.4427733782074953,
+            "lower": 0.4353631970216089,
+            "upper": 0.4504880757521686
+          },
+          "expected_binary_root_brier_score": {
+            "estimate": 0.38273741544211165,
+            "lower": 0.37910653239762654,
+            "upper": 0.3865000141289638
+          },
+          "expected_female_f1": {
+            "estimate": 0.7640007152184529,
+            "lower": 0.7573397125345211,
+            "upper": 0.7703163813625489
+          },
+          "expected_female_precision": {
+            "estimate": 0.7603700571977168,
+            "lower": 0.7525912939674907,
+            "upper": 0.7678573231842957
+          },
+          "expected_female_recall": {
+            "estimate": 0.7676662113292313,
+            "lower": 0.7583422513699678,
+            "upper": 0.7767004477749287
+          },
+          "expected_male_recall": {
+            "estimate": 0.7782363170366134,
+            "lower": 0.7700411223467378,
+            "upper": 0.7869638767259081
+          },
+          "expected_record_accuracy": {
+            "estimate": 0.7731811068871872,
+            "lower": 0.767625729290137,
+            "upper": 0.7785516635339604
+          },
+          "majority_name_label_accuracy": {
+            "estimate": 0.8081960626757734,
+            "lower": 0.8008818802732021,
+            "upper": 0.8151064684612294
+          }
+        },
+        "record_weighted": {
+          "aggregate_composition_mean_squared_error": {
+            "estimate": 0.03125957302422356,
+            "lower": 0.026819770626988877,
+            "upper": 0.03606734310623517
+          },
+          "aggregate_composition_root_mean_squared_error": {
+            "estimate": 0.1768037698246945,
+            "lower": 0.163767428047844,
+            "upper": 0.18991404127713832
+          },
+          "calibration_error_10_bins": {
+            "estimate": 0.015866698964007567,
+            "lower": 0.013153408035752155,
+            "upper": 0.03308692530830147
+          },
+          "expected_binary_brier_score": {
+            "estimate": 0.12233161123586735,
+            "lower": 0.11055250674666542,
+            "upper": 0.13541548438375575
+          },
+          "expected_binary_log_loss": {
+            "estimate": 0.3787557602182802,
+            "lower": 0.34863576136875885,
+            "upper": 0.41159235949025
+          },
+          "expected_binary_root_brier_score": {
+            "estimate": 0.34975936189881657,
+            "lower": 0.33249437093182405,
+            "upper": 0.36798842639727797
+          },
+          "expected_female_f1": {
+            "estimate": 0.8041239912340887,
+            "lower": 0.7675576205026282,
+            "upper": 0.8341968027526774
+          },
+          "expected_female_precision": {
+            "estimate": 0.8051448670187801,
+            "lower": 0.7715100992397461,
+            "upper": 0.8376843666833657
+          },
+          "expected_female_recall": {
+            "estimate": 0.8031057009905894,
+            "lower": 0.7444015359106345,
+            "upper": 0.8480545337157507
+          },
+          "expected_male_recall": {
+            "estimate": 0.8196980085137772,
+            "lower": 0.7807898128071761,
+            "upper": 0.8550625714562501
+          },
+          "expected_record_accuracy": {
+            "estimate": 0.8117131764566327,
+            "lower": 0.7854958820579601,
+            "upper": 0.8367145832413152
+          },
+          "majority_name_label_accuracy": {
+            "estimate": 0.8539625622179291,
+            "lower": 0.8217739401676105,
+            "upper": 0.8832216211133816
+          }
+        },
+        "seed": 0
+      },
+      "point_estimates": {
+        "name_weighted": {
+          "aggregate_composition_mean_squared_error": 0.06235797810162758,
+          "aggregate_composition_root_mean_squared_error": 0.24971579465790222,
+          "calibration_error_10_bins": 0.017068588858966602,
+          "expected_binary_brier_score": 0.14648792917930759,
+          "expected_binary_log_loss": 0.4427733782074953,
+          "expected_binary_root_brier_score": 0.38273741544211165,
+          "expected_female_f1": 0.7640007152184529,
+          "expected_female_precision": 0.7603700571977168,
+          "expected_female_recall": 0.7676662113292313,
+          "expected_male_recall": 0.7782363170366134,
+          "expected_record_accuracy": 0.7731811068871872,
+          "majority_name_label_accuracy": 0.8081960626757734
+        },
+        "record_weighted": {
+          "aggregate_composition_mean_squared_error": 0.03125957302422356,
+          "aggregate_composition_root_mean_squared_error": 0.1768037698246945,
+          "calibration_error_10_bins": 0.015866698964007567,
+          "expected_binary_brier_score": 0.12233161123586735,
+          "expected_binary_log_loss": 0.3787557602182802,
+          "expected_binary_root_brier_score": 0.34975936189881657,
+          "expected_female_f1": 0.8041239912340887,
+          "expected_female_precision": 0.8051448670187801,
+          "expected_female_recall": 0.8031057009905894,
+          "expected_male_recall": 0.8196980085137772,
+          "expected_record_accuracy": 0.8117131764566327,
+          "majority_name_label_accuracy": 0.8539625622179291
+        }
+      }
+    },
+    "raw": {
+      "intervals": {
+        "confidence_level": 0.95,
+        "iterations": 1000,
+        "method": "name-cluster percentile bootstrap",
+        "name_weighted": {
+          "aggregate_composition_mean_squared_error": {
+            "estimate": 0.06330946916349933,
+            "lower": 0.061005203295974836,
+            "upper": 0.06570056273342562
+          },
+          "aggregate_composition_root_mean_squared_error": {
+            "estimate": 0.2516137300774728,
+            "lower": 0.24699231424445053,
+            "upper": 0.25632120991493795
+          },
+          "calibration_error_10_bins": {
+            "estimate": 0.030445214895702705,
+            "lower": 0.02691132140657553,
+            "upper": 0.03511975644156779
+          },
+          "expected_binary_brier_score": {
+            "estimate": 0.14743942024117931,
+            "lower": 0.1445436847460426,
+            "upper": 0.15046486130913284
+          },
+          "expected_binary_log_loss": {
+            "estimate": 0.4484540583828549,
+            "lower": 0.4403232927995915,
+            "upper": 0.45696861866578165
+          },
+          "expected_binary_root_brier_score": {
+            "estimate": 0.3839784111654968,
+            "lower": 0.3801890118664831,
+            "upper": 0.3878980037445011
+          },
+          "expected_female_f1": {
+            "estimate": 0.766206173903377,
+            "lower": 0.7596755782809582,
+            "upper": 0.7726159624157041
+          },
+          "expected_female_precision": {
+            "estimate": 0.7565980659670177,
+            "lower": 0.7488810986549973,
+            "upper": 0.7640137735134
+          },
+          "expected_female_recall": {
+            "estimate": 0.7760614491198965,
+            "lower": 0.7671976308863279,
+            "upper": 0.7849584370701715
+          },
+          "expected_male_recall": {
+            "estimate": 0.7711468837540821,
+            "lower": 0.7624902054514465,
+            "upper": 0.7797494275459771
+          },
+          "expected_record_accuracy": {
+            "estimate": 0.7734973011865144,
+            "lower": 0.7680678716998824,
+            "upper": 0.7787396353540154
+          },
+          "majority_name_label_accuracy": {
+            "estimate": 0.8106066693451185,
+            "lower": 0.8031317798312575,
+            "upper": 0.8176777822418642
+          }
+        },
+        "record_weighted": {
+          "aggregate_composition_mean_squared_error": {
+            "estimate": 0.03131632686004424,
+            "lower": 0.026841033362840397,
+            "upper": 0.03622001717520041
+          },
+          "aggregate_composition_root_mean_squared_error": {
+            "estimate": 0.17696419654846637,
+            "lower": 0.16383233302254457,
+            "upper": 0.19031557198441407
+          },
+          "calibration_error_10_bins": {
+            "estimate": 0.013777176912467149,
+            "lower": 0.014505527667888568,
+            "upper": 0.031257898353002876
+          },
+          "expected_binary_brier_score": {
+            "estimate": 0.12238836507168806,
+            "lower": 0.11027316671908009,
+            "upper": 0.1357321986886485
+          },
+          "expected_binary_log_loss": {
+            "estimate": 0.38005091743398184,
+            "lower": 0.3484934927985872,
+            "upper": 0.4141637934176578
+          },
+          "expected_binary_root_brier_score": {
+            "estimate": 0.3498404851810151,
+            "lower": 0.3320740380064786,
+            "upper": 0.3684185098933521
+          },
+          "expected_female_f1": {
+            "estimate": 0.8058755870947927,
+            "lower": 0.7704420367384407,
+            "upper": 0.8358220834533394
+          },
+          "expected_female_precision": {
+            "estimate": 0.8016660625403365,
+            "lower": 0.7672963754591126,
+            "upper": 0.8334055934731637
+          },
+          "expected_female_recall": {
+            "estimate": 0.8101295531858855,
+            "lower": 0.7517946603766931,
+            "upper": 0.8547295500292423
+          },
+          "expected_male_recall": {
+            "estimate": 0.8140706276760952,
+            "lower": 0.7753005566507148,
+            "upper": 0.8490102170646017
+          },
+          "expected_record_accuracy": {
+            "estimate": 0.812174036868274,
+            "lower": 0.7859896422038893,
+            "upper": 0.8371198268036224
+          },
+          "majority_name_label_accuracy": {
+            "estimate": 0.8593903447486538,
+            "lower": 0.8274698206062163,
+            "upper": 0.8901163683500438
+          }
+        },
+        "seed": 0
+      },
+      "point_estimates": {
+        "name_weighted": {
+          "aggregate_composition_mean_squared_error": 0.06330946916349933,
+          "aggregate_composition_root_mean_squared_error": 0.2516137300774728,
+          "calibration_error_10_bins": 0.030445214895702705,
+          "expected_binary_brier_score": 0.14743942024117931,
+          "expected_binary_log_loss": 0.4484540583828549,
+          "expected_binary_root_brier_score": 0.3839784111654968,
+          "expected_female_f1": 0.766206173903377,
+          "expected_female_precision": 0.7565980659670177,
+          "expected_female_recall": 0.7760614491198965,
+          "expected_male_recall": 0.7711468837540821,
+          "expected_record_accuracy": 0.7734973011865144,
+          "majority_name_label_accuracy": 0.8106066693451185
+        },
+        "record_weighted": {
+          "aggregate_composition_mean_squared_error": 0.03131632686004424,
+          "aggregate_composition_root_mean_squared_error": 0.17696419654846637,
+          "calibration_error_10_bins": 0.013777176912467149,
+          "expected_binary_brier_score": 0.12238836507168806,
+          "expected_binary_log_loss": 0.38005091743398184,
+          "expected_binary_root_brier_score": 0.3498404851810151,
+          "expected_female_f1": 0.8058755870947927,
+          "expected_female_precision": 0.8016660625403365,
+          "expected_female_recall": 0.8101295531858855,
+          "expected_male_recall": 0.8140706276760952,
+          "expected_record_accuracy": 0.812174036868274,
+          "majority_name_label_accuracy": 0.8593903447486538
+        }
+      }
+    }
+  },
+  "partition_access": {
+    "loaded": [
+      "test"
+    ]
+  },
+  "runtime_manifest": {
+    "filename": "first_name_pattern_manifest.json",
+    "sha256": "4a4b9f07bd03fa2df7c80eb95f2fac02239d937f4882c7f609e0bb952c5661a2"
+  },
+  "schema_version": 1,
+  "stage": "test_evaluation"
+}

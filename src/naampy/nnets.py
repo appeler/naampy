@@ -1,90 +1,106 @@
-"""Char-level bidirectional LSTM gender model for naampy (first name -> P(female)).
-
-Self-contained (torch only). Mirrors the instate CharBiLSTM; a single output unit + sigmoid
-gives P(female). Trained/served with a 26-letter vocab (a-z, ``<PAD>`` = 0).
-"""
+"""Character-level bidirectional LSTM for first-name pattern scores."""
 
 from __future__ import annotations
 
 import torch
 import torch.nn as nn
 
-# Character vocabulary: a-z -> 1..26, <PAD> = 0.
-CHAR_TO_IDX: dict[str, int] = {"<PAD>": 0}
-CHAR_TO_IDX.update({c: i + 1 for i, c in enumerate("abcdefghijklmnopqrstuvwxyz")})
-VOCAB_SIZE = len(CHAR_TO_IDX)  # 27
+CHARACTER_TO_INDEX: dict[str, int] = {"<PAD>": 0}
+CHARACTER_TO_INDEX.update(
+    {
+        character: position + 1
+        for position, character in enumerate("abcdefghijklmnopqrstuvwxyz")
+    }
+)
+CHARACTER_VOCABULARY_SIZE = len(CHARACTER_TO_INDEX)
 
-# Model configuration.
-LSTM_EMB = 64
-LSTM_HIDDEN = 256
-LSTM_LAYERS = 2
-LSTM_DROPOUT = 0.2
-
-
-def encode_name(name: str) -> list[int]:
-    """Map a (cleaned, lowercase) name to ``CHAR_TO_IDX`` indices, dropping out-of-vocab chars."""
-    return [CHAR_TO_IDX[c] for c in name if c in CHAR_TO_IDX]
+LSTM_EMBEDDING_DIMENSION = 64
+LSTM_HIDDEN_DIMENSION = 256
+LSTM_LAYER_COUNT = 2
+LSTM_DROPOUT_PROBABILITY = 0.2
 
 
-def pad_encoded(encoded: list[list[int]]) -> tuple[torch.Tensor, torch.Tensor]:
-    """Pad a list of index-lists into ``(LongTensor [B, T], lengths LongTensor [B])`` (PAD=0)."""
-    lengths = torch.tensor([len(e) for e in encoded], dtype=torch.long)
-    maxlen = int(lengths.max()) if len(encoded) else 0
-    x = torch.zeros(len(encoded), maxlen, dtype=torch.long)
-    for i, e in enumerate(encoded):
-        x[i, : len(e)] = torch.tensor(e, dtype=torch.long)
-    return x, lengths
+def encode_normalized_name(normalized_name: str) -> list[int]:
+    """Encode one validated lowercase ASCII name without dropping characters."""
+    return [CHARACTER_TO_INDEX[character] for character in normalized_name]
 
 
-class CharBiLSTM(nn.Module):
-    """Embedding -> packed BiLSTM -> Linear over ``num_classes`` raw logits."""
+def pad_encoded_names(
+    encoded_names: list[list[int]],
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Pad encoded names and return their unpadded lengths."""
+    name_lengths = torch.tensor(
+        [len(encoded_name) for encoded_name in encoded_names], dtype=torch.long
+    )
+    maximum_name_length = int(name_lengths.max()) if len(encoded_names) else 0
+    padded_names = torch.zeros(
+        len(encoded_names), maximum_name_length, dtype=torch.long
+    )
+    for position, encoded_name in enumerate(encoded_names):
+        padded_names[position, : len(encoded_name)] = torch.tensor(
+            encoded_name, dtype=torch.long
+        )
+    return padded_names, name_lengths
+
+
+class CharacterBiLSTM(nn.Module):
+    """Map encoded names to raw logits with a bidirectional LSTM."""
 
     def __init__(
         self,
-        num_chars: int,
-        num_classes: int = 1,
-        embedding_dim: int = LSTM_EMB,
-        hidden_dim: int = LSTM_HIDDEN,
-        num_layers: int = LSTM_LAYERS,
-        dropout: float = LSTM_DROPOUT,
+        vocabulary_size: int,
+        output_dimension: int = 1,
+        embedding_dimension: int = LSTM_EMBEDDING_DIMENSION,
+        hidden_dimension: int = LSTM_HIDDEN_DIMENSION,
+        layer_count: int = LSTM_LAYER_COUNT,
+        dropout_probability: float = LSTM_DROPOUT_PROBABILITY,
     ) -> None:
         """Build the embedding, BiLSTM, and output projection layers.
 
         Args:
-            num_chars: Vocabulary size (number of distinct character indices).
-            num_classes: Number of output logits (1 for binary gender).
-            embedding_dim: Character embedding dimension.
-            hidden_dim: LSTM hidden state size (per direction).
-            num_layers: Number of stacked LSTM layers.
-            dropout: Dropout between LSTM layers (ignored if num_layers == 1).
+            vocabulary_size: Number of distinct character indices.
+            output_dimension: Number of output logits.
+            embedding_dimension: Character embedding dimension.
+            hidden_dimension: LSTM hidden state size per direction.
+            layer_count: Number of stacked LSTM layers.
+            dropout_probability: Dropout between recurrent layers.
         """
         super().__init__()
-        self.embedding = nn.Embedding(num_chars, embedding_dim, padding_idx=0)
+        self.embedding = nn.Embedding(
+            vocabulary_size, embedding_dimension, padding_idx=0
+        )
         self.lstm = nn.LSTM(
-            embedding_dim,
-            hidden_dim,
-            num_layers=num_layers,
+            embedding_dimension,
+            hidden_dimension,
+            num_layers=layer_count,
             batch_first=True,
             bidirectional=True,
-            dropout=dropout if num_layers > 1 else 0.0,
+            dropout=dropout_probability if layer_count > 1 else 0.0,
         )
-        self.fc = nn.Linear(2 * hidden_dim, num_classes)
+        self.fc = nn.Linear(2 * hidden_dimension, output_dimension)
 
-    def forward(self, x: torch.Tensor, lengths: torch.Tensor) -> torch.Tensor:
-        """Run the packed BiLSTM and return raw (pre-sigmoid) logits.
+    def forward(
+        self, encoded_names: torch.Tensor, name_lengths: torch.Tensor
+    ) -> torch.Tensor:
+        """Return raw logits for one padded batch.
 
         Args:
-            x: Padded, encoded character indices, shape ``[B, T]``.
-            lengths: True (unpadded) sequence length per row, shape ``[B]``.
+            encoded_names: Padded character indices with shape ``[B, T]``.
+            name_lengths: Unpadded sequence length for each row.
 
         Returns:
-            Raw logits of shape ``[B, num_classes]``.
+            Raw logits with shape ``[B, output_dimension]``.
         """
-        embedded = self.embedding(x)
-        packed = nn.utils.rnn.pack_padded_sequence(
-            embedded, lengths.cpu(), batch_first=True, enforce_sorted=False
+        embedded_names = self.embedding(encoded_names)
+        packed_names = nn.utils.rnn.pack_padded_sequence(
+            embedded_names,
+            name_lengths.cpu(),
+            batch_first=True,
+            enforce_sorted=False,
         )
-        _, (h_n, _) = self.lstm(packed)
-        h = torch.cat([h_n[-2], h_n[-1]], dim=1)
-        logits: torch.Tensor = self.fc(h)
+        _, (hidden_states, _) = self.lstm(packed_names)
+        final_bidirectional_state = torch.cat(
+            [hidden_states[-2], hidden_states[-1]], dim=1
+        )
+        logits: torch.Tensor = self.fc(final_bidirectional_state)
         return logits

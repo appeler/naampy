@@ -77,7 +77,7 @@
             "lower": 0.7675591415090405,
             "upper": 0.7835139870247064
           },
-          "expected_person_accuracy": {
+          "expected_record_accuracy": {
             "estimate": 0.7624809880769549,
             "lower": 0.7574889648163607,
             "upper": 0.7686627816997113
@@ -88,7 +88,7 @@
             "upper": 0.8028143832864604
           }
         },
-        "person_weighted": {
+        "record_weighted": {
           "aggregate_composition_mean_squared_error": {
             "estimate": 0.03834595385252297,
             "lower": 0.030191087557446004,
@@ -139,7 +139,7 @@
             "lower": 0.7701048046700789,
             "upper": 0.871878524328967
           },
-          "expected_person_accuracy": {
+          "expected_record_accuracy": {
             "estimate": 0.7887213864207346,
             "lower": 0.7465521632963346,
             "upper": 0.8258875606060856
@@ -164,10 +164,10 @@
           "expected_female_precision": 0.749958572110561,
           "expected_female_recall": 0.7481861400229463,
           "expected_male_recall": 0.7753543842612746,
-          "expected_person_accuracy": 0.7624809880769549,
+          "expected_record_accuracy": 0.7624809880769549,
           "majority_name_label_accuracy": 0.7957412615508236
         },
-        "person_weighted": {
+        "record_weighted": {
           "aggregate_composition_mean_squared_error": 0.03834595385252297,
           "aggregate_composition_root_mean_squared_error": 0.19582122932032414,
           "calibration_error_10_bins": 0.03940175495941002,
@@ -178,7 +178,7 @@
           "expected_female_precision": 0.7939460739356669,
           "expected_female_recall": 0.747024941246724,
           "expected_male_recall": 0.8261177442035135,
-          "expected_person_accuracy": 0.7887213864207346,
+          "expected_record_accuracy": 0.7887213864207346,
           "majority_name_label_accuracy": 0.8138983346596143
         }
       }
@@ -239,7 +239,7 @@
             "lower": 0.7450784894504331,
             "upper": 0.7621914320764437
           },
-          "expected_person_accuracy": {
+          "expected_record_accuracy": {
             "estimate": 0.7612001457202903,
             "lower": 0.7561412068092785,
             "upper": 0.7672280689870974
@@ -250,7 +250,7 @@
             "upper": 0.8041803937324227
           }
         },
-        "person_weighted": {
+        "record_weighted": {
           "aggregate_composition_mean_squared_error": {
             "estimate": 0.0396636611337792,
             "lower": 0.030127302826285684,
@@ -301,7 +301,7 @@
             "lower": 0.7541637172499694,
             "upper": 0.8571717168372305
           },
-          "expected_person_accuracy": {
+          "expected_record_accuracy": {
             "estimate": 0.7885280319669573,
             "lower": 0.7460310908505821,
             "upper": 0.8255865372908866
@@ -326,10 +326,10 @@
           "expected_female_precision": 0.7375018249694846,
           "expected_female_recall": 0.7701517750368008,
           "expected_male_recall": 0.7531386490012472,
-          "expected_person_accuracy": 0.7612001457202903,
+          "expected_record_accuracy": 0.7612001457202903,
           "majority_name_label_accuracy": 0.7971072719967859
         },
-        "person_weighted": {
+        "record_weighted": {
           "aggregate_composition_mean_squared_error": 0.0396636611337792,
           "aggregate_composition_root_mean_squared_error": 0.19915737780403517,
           "calibration_error_10_bins": 0.05084782459792093,
@@ -340,7 +340,7 @@
           "expected_female_precision": 0.7826669138037091,
           "expected_female_recall": 0.7652310190506554,
           "expected_male_recall": 0.8094224613758,
-          "expected_person_accuracy": 0.7885280319669573,
+          "expected_record_accuracy": 0.7885280319669573,
           "majority_name_label_accuracy": 0.8164815189536702
         }
       }
@@ -357,10 +357,10 @@
         "expected_female_precision": 0.7365942264594453,
         "expected_female_recall": 0.7663903219189048,
         "expected_male_recall": 0.7531892929206618,
-        "expected_person_accuracy": 0.7594444921014692,
+        "expected_record_accuracy": 0.7594444921014692,
         "majority_name_label_accuracy": 0.7937725994375251
       },
-      "person_weighted": {
+      "record_weighted": {
         "aggregate_composition_mean_squared_error": 0.03841284377779374,
         "aggregate_composition_root_mean_squared_error": 0.19599194824735464,
         "calibration_error_10_bins": 0.03699651961961051,
@@ -371,7 +371,7 @@
         "expected_female_precision": 0.7992229806358035,
         "expected_female_recall": 0.8040999577614142,
         "expected_male_recall": 0.8188299668735192,
-        "expected_person_accuracy": 0.8118653800005381,
+        "expected_record_accuracy": 0.8118653800005381,
         "majority_name_label_accuracy": 0.8461577772131452
       }
     }
@@ -394,7 +394,7 @@
     "sha256": "98fdcfe9016b48e3a2639c6f2c55eb9d2a56946a51dea6ac0a0c64fafc33b9f7"
   },
   "reference_population": "aggregated Indian electoral-roll registration records represented in the local naampy v3 construction",
-  "schema_version": 2,
+  "schema_version": 3,
   "split": {
     "membership_provenance": {
       "fixed_seed": 0,
@@ -414,21 +414,21 @@
         "female_share": 0.4728162012586306,
         "largest_name_share": 0.039996193491867005,
         "names": 12445,
-        "people": 43577997
+        "represented_records": 43577997
       },
       "original_training": {
         "effective_names": 935.442264703686,
         "female_share": 0.48318094022958774,
         "largest_name_share": 0.008703714422704158,
         "names": 99557,
-        "people": 378023777
+        "represented_records": 378023777
       },
       "test": {
         "effective_names": 159.18571051879906,
         "female_share": 0.4728161904087471,
         "largest_name_share": 0.03463793816319878,
         "names": 12445,
-        "people": 43577998
+        "represented_records": 43577998
       }
     }
   },

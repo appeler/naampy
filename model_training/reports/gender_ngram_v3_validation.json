@@ -1,0 +1,687 @@
+{
+  "calibration": {
+    "status": "reserved_untouched"
+  },
+  "data": {
+    "artifact_encoding": "gzip-compressed CSV",
+    "filename": "naampy_v3.csv.gz",
+    "sha256": "a548226d9fe4c1dd7193d79487f51e55d77ad58e327b1b58e966b910e484ccf4",
+    "source_row_limit": null,
+    "usable_unique_names": 124447
+  },
+  "evidence_role": "developmental_challenger",
+  "limitations": [
+    "The binary target excludes the extremely sparse third-gender label and does not estimate gender identity.",
+    "This report selects a development challenger on validation; the current Naampy runtime does not serve this model.",
+    "The selected candidate artifact is not persisted or frozen. Until it is frozen, the calibration and test partitions must not be transformed, inspected by target, fitted, or scored."
+  ],
+  "metrics": {
+    "selected_validation_raw": {
+      "intervals": {
+        "confidence_level": 0.95,
+        "iterations": 1000,
+        "method": "name-cluster percentile bootstrap",
+        "name_weighted": {
+          "aggregate_composition_mean_squared_error": {
+            "estimate": 0.09252849272809613,
+            "lower": 0.08982152378262077,
+            "upper": 0.09503534469703796
+          },
+          "aggregate_composition_root_mean_squared_error": {
+            "estimate": 0.30418496466475153,
+            "lower": 0.2997023920058928,
+            "upper": 0.3082780313699025
+          },
+          "calibration_error_10_bins": {
+            "estimate": 0.04831820544897181,
+            "lower": 0.043541397294315116,
+            "upper": 0.05359060266784051
+          },
+          "expected_binary_brier_score": {
+            "estimate": 0.17636819708994572,
+            "lower": 0.17318965281275794,
+            "upper": 0.17932256911330322
+          },
+          "expected_binary_log_loss": {
+            "estimate": 0.5278149453565946,
+            "lower": 0.5190743690545885,
+            "upper": 0.5361725398186711
+          },
+          "expected_binary_root_brier_score": {
+            "estimate": 0.4199621376861797,
+            "lower": 0.4161606093810884,
+            "upper": 0.42346495598309564
+          },
+          "expected_female_f1": {
+            "estimate": 0.7143840954849165,
+            "lower": 0.7072636156342565,
+            "upper": 0.7213455554663311
+          },
+          "expected_female_precision": {
+            "estimate": 0.7281257985389537,
+            "lower": 0.719132153346869,
+            "upper": 0.7370338279425761
+          },
+          "expected_female_recall": {
+            "estimate": 0.7011514709453576,
+            "lower": 0.6915132682927337,
+            "upper": 0.7106559945111564
+          },
+          "expected_male_recall": {
+            "estimate": 0.7606925147946542,
+            "lower": 0.7515271103036081,
+            "upper": 0.7697587035801206
+          },
+          "expected_record_accuracy": {
+            "estimate": 0.7322583904208737,
+            "lower": 0.7263571155543287,
+            "upper": 0.7381093668237695
+          },
+          "majority_name_label_accuracy": {
+            "estimate": 0.747127360385697,
+            "lower": 0.7394114102049015,
+            "upper": 0.7548433105664926
+          }
+        },
+        "record_weighted": {
+          "aggregate_composition_mean_squared_error": {
+            "estimate": 0.052166138944035774,
+            "lower": 0.0454658163689262,
+            "upper": 0.059282502551325764
+          },
+          "aggregate_composition_root_mean_squared_error": {
+            "estimate": 0.22839907824690486,
+            "lower": 0.21322714707694945,
+            "upper": 0.2434799838705458
+          },
+          "calibration_error_10_bins": {
+            "estimate": 0.032652409341670026,
+            "lower": 0.023573434063391734,
+            "upper": 0.053639482793218125
+          },
+          "expected_binary_brier_score": {
+            "estimate": 0.14089393040818127,
+            "lower": 0.1285081589696801,
+            "upper": 0.15317065539059666
+          },
+          "expected_binary_log_loss": {
+            "estimate": 0.4319655014685029,
+            "lower": 0.3987514811485061,
+            "upper": 0.4627739589350015
+          },
+          "expected_binary_root_brier_score": {
+            "estimate": 0.37535840260766945,
+            "lower": 0.35848034319440114,
+            "upper": 0.3913702280277004
+          },
+          "expected_female_f1": {
+            "estimate": 0.7875283249913388,
+            "lower": 0.7566747963756765,
+            "upper": 0.8143331281156843
+          },
+          "expected_female_precision": {
+            "estimate": 0.7760724532970794,
+            "lower": 0.7375666144509422,
+            "upper": 0.8087434492310042
+          },
+          "expected_female_recall": {
+            "estimate": 0.7993274719935969,
+            "lower": 0.758420777525487,
+            "upper": 0.8335817501852553
+          },
+          "expected_male_recall": {
+            "estimate": 0.7860408220975984,
+            "lower": 0.7442379025109516,
+            "upper": 0.8226400400268352
+          },
+          "expected_record_accuracy": {
+            "estimate": 0.7924349329584092,
+            "lower": 0.769343035403522,
+            "upper": 0.8145696906836857
+          },
+          "majority_name_label_accuracy": {
+            "estimate": 0.8224846685318716,
+            "lower": 0.7880986256782508,
+            "upper": 0.8541583133014988
+          }
+        },
+        "seed": 0
+      },
+      "point_estimates": {
+        "name_weighted": {
+          "aggregate_composition_mean_squared_error": 0.09252849272809613,
+          "aggregate_composition_root_mean_squared_error": 0.30418496466475153,
+          "calibration_error_10_bins": 0.04831820544897181,
+          "expected_binary_brier_score": 0.17636819708994572,
+          "expected_binary_log_loss": 0.5278149453565946,
+          "expected_binary_root_brier_score": 0.4199621376861797,
+          "expected_female_f1": 0.7143840954849165,
+          "expected_female_precision": 0.7281257985389537,
+          "expected_female_recall": 0.7011514709453576,
+          "expected_male_recall": 0.7606925147946542,
+          "expected_record_accuracy": 0.7322583904208737,
+          "majority_name_label_accuracy": 0.747127360385697
+        },
+        "record_weighted": {
+          "aggregate_composition_mean_squared_error": 0.052166138944035774,
+          "aggregate_composition_root_mean_squared_error": 0.22839907824690486,
+          "calibration_error_10_bins": 0.032652409341670026,
+          "expected_binary_brier_score": 0.14089393040818127,
+          "expected_binary_log_loss": 0.4319655014685029,
+          "expected_binary_root_brier_score": 0.37535840260766945,
+          "expected_female_f1": 0.7875283249913388,
+          "expected_female_precision": 0.7760724532970794,
+          "expected_female_recall": 0.7993274719935969,
+          "expected_male_recall": 0.7860408220975984,
+          "expected_record_accuracy": 0.7924349329584092,
+          "majority_name_label_accuracy": 0.8224846685318716
+        }
+      }
+    }
+  },
+  "model": {
+    "architecture": {
+      "analyzer": "character",
+      "classifier": "logistic_regression",
+      "feature_count": 65468,
+      "minimum_document_frequency": 2,
+      "ngram_range": [
+        2,
+        5
+      ],
+      "numeric_array_bytes": 1047496,
+      "penalty": "l2",
+      "solver": "liblinear",
+      "sublinear_term_frequency": true,
+      "tfidf_normalization": "l2",
+      "type": "character_tfidf_logistic_regression"
+    },
+    "candidate_artifact_status": "not_persisted_not_frozen",
+    "selected_inverse_regularization_strength": 30.0,
+    "selected_minimum_training_name_support": 1,
+    "selection_history": [
+      {
+        "excluded_training_name_count": 0,
+        "feature_count": 65468,
+        "feature_fit_seconds": 0.5163431249675341,
+        "fit_and_validation_seconds": 0.4053197919856757,
+        "inverse_regularization_strength": 0.1,
+        "iterations": 7,
+        "minimum_training_name_support": 1,
+        "represented_record_fraction": 1.0,
+        "training_name_count": 87113,
+        "validation_record_weighted_expected_binary_brier_score": 0.1786373040596142,
+        "validation_record_weighted_expected_binary_log_loss": 0.5352055247540067,
+        "validation_record_weighted_expected_female_f1": 0.715101879633286,
+        "validation_record_weighted_expected_record_accuracy": 0.7354180823756064,
+        "validation_transform_seconds": 0.05992095795227215
+      },
+      {
+        "excluded_training_name_count": 0,
+        "feature_count": 65468,
+        "feature_fit_seconds": 0.5163431249675341,
+        "fit_and_validation_seconds": 0.6813395830104128,
+        "inverse_regularization_strength": 1.0,
+        "iterations": 7,
+        "minimum_training_name_support": 1,
+        "represented_record_fraction": 1.0,
+        "training_name_count": 87113,
+        "validation_record_weighted_expected_binary_brier_score": 0.1520751760804441,
+        "validation_record_weighted_expected_binary_log_loss": 0.4630948480417186,
+        "validation_record_weighted_expected_female_f1": 0.7571260910957729,
+        "validation_record_weighted_expected_record_accuracy": 0.765613502823077,
+        "validation_transform_seconds": 0.05992095795227215
+      },
+      {
+        "excluded_training_name_count": 0,
+        "feature_count": 65468,
+        "feature_fit_seconds": 0.5163431249675341,
+        "fit_and_validation_seconds": 1.5682239159941673,
+        "inverse_regularization_strength": 10.0,
+        "iterations": 8,
+        "minimum_training_name_support": 1,
+        "represented_record_fraction": 1.0,
+        "training_name_count": 87113,
+        "validation_record_weighted_expected_binary_brier_score": 0.1422585449853349,
+        "validation_record_weighted_expected_binary_log_loss": 0.4342889281413365,
+        "validation_record_weighted_expected_female_f1": 0.7858198777190368,
+        "validation_record_weighted_expected_record_accuracy": 0.791579698042141,
+        "validation_transform_seconds": 0.05992095795227215
+      },
+      {
+        "excluded_training_name_count": 0,
+        "feature_count": 65468,
+        "feature_fit_seconds": 0.5163431249675341,
+        "fit_and_validation_seconds": 2.936888124968391,
+        "inverse_regularization_strength": 30.0,
+        "iterations": 9,
+        "minimum_training_name_support": 1,
+        "represented_record_fraction": 1.0,
+        "training_name_count": 87113,
+        "validation_record_weighted_expected_binary_brier_score": 0.14089393040818127,
+        "validation_record_weighted_expected_binary_log_loss": 0.4319655014685029,
+        "validation_record_weighted_expected_female_f1": 0.7875283249913388,
+        "validation_record_weighted_expected_record_accuracy": 0.7924349329584092,
+        "validation_transform_seconds": 0.05992095795227215
+      },
+      {
+        "excluded_training_name_count": 0,
+        "feature_count": 65468,
+        "feature_fit_seconds": 0.5163431249675341,
+        "fit_and_validation_seconds": 4.377980082994327,
+        "inverse_regularization_strength": 100.0,
+        "iterations": 10,
+        "minimum_training_name_support": 1,
+        "represented_record_fraction": 1.0,
+        "training_name_count": 87113,
+        "validation_record_weighted_expected_binary_brier_score": 0.14223316618579326,
+        "validation_record_weighted_expected_binary_log_loss": 0.4396246542580797,
+        "validation_record_weighted_expected_female_f1": 0.7857707588058371,
+        "validation_record_weighted_expected_record_accuracy": 0.790444529758699,
+        "validation_transform_seconds": 0.05992095795227215
+      },
+      {
+        "excluded_training_name_count": 6347,
+        "feature_count": 63047,
+        "feature_fit_seconds": 0.5968398750410415,
+        "fit_and_validation_seconds": 0.43506979098310694,
+        "inverse_regularization_strength": 0.1,
+        "iterations": 7,
+        "minimum_training_name_support": 5,
+        "represented_record_fraction": 0.999965509722857,
+        "training_name_count": 80766,
+        "validation_record_weighted_expected_binary_brier_score": 0.17931316696955,
+        "validation_record_weighted_expected_binary_log_loss": 0.5369408166108426,
+        "validation_record_weighted_expected_female_f1": 0.7171511449123402,
+        "validation_record_weighted_expected_record_accuracy": 0.7363253614234924,
+        "validation_transform_seconds": 0.07941720902454108
+      },
+      {
+        "excluded_training_name_count": 6347,
+        "feature_count": 63047,
+        "feature_fit_seconds": 0.5968398750410415,
+        "fit_and_validation_seconds": 0.7692120419815183,
+        "inverse_regularization_strength": 1.0,
+        "iterations": 7,
+        "minimum_training_name_support": 5,
+        "represented_record_fraction": 0.999965509722857,
+        "training_name_count": 80766,
+        "validation_record_weighted_expected_binary_brier_score": 0.1523757954542203,
+        "validation_record_weighted_expected_binary_log_loss": 0.463957672682998,
+        "validation_record_weighted_expected_female_f1": 0.7576148343558524,
+        "validation_record_weighted_expected_record_accuracy": 0.7667418565713175,
+        "validation_transform_seconds": 0.07941720902454108
+      },
+      {
+        "excluded_training_name_count": 6347,
+        "feature_count": 63047,
+        "feature_fit_seconds": 0.5968398750410415,
+        "fit_and_validation_seconds": 1.7605073329759762,
+        "inverse_regularization_strength": 10.0,
+        "iterations": 8,
+        "minimum_training_name_support": 5,
+        "represented_record_fraction": 0.999965509722857,
+        "training_name_count": 80766,
+        "validation_record_weighted_expected_binary_brier_score": 0.1424715510270609,
+        "validation_record_weighted_expected_binary_log_loss": 0.4346758490773713,
+        "validation_record_weighted_expected_female_f1": 0.7789674684030944,
+        "validation_record_weighted_expected_record_accuracy": 0.7827708042009266,
+        "validation_transform_seconds": 0.07941720902454108
+      },
+      {
+        "excluded_training_name_count": 6347,
+        "feature_count": 63047,
+        "feature_fit_seconds": 0.5968398750410415,
+        "fit_and_validation_seconds": 2.8770873330067843,
+        "inverse_regularization_strength": 30.0,
+        "iterations": 9,
+        "minimum_training_name_support": 5,
+        "represented_record_fraction": 0.999965509722857,
+        "training_name_count": 80766,
+        "validation_record_weighted_expected_binary_brier_score": 0.14112623724822151,
+        "validation_record_weighted_expected_binary_log_loss": 0.4323304562300305,
+        "validation_record_weighted_expected_female_f1": 0.7876119868349325,
+        "validation_record_weighted_expected_record_accuracy": 0.7922700513022717,
+        "validation_transform_seconds": 0.07941720902454108
+      },
+      {
+        "excluded_training_name_count": 6347,
+        "feature_count": 63047,
+        "feature_fit_seconds": 0.5968398750410415,
+        "fit_and_validation_seconds": 5.593354290991556,
+        "inverse_regularization_strength": 100.0,
+        "iterations": 11,
+        "minimum_training_name_support": 5,
+        "represented_record_fraction": 0.999965509722857,
+        "training_name_count": 80766,
+        "validation_record_weighted_expected_binary_brier_score": 0.14244498342642575,
+        "validation_record_weighted_expected_binary_log_loss": 0.4399107617831549,
+        "validation_record_weighted_expected_female_f1": 0.7860815887927657,
+        "validation_record_weighted_expected_record_accuracy": 0.7906495247356127,
+        "validation_transform_seconds": 0.07941720902454108
+      },
+      {
+        "excluded_training_name_count": 7859,
+        "feature_count": 62532,
+        "feature_fit_seconds": 0.7227150420076214,
+        "fit_and_validation_seconds": 0.46223400003509596,
+        "inverse_regularization_strength": 0.1,
+        "iterations": 6,
+        "minimum_training_name_support": 10,
+        "represented_record_fraction": 0.9999349410986311,
+        "training_name_count": 79254,
+        "validation_record_weighted_expected_binary_brier_score": 0.17957720861626436,
+        "validation_record_weighted_expected_binary_log_loss": 0.537604642900295,
+        "validation_record_weighted_expected_female_f1": 0.716627806209288,
+        "validation_record_weighted_expected_record_accuracy": 0.736047728230661,
+        "validation_transform_seconds": 0.09361895802430809
+      },
+      {
+        "excluded_training_name_count": 7859,
+        "feature_count": 62532,
+        "feature_fit_seconds": 0.7227150420076214,
+        "fit_and_validation_seconds": 1.0059076250181533,
+        "inverse_regularization_strength": 1.0,
+        "iterations": 7,
+        "minimum_training_name_support": 10,
+        "represented_record_fraction": 0.9999349410986311,
+        "training_name_count": 79254,
+        "validation_record_weighted_expected_binary_brier_score": 0.1525090647143744,
+        "validation_record_weighted_expected_binary_log_loss": 0.4643516507277302,
+        "validation_record_weighted_expected_female_f1": 0.7575560101429524,
+        "validation_record_weighted_expected_record_accuracy": 0.7666837932918876,
+        "validation_transform_seconds": 0.09361895802430809
+      },
+      {
+        "excluded_training_name_count": 7859,
+        "feature_count": 62532,
+        "feature_fit_seconds": 0.7227150420076214,
+        "fit_and_validation_seconds": 2.2292451669927686,
+        "inverse_regularization_strength": 10.0,
+        "iterations": 8,
+        "minimum_training_name_support": 10,
+        "represented_record_fraction": 0.9999349410986311,
+        "training_name_count": 79254,
+        "validation_record_weighted_expected_binary_brier_score": 0.14252636368337115,
+        "validation_record_weighted_expected_binary_log_loss": 0.4348322815217177,
+        "validation_record_weighted_expected_female_f1": 0.7787915752556636,
+        "validation_record_weighted_expected_record_accuracy": 0.7826490239425147,
+        "validation_transform_seconds": 0.09361895802430809
+      },
+      {
+        "excluded_training_name_count": 7859,
+        "feature_count": 62532,
+        "feature_fit_seconds": 0.7227150420076214,
+        "fit_and_validation_seconds": 3.821932499995455,
+        "inverse_regularization_strength": 30.0,
+        "iterations": 9,
+        "minimum_training_name_support": 10,
+        "represented_record_fraction": 0.9999349410986311,
+        "training_name_count": 79254,
+        "validation_record_weighted_expected_binary_brier_score": 0.141174731278879,
+        "validation_record_weighted_expected_binary_log_loss": 0.4324668111886855,
+        "validation_record_weighted_expected_female_f1": 0.7875157339524679,
+        "validation_record_weighted_expected_record_accuracy": 0.7922450288449386,
+        "validation_transform_seconds": 0.09361895802430809
+      },
+      {
+        "excluded_training_name_count": 7859,
+        "feature_count": 62532,
+        "feature_fit_seconds": 0.7227150420076214,
+        "fit_and_validation_seconds": 5.896323958993889,
+        "inverse_regularization_strength": 100.0,
+        "iterations": 11,
+        "minimum_training_name_support": 10,
+        "represented_record_fraction": 0.9999349410986311,
+        "training_name_count": 79254,
+        "validation_record_weighted_expected_binary_brier_score": 0.14254169709094952,
+        "validation_record_weighted_expected_binary_log_loss": 0.4401186655703665,
+        "validation_record_weighted_expected_female_f1": 0.7861377939980592,
+        "validation_record_weighted_expected_record_accuracy": 0.790612485479612,
+        "validation_transform_seconds": 0.09361895802430809
+      },
+      {
+        "excluded_training_name_count": 15381,
+        "feature_count": 58607,
+        "feature_fit_seconds": 0.8194866670528427,
+        "fit_and_validation_seconds": 0.5000984170474112,
+        "inverse_regularization_strength": 0.1,
+        "iterations": 6,
+        "minimum_training_name_support": 20,
+        "represented_record_fraction": 0.999648147580527,
+        "training_name_count": 71732,
+        "validation_record_weighted_expected_binary_brier_score": 0.18064610409856321,
+        "validation_record_weighted_expected_binary_log_loss": 0.5403736440459657,
+        "validation_record_weighted_expected_female_f1": 0.7143260144724146,
+        "validation_record_weighted_expected_record_accuracy": 0.7325217759332243,
+        "validation_transform_seconds": 0.11512716597644612
+      },
+      {
+        "excluded_training_name_count": 15381,
+        "feature_count": 58607,
+        "feature_fit_seconds": 0.8194866670528427,
+        "fit_and_validation_seconds": 1.0025852500111796,
+        "inverse_regularization_strength": 1.0,
+        "iterations": 7,
+        "minimum_training_name_support": 20,
+        "represented_record_fraction": 0.999648147580527,
+        "training_name_count": 71732,
+        "validation_record_weighted_expected_binary_brier_score": 0.15300361901935153,
+        "validation_record_weighted_expected_binary_log_loss": 0.4659668945397783,
+        "validation_record_weighted_expected_female_f1": 0.7576856180004985,
+        "validation_record_weighted_expected_record_accuracy": 0.7670117723567756,
+        "validation_transform_seconds": 0.11512716597644612
+      },
+      {
+        "excluded_training_name_count": 15381,
+        "feature_count": 58607,
+        "feature_fit_seconds": 0.8194866670528427,
+        "fit_and_validation_seconds": 2.272012834029738,
+        "inverse_regularization_strength": 10.0,
+        "iterations": 8,
+        "minimum_training_name_support": 20,
+        "represented_record_fraction": 0.999648147580527,
+        "training_name_count": 71732,
+        "validation_record_weighted_expected_binary_brier_score": 0.14270351273557538,
+        "validation_record_weighted_expected_binary_log_loss": 0.43541099024071706,
+        "validation_record_weighted_expected_female_f1": 0.7842322895010203,
+        "validation_record_weighted_expected_record_accuracy": 0.7895852319176577,
+        "validation_transform_seconds": 0.11512716597644612
+      },
+      {
+        "excluded_training_name_count": 15381,
+        "feature_count": 58607,
+        "feature_fit_seconds": 0.8194866670528427,
+        "fit_and_validation_seconds": 3.764168583031278,
+        "inverse_regularization_strength": 30.0,
+        "iterations": 9,
+        "minimum_training_name_support": 20,
+        "represented_record_fraction": 0.999648147580527,
+        "training_name_count": 71732,
+        "validation_record_weighted_expected_binary_brier_score": 0.141307527375703,
+        "validation_record_weighted_expected_binary_log_loss": 0.4328357900732952,
+        "validation_record_weighted_expected_female_f1": 0.7866467709203246,
+        "validation_record_weighted_expected_record_accuracy": 0.7918922422922824,
+        "validation_transform_seconds": 0.11512716597644612
+      },
+      {
+        "excluded_training_name_count": 15381,
+        "feature_count": 58607,
+        "feature_fit_seconds": 0.8194866670528427,
+        "fit_and_validation_seconds": 5.756700582976919,
+        "inverse_regularization_strength": 100.0,
+        "iterations": 10,
+        "minimum_training_name_support": 20,
+        "represented_record_fraction": 0.999648147580527,
+        "training_name_count": 71732,
+        "validation_record_weighted_expected_binary_brier_score": 0.14259204866462344,
+        "validation_record_weighted_expected_binary_log_loss": 0.4401801903144659,
+        "validation_record_weighted_expected_female_f1": 0.7863187051168673,
+        "validation_record_weighted_expected_record_accuracy": 0.7912109177538699,
+        "validation_transform_seconds": 0.11512716597644612
+      },
+      {
+        "excluded_training_name_count": 22947,
+        "feature_count": 54589,
+        "feature_fit_seconds": 0.7115188750321977,
+        "fit_and_validation_seconds": 0.4210239170351997,
+        "inverse_regularization_strength": 0.1,
+        "iterations": 6,
+        "minimum_training_name_support": 50,
+        "represented_record_fraction": 0.9989026220137622,
+        "training_name_count": 64166,
+        "validation_record_weighted_expected_binary_brier_score": 0.18199447581848743,
+        "validation_record_weighted_expected_binary_log_loss": 0.5437282360297194,
+        "validation_record_weighted_expected_female_f1": 0.7127680849705128,
+        "validation_record_weighted_expected_record_accuracy": 0.7312946006760835,
+        "validation_transform_seconds": 0.11514454201096669
+      },
+      {
+        "excluded_training_name_count": 22947,
+        "feature_count": 54589,
+        "feature_fit_seconds": 0.7115188750321977,
+        "fit_and_validation_seconds": 0.907973250024952,
+        "inverse_regularization_strength": 1.0,
+        "iterations": 7,
+        "minimum_training_name_support": 50,
+        "represented_record_fraction": 0.9989026220137622,
+        "training_name_count": 64166,
+        "validation_record_weighted_expected_binary_brier_score": 0.15367729080963807,
+        "validation_record_weighted_expected_binary_log_loss": 0.4678809159703683,
+        "validation_record_weighted_expected_female_f1": 0.7573255240606726,
+        "validation_record_weighted_expected_record_accuracy": 0.7669228179508959,
+        "validation_transform_seconds": 0.11514454201096669
+      },
+      {
+        "excluded_training_name_count": 22947,
+        "feature_count": 54589,
+        "feature_fit_seconds": 0.7115188750321977,
+        "fit_and_validation_seconds": 2.048624249990098,
+        "inverse_regularization_strength": 10.0,
+        "iterations": 8,
+        "minimum_training_name_support": 50,
+        "represented_record_fraction": 0.9989026220137622,
+        "training_name_count": 64166,
+        "validation_record_weighted_expected_binary_brier_score": 0.14311201201133866,
+        "validation_record_weighted_expected_binary_log_loss": 0.4362237819997421,
+        "validation_record_weighted_expected_female_f1": 0.7802430999532785,
+        "validation_record_weighted_expected_record_accuracy": 0.7853701516866093,
+        "validation_transform_seconds": 0.11514454201096669
+      },
+      {
+        "excluded_training_name_count": 22947,
+        "feature_count": 54589,
+        "feature_fit_seconds": 0.7115188750321977,
+        "fit_and_validation_seconds": 2.7533263340010308,
+        "inverse_regularization_strength": 30.0,
+        "iterations": 9,
+        "minimum_training_name_support": 50,
+        "represented_record_fraction": 0.9989026220137622,
+        "training_name_count": 64166,
+        "validation_record_weighted_expected_binary_brier_score": 0.14176541093094847,
+        "validation_record_weighted_expected_binary_log_loss": 0.43394807941910274,
+        "validation_record_weighted_expected_female_f1": 0.7837875538864141,
+        "validation_record_weighted_expected_record_accuracy": 0.7897185560416949,
+        "validation_transform_seconds": 0.11514454201096669
+      },
+      {
+        "excluded_training_name_count": 22947,
+        "feature_count": 54589,
+        "feature_fit_seconds": 0.7115188750321977,
+        "fit_and_validation_seconds": 5.507181875000242,
+        "inverse_regularization_strength": 100.0,
+        "iterations": 10,
+        "minimum_training_name_support": 50,
+        "represented_record_fraction": 0.9989026220137622,
+        "training_name_count": 64166,
+        "validation_record_weighted_expected_binary_brier_score": 0.14303457162635194,
+        "validation_record_weighted_expected_binary_log_loss": 0.44218408534923026,
+        "validation_record_weighted_expected_female_f1": 0.7854407947064108,
+        "validation_record_weighted_expected_record_accuracy": 0.7903838438505796,
+        "validation_transform_seconds": 0.11514454201096669
+      }
+    ],
+    "selection_metric": "validation_record_weighted_expected_binary_log_loss"
+  },
+  "reference_population": "aggregated Indian electoral-roll registration records represented in the Naampy v3 construction",
+  "reserved_partitions": {
+    "calibration_status": "untouched",
+    "policy": "Do not transform, inspect targets for, fit on, or score calibration or test until the candidate artifact and selection are frozen.",
+    "test_status": "untouched"
+  },
+  "runtime": {
+    "selected_training_feature_fit_seconds": 0.5163431249675341,
+    "selected_validation_transform_seconds": 0.05992095795227215,
+    "selection_seconds": 63.64843745803228,
+    "total_command_seconds": 76.69105091702659,
+    "validation_feature_nonzero_values": 230628,
+    "validation_names": 12445,
+    "validation_names_per_transform_and_prediction_second": 205103.27296749587,
+    "validation_prediction_seconds": 0.0007557919598184526,
+    "validation_transform_and_prediction_seconds": 0.0606767499120906
+  },
+  "schema_version": 3,
+  "split": {
+    "development_summary": {
+      "training": {
+        "effective_names": 655.1963099285272,
+        "female_share": 0.48123928077057476,
+        "largest_name_share": 0.01010420169609431,
+        "names": 87113,
+        "represented_records": 325628001
+      },
+      "validation": {
+        "effective_names": 470.3074989599287,
+        "female_share": 0.4812432713182684,
+        "largest_name_share": 0.01046779247517526,
+        "names": 12445,
+        "represented_records": 46518213
+      }
+    },
+    "fractions": {
+      "calibration": 0.1,
+      "test": 0.1,
+      "training": 0.7,
+      "validation": 0.1
+    },
+    "membership_sha256": {
+      "calibration": "458cb4b32d9d3ba0158301b5b69f48f675665ec017b80f782901b587e10154f8",
+      "test": "59b957a3ed613368ed01c97470d8fdd204b760ebe7f2c884aeff9b2abaa92c06",
+      "training": "95c1707c543283a69e2076fd6d85dae56bfc6cea8f671ab7100dd336efa2c27c",
+      "validation": "6e3c9c7439b0cad8dfe248b9cf12f9277aa7a467f46bf7bf1f6b8136e02dac81"
+    },
+    "method": "stratified disjoint unique-name split",
+    "reserved_name_counts": {
+      "calibration": 12444,
+      "test": 12445
+    },
+    "seed": 0,
+    "strata": {
+      "female_proportion_bins": 10,
+      "record_count_rank_bins": 100
+    }
+  },
+  "target": "female share among female and male electoral-roll labels",
+  "training": {
+    "excluded_training_name_count": 0,
+    "maximum_iterations": 500,
+    "minimum_training_name_support_grid": [
+      1,
+      5,
+      10,
+      20,
+      50
+    ],
+    "model_random_seed": 0,
+    "selected_represented_record_fraction": 1.0,
+    "selected_training_name_count": 87113,
+    "skipped_minimum_training_name_supports": [],
+    "software_versions": {
+      "numpy": "2.4.6",
+      "python": "3.13.2",
+      "scikit_learn": "1.9.0",
+      "scipy": "1.18.0"
+    },
+    "training_weighting": "female and male registration-record counts, rescaled to mean optimization weight one"
+  }
+}
