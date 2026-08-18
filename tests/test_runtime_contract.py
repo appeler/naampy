@@ -22,9 +22,14 @@ from naampy._lookup_bundle import (
     LOOKUP_REFERENCE_POPULATION,
     LOOKUP_TABLE_SCHEMA,
     THIRD_GENDER_EXCLUSION,
+    load_default_lookup_bundle,
     load_lookup_bundle,
 )
-from naampy._model_bundle import load_model_bundle, parse_model_manifest
+from naampy._model_bundle import (
+    load_default_model_bundle,
+    load_model_bundle,
+    parse_model_manifest,
+)
 from naampy.nnets import CharacterBiLSTM, encode_normalized_name
 
 if TYPE_CHECKING:
@@ -347,10 +352,27 @@ def test_model_bundle_digest_changes_with_validated_artifact(
 
 
 def test_local_overrides_report_local_artifact_provenance(
-    configured_runtime: None, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    monkeypatch.setenv("NAAMPY_MODEL_DIR", str(tmp_path / "model"))
-    monkeypatch.setenv("NAAMPY_LOOKUP_TABLE_DIR", str(tmp_path / "lookup"))
+    model_directory = tmp_path / "model"
+    lookup_directory = tmp_path / "lookup"
+    model_directory.mkdir()
+    lookup_directory.mkdir()
+    _write_model_bundle(model_directory)
+    _write_lookup_bundle(lookup_directory)
+    monkeypatch.setenv("NAAMPY_MODEL_DIR", str(model_directory))
+    monkeypatch.setenv("NAAMPY_LOOKUP_TABLE_DIR", str(lookup_directory))
+
+    model_bundle = load_default_model_bundle()
+    lookup_bundle = load_default_lookup_bundle()
+
+    assert model_bundle.repository == "local-artifact-directory"
+    assert model_bundle.revision == "local-artifact-directory"
+    assert lookup_bundle.repository == "local-artifact-directory"
+    assert lookup_bundle.revision == "local-artifact-directory"
+
+    monkeypatch.setattr(inference, "load_default_model_bundle", lambda: model_bundle)
+    monkeypatch.setattr(inference, "load_default_lookup_bundle", lambda: lookup_bundle)
     inference._cached_default_model_bundle.cache_clear()
     inference._cached_default_lookup_bundle.cache_clear()
 

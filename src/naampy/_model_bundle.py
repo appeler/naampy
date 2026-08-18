@@ -80,14 +80,20 @@ class NamePatternModelBundle:
 
 def load_default_model_bundle() -> NamePatternModelBundle:
     """Load the package's configured immutable model bundle."""
+    repository, revision = _resources.artifact_provenance(
+        repository=_resources.MODEL_REPOSITORY,
+        revision=_resources.MODEL_REVISION,
+        local_directory_environment_variable=(
+            _resources.MODEL_DIRECTORY_ENVIRONMENT_VARIABLE
+        ),
+    )
     manifest_path = _resources.resolve_model_artifact(
         _resources.MODEL_MANIFEST_FILENAME
     )
-    revision = _resources.MODEL_REVISION or "local-artifact-directory"
     return load_model_bundle(
         manifest_path,
         artifact_resolver=_resources.resolve_model_artifact,
-        repository=_resources.MODEL_REPOSITORY,
+        repository=repository,
         revision=revision,
     )
 

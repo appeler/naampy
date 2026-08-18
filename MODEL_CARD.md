@@ -48,7 +48,13 @@ The two raw probabilities are averaged, then calibrated with a positive-slope
 logit-affine transformation fitted on the calibration partition. Model weights
 are stored as SafeTensors files. The manifest records and the runtime verifies
 each filename, SHA-256 digest, architecture parameter, target, calibration
-method, model version, and repository revision.
+method, and model version. The package pins the Hugging Face repository revision
+separately.
+
+The frozen final-fit evidence hashes the model-definition source preserved at Git
+commit `a048c6adc536ed927969acbc6a95d716f76bfd54`. A later release correction changes
+only whether the default loader reports a local directory or the pinned repository;
+it does not change the architecture, weights, ensemble, score, or calibration.
 
 ## Training data and partitions
 

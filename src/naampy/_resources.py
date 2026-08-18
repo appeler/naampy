@@ -14,6 +14,19 @@ LOOKUP_TABLE_REPOSITORY = "gojiberries/naampy"
 LOOKUP_TABLE_REVISION = "72d5ec16d3ede38e3627504a108b69ffd114c813"
 LOOKUP_TABLE_MANIFEST_FILENAME = "first_name_composition_manifest.json"
 LOOKUP_TABLE_DIRECTORY_ENVIRONMENT_VARIABLE = "NAAMPY_LOOKUP_TABLE_DIR"
+LOCAL_ARTIFACT_PROVENANCE = "local-artifact-directory"
+
+
+def artifact_provenance(
+    *,
+    repository: str,
+    revision: str,
+    local_directory_environment_variable: str,
+) -> tuple[str, str]:
+    """Return truthful repository and revision fields for an artifact source."""
+    if os.environ.get(local_directory_environment_variable) is not None:
+        return LOCAL_ARTIFACT_PROVENANCE, LOCAL_ARTIFACT_PROVENANCE
+    return repository, revision
 
 
 def resolve_artifact(

@@ -228,14 +228,20 @@ class FirstNameCompositionBundle:
 
 def load_default_lookup_bundle() -> FirstNameCompositionBundle:
     """Load the package's configured immutable exact-lookup bundle."""
+    repository, revision = _resources.artifact_provenance(
+        repository=_resources.LOOKUP_TABLE_REPOSITORY,
+        revision=_resources.LOOKUP_TABLE_REVISION,
+        local_directory_environment_variable=(
+            _resources.LOOKUP_TABLE_DIRECTORY_ENVIRONMENT_VARIABLE
+        ),
+    )
     manifest_path = _resources.resolve_lookup_table_artifact(
         _resources.LOOKUP_TABLE_MANIFEST_FILENAME
     )
-    revision = _resources.LOOKUP_TABLE_REVISION or "local-artifact-directory"
     return load_lookup_bundle(
         manifest_path,
         artifact_resolver=_resources.resolve_lookup_table_artifact,
-        repository=_resources.LOOKUP_TABLE_REPOSITORY,
+        repository=repository,
         revision=revision,
     )
 

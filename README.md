@@ -128,11 +128,12 @@ an offline or controlled deployment. Set `NAAMPY_LOOKUP_TABLE_DIR` to a director
 containing the complete lookup bundle. Naampy verifies the artifact schemas and
 SHA-256 hashes before use.
 
-The model and lookup manifests record the score target, reference population,
-label source, calibration population, script support, version, and artifact
-revision. Every model result also includes `model_bundle_sha256`, a stable
-fingerprint of the validated weights, architecture, target, and calibration
-contract. For a local override, the repository and revision fields both report
+The model and lookup manifests record their targets, reference populations,
+label sources, supported inputs, versions, and content hashes. The package pins
+the Hugging Face repository revision separately. Every model result also includes
+`model_bundle_sha256`, a stable fingerprint of the validated weights,
+architecture, target, and calibration contract. For a local override, the
+repository and revision fields both report
 `local-artifact-directory`; the fingerprint identifies the validated model bundle.
 See the
 [model card](https://github.com/appeler/naampy/blob/master/MODEL_CARD.md) and
