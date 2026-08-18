@@ -16,6 +16,7 @@ import gzip
 import hashlib
 import json
 import logging
+import platform
 import random
 import re
 import tempfile
@@ -29,6 +30,7 @@ import torch.nn.functional as torch_functional
 
 from model_training.evaluation import (
     fit_logistic_calibration,
+    name_membership_sha256,
     probability_metrics,
     report_metrics,
     split_summary,
@@ -184,6 +186,7 @@ def main() -> None:
     best_validation_loss = float("inf")
     best_epoch = 0
     best_state: dict[str, torch.Tensor] | None = None
+    selection_history: list[dict[str, float | int]] = []
 
     for epoch in range(1, arguments.epochs + 1):
         model.train()
@@ -219,8 +222,19 @@ def main() -> None:
             proportions[split.validation],
             counts[split.validation],
         )
-        if validation_metrics.soft_log_loss < best_validation_loss:
-            best_validation_loss = validation_metrics.soft_log_loss
+        training_loss = running / len(sampled_indices)
+        validation_loss = validation_metrics.expected_binary_log_loss
+        selection_history.append(
+            {
+                "epoch": epoch,
+                "training_expected_binary_log_loss": training_loss,
+                "validation_person_weighted_expected_binary_log_loss": (
+                    validation_loss
+                ),
+            }
+        )
+        if validation_loss < best_validation_loss:
+            best_validation_loss = validation_loss
             best_epoch = epoch
             best_state = {
                 name: parameter.detach().cpu().clone()
@@ -230,10 +244,10 @@ def main() -> None:
             "Epoch %s: training loss %.4f; validation log loss %.4f; "
             "validation root Brier score %.4f; validation accuracy %.4f",
             epoch,
-            running / len(sampled_indices),
-            validation_metrics.soft_log_loss,
-            validation_metrics.root_brier_score,
-            validation_metrics.majority_label_accuracy,
+            training_loss,
+            validation_loss,
+            validation_metrics.expected_binary_root_brier_score,
+            validation_metrics.majority_name_label_accuracy,
         )
 
     if best_state is None:
@@ -262,7 +276,7 @@ def main() -> None:
     torch.save(best_state, checkpoint_path)
     metadata_path = arguments.metadata_out or checkpoint_path.with_suffix(".json")
     training_report = {
-        "schema_version": 1,
+        "schema_version": 2,
         "target": "female share among female and male electoral-roll labels",
         "reference_population": (
             "aggregated Indian electoral-roll registration records represented "
@@ -276,20 +290,81 @@ def main() -> None:
         "model": {
             "filename": checkpoint_path.name,
             "sha256": file_sha256(checkpoint_path),
-            "architecture": "character_bidirectional_lstm",
+            "architecture": {
+                "type": "character_bidirectional_lstm",
+                "vocabulary_size": VOCAB_SIZE,
+                "embedding_dimension": LSTM_EMB,
+                "hidden_dimension": LSTM_HIDDEN,
+                "layers": LSTM_LAYERS,
+                "dropout": LSTM_DROPOUT,
+            },
             "selected_epoch": best_epoch,
-            "selection_metric": "person_weighted_soft_log_loss",
+            "selection_metric": ("validation_person_weighted_expected_binary_log_loss"),
+            "selection_value": best_validation_loss,
+            "selection_history": selection_history,
+        },
+        "training": {
+            "random_seed": arguments.seed,
+            "hyperparameters": {
+                "epochs_requested": arguments.epochs,
+                "samples_per_epoch": arguments.samples_per_epoch,
+                "batch_size": arguments.batch_size,
+                "max_source_rows": arguments.max_rows,
+                "loss": "binary_cross_entropy_with_logits",
+                "training_name_sampling": "person_count_weighted_with_replacement",
+            },
+            "optimizer": {
+                "type": "torch.optim.Adam",
+                "learning_rate": arguments.learning_rate,
+                "betas": list(optimizer.defaults["betas"]),
+                "epsilon": optimizer.defaults["eps"],
+                "weight_decay": optimizer.defaults["weight_decay"],
+                "amsgrad": optimizer.defaults["amsgrad"],
+            },
+            "device": {
+                "requested": arguments.device,
+                "resolved": device,
+            },
+            "software_versions": {
+                "python": platform.python_version(),
+                "numpy": np.__version__,
+                "pandas": pd.__version__,
+                "torch": torch.__version__,
+            },
         },
         "split": {
             "method": "stratified disjoint unique-name split",
             "seed": arguments.seed,
+            "fractions": {
+                "training": 0.70,
+                "validation": 0.10,
+                "calibration": 0.10,
+                "test": 0.10,
+            },
+            "strata": {
+                "person_count_rank_bins": 100,
+                "female_proportion_bins": 10,
+            },
             "summary": split_summary(split, proportions, counts),
+            "membership_sha256": {
+                "training": name_membership_sha256(names, split.training),
+                "validation": name_membership_sha256(names, split.validation),
+                "calibration": name_membership_sha256(names, split.calibration),
+                "test": name_membership_sha256(names, split.test),
+            },
         },
         "calibration": {
             "method": "positive-scale logistic calibration",
             "scale": calibration.scale,
             "intercept": calibration.intercept,
             "fit_partition": "calibration",
+            "required_for_calibrated_serving": True,
+            "current_runtime_status": "not_applied",
+        },
+        "serving": {
+            "checkpoint_probabilities": "uncalibrated",
+            "calibrated_serving_requires": metadata_path.name,
+            "current_naampy_runtime_applies_manifest_calibration": False,
         },
         "test_metrics": {
             "raw": report_metrics(

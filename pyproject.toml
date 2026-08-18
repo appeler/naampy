@@ -11,6 +11,7 @@ source-include = [
     "model_training/evaluate_gender_model.py",
     "model_training/evaluation.py",
     "model_training/reports/*.json",
+    "model_training/retransliterate_native.py",
     "model_training/train_gender_lstm.py",
 ]
 

@@ -8,19 +8,22 @@ English first-name->gender dataset (no roll re-harvest).
 Run in eroll's 3.13 venv (has ``eroll`` + the corpora under ``eroll_transliteration/data/``):
 
     .../eroll_transliteration/.venv/bin/python retransliterate_native.py \
-        --native /tmp/naampy_v2_native.csv.gz --out model_training/data/naampy_v3.csv.gz
+        --native /tmp/naampy_v2_native.csv.gz \
+        --v2 /tmp/naampy_v2.csv.gz \
+        --out model_training/data/naampy_v3.csv.gz
 """
 
 import argparse
 import csv
 import gzip
+import io
 import logging
 import re
+import tempfile
 import unicodedata
 from pathlib import Path
 
 import pandas as pd
-from eroll.states import STATES
 
 LOGGER = logging.getLogger(__name__)
 
@@ -54,6 +57,8 @@ def to_ascii(s: str) -> str:
 
 def _lang_config():
     """Return language-specific corpus paths and native-script patterns."""
+    from eroll.states import STATES
+
     out: dict[str, tuple[Path, re.Pattern[str]]] = {}
     for cfg in STATES.values():
         out.setdefault(cfg.language, (cfg.corpus_csv, cfg.native_run))
@@ -69,6 +74,42 @@ def _load_word_map(corpus_csv) -> dict[str, str]:
             if len(row) >= 2:
                 word_map[row[0]] = row[1]
     return word_map
+
+
+def write_deterministic_gzip_csv(table: pd.DataFrame, output_path: Path) -> None:
+    """Write a canonical gzip-compressed CSV atomically."""
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.NamedTemporaryFile(
+        dir=output_path.parent,
+        prefix=f".{output_path.name}.",
+        suffix=".tmp",
+        delete=False,
+    ) as temporary_file:
+        temporary_path = Path(temporary_file.name)
+    try:
+        with (
+            temporary_path.open("wb") as raw_output,
+            gzip.GzipFile(
+                filename="",
+                mode="wb",
+                compresslevel=9,
+                fileobj=raw_output,
+                mtime=0,
+            ) as compressed_output,
+            io.TextIOWrapper(
+                compressed_output, encoding="utf-8", newline=""
+            ) as text_output,
+        ):
+            table.to_csv(
+                text_output,
+                index=False,
+                float_format="%.17g",
+                lineterminator="\n",
+            )
+        temporary_path.replace(output_path)
+        output_path.chmod(0o644)
+    finally:
+        temporary_path.unlink(missing_ok=True)
 
 
 def romanize(name: str, word_map: dict[str, str], native_run: re.Pattern[str]) -> str:
@@ -141,10 +182,11 @@ def main() -> None:
         )
         agg = pd.concat([agg, others[agg.columns]], ignore_index=True)
 
-    agg = agg.sort_values(["state", "birth_year", "first_name"])
+    agg = agg.sort_values(
+        ["state", "birth_year", "first_name"], kind="mergesort"
+    ).reset_index(drop=True)
     outp = Path(args.out)
-    outp.parent.mkdir(parents=True, exist_ok=True)
-    agg.to_csv(outp, index=False, compression="gzip")
+    write_deterministic_gzip_csv(agg, outp)
     LOGGER.info(
         "Wrote %s state-year-name rows and %s unique English names to %s",
         f"{len(agg):,}",

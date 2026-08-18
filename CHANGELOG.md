@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add a reproducible evaluation report for the current character BiLSTM with
+- Add a developmental evaluation report for the current character BiLSTM with
   name-weighted and person-weighted probability metrics, name-cluster bootstrap
-  intervals, artifact hashes, and explicit developmental-evidence limitations.
+  intervals, artifact hashes, fixed split provenance, and explicit limitations.
 - Document the v2 and local v3 model-data dictionary, recodes, split contract,
   hybrid lookup join contract, and unresolved provenance questions.
 
@@ -22,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   fit logistic calibration on the calibration partition, and write a hashed
   training manifest with final test results.
 - Type-check and lint the maintained model training and evaluation tools.
+- Make v3 CSV.gz construction byte-deterministic and include its construction
+  program in source distributions. The unpublished inputs and transliteration
+  corpora still prevent an independent end-to-end reproduction claim.
 
 ## [0.10.0] - 2026-08-17
 

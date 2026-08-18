@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import random
 from dataclasses import asdict, dataclass
 from typing import Any
@@ -22,9 +24,12 @@ class NameDatasetSplit:
 
     def validate(self, number_of_names: int) -> None:
         """Validate that the partitions are disjoint and exhaustive."""
-        combined = np.concatenate(
-            (self.training, self.validation, self.calibration, self.test)
-        )
+        partitions = (self.training, self.validation, self.calibration, self.test)
+        if any(len(partition) == 0 for partition in partitions):
+            raise ValueError(
+                "Training, validation, calibration, and test must be nonempty"
+            )
+        combined = np.concatenate(partitions)
         if len(combined) != number_of_names:
             raise ValueError("Split does not contain every name exactly once")
         if len(np.unique(combined)) != number_of_names:
@@ -51,17 +56,19 @@ class LogisticCalibration:
 
 @dataclass(frozen=True)
 class ProbabilityMetrics:
-    """Binary probability and threshold metrics."""
+    """Aggregate-composition and expected individual-label metrics."""
 
-    majority_label_accuracy: float
+    majority_name_label_accuracy: float
     expected_person_accuracy: float
-    female_precision: float
-    female_recall: float
-    male_recall: float
-    female_f1: float
-    brier_score: float
-    root_brier_score: float
-    soft_log_loss: float
+    expected_female_precision: float
+    expected_female_recall: float
+    expected_male_recall: float
+    expected_female_f1: float
+    aggregate_composition_mean_squared_error: float
+    aggregate_composition_root_mean_squared_error: float
+    expected_binary_brier_score: float
+    expected_binary_root_brier_score: float
+    expected_binary_log_loss: float
     calibration_error_10_bins: float
 
     def as_dict(self) -> dict[str, float]:
@@ -143,6 +150,109 @@ def balanced_calibration_test_split(
     )
 
 
+def _partition_balance_cost(
+    partition_contributions: np.ndarray, allocation_fractions: np.ndarray
+) -> float:
+    """Return the largest support-share or composition imbalance."""
+    overall_contributions = partition_contributions.sum(axis=0)
+    support_shares = partition_contributions[:, 0] / overall_contributions[0]
+    female_compositions = partition_contributions[:, 1] / partition_contributions[:, 0]
+    overall_female_composition = overall_contributions[1] / overall_contributions[0]
+    return float(
+        max(
+            np.abs(support_shares - allocation_fractions).max(),
+            np.abs(female_compositions - overall_female_composition).max(),
+        )
+    )
+
+
+def _refine_partition_balance(
+    partitions: list[list[int]],
+    contributions: np.ndarray,
+    allocation_fractions: np.ndarray,
+    random_generator: np.random.Generator,
+) -> None:
+    """Improve final balance through exact-size-preserving pair swaps."""
+    partition_contributions = np.asarray(
+        [contributions[partition].sum(axis=0) for partition in partitions]
+    )
+    current_cost = _partition_balance_cost(
+        partition_contributions, allocation_fractions
+    )
+    candidate_limit = 64
+    for _ in range(25):
+        candidate_positions: list[np.ndarray] = []
+        for partition in partitions:
+            if len(partition) <= candidate_limit:
+                candidate_positions.append(np.arange(len(partition)))
+                continue
+            extreme_positions = {
+                int(np.argmin(contributions[partition, feature_index]))
+                for feature_index in range(contributions.shape[1])
+            } | {
+                int(np.argmax(contributions[partition, feature_index]))
+                for feature_index in range(contributions.shape[1])
+            }
+            remaining_positions = np.setdiff1d(
+                np.arange(len(partition)),
+                np.fromiter(extreme_positions, dtype=np.int64),
+            )
+            sampled_positions = random_generator.choice(
+                remaining_positions,
+                size=candidate_limit - len(extreme_positions),
+                replace=False,
+            )
+            candidate_positions.append(
+                np.concatenate(
+                    (np.fromiter(extreme_positions, dtype=np.int64), sampled_positions)
+                )
+            )
+
+        best_swap: tuple[int, int, int, int, np.ndarray] | None = None
+        best_cost = current_cost
+        for first_partition in range(4):
+            for second_partition in range(first_partition + 1, 4):
+                for first_position in candidate_positions[first_partition]:
+                    first_index = partitions[first_partition][first_position]
+                    for second_position in candidate_positions[second_partition]:
+                        second_index = partitions[second_partition][second_position]
+                        candidate_contributions = partition_contributions.copy()
+                        difference = (
+                            contributions[second_index] - contributions[first_index]
+                        )
+                        candidate_contributions[first_partition] += difference
+                        candidate_contributions[second_partition] -= difference
+                        candidate_cost = _partition_balance_cost(
+                            candidate_contributions, allocation_fractions
+                        )
+                        if candidate_cost < best_cost - 1e-12:
+                            best_cost = candidate_cost
+                            best_swap = (
+                                first_partition,
+                                second_partition,
+                                int(first_position),
+                                int(second_position),
+                                candidate_contributions,
+                            )
+        if best_swap is None:
+            break
+        (
+            first_partition,
+            second_partition,
+            first_position,
+            second_position,
+            partition_contributions,
+        ) = best_swap
+        (
+            partitions[first_partition][first_position],
+            partitions[second_partition][second_position],
+        ) = (
+            partitions[second_partition][second_position],
+            partitions[first_partition][first_position],
+        )
+        current_cost = best_cost
+
+
 def stratified_name_split(
     female_proportions: np.ndarray,
     person_counts: np.ndarray,
@@ -165,6 +275,11 @@ def stratified_name_split(
     proportions, counts = _validated_targets_and_weights(
         female_proportions, person_counts
     )
+    if len(counts) < 4:
+        raise ValueError(
+            "At least four usable unique names are required for nonempty training, "
+            "validation, calibration, and test partitions"
+        )
     if count_strata < 1 or proportion_strata < 1:
         raise ValueError("Stratum counts must be positive")
     if not 0 < training_fraction < 1:
@@ -191,31 +306,85 @@ def stratified_name_split(
     )
 
     random_generator = np.random.default_rng(seed)
-    training_indices: list[int] = []
-    validation_indices: list[int] = []
-    calibration_indices: list[int] = []
-    test_indices: list[int] = []
-    validation_boundary = training_fraction + validation_fraction
-    calibration_boundary = validation_boundary + calibration_fraction
+    partition_fractions = np.array(
+        [
+            training_fraction,
+            validation_fraction,
+            calibration_fraction,
+            1 - training_fraction - validation_fraction - calibration_fraction,
+        ]
+    )
+    raw_partition_sizes = partition_fractions * number_of_names
+    partition_sizes = np.floor(raw_partition_sizes).astype(np.int64)
+    unassigned_names = number_of_names - int(partition_sizes.sum())
+    remainder_order = np.argsort(
+        -(raw_partition_sizes - partition_sizes), kind="stable"
+    )
+    partition_sizes[remainder_order[:unassigned_names]] += 1
+    for empty_partition in np.flatnonzero(partition_sizes == 0):
+        donor_partition = int(np.argmax(partition_sizes))
+        partition_sizes[donor_partition] -= 1
+        partition_sizes[empty_partition] = 1
+    allocation_fractions = partition_sizes / number_of_names
+
+    strata: list[tuple[int, np.ndarray]] = []
     for count_bin in range(count_strata):
         for proportion_bin in range(proportion_strata):
             stratum = np.flatnonzero(
                 (count_bins == count_bin) & (proportion_bins == proportion_bin)
             )
+            if len(stratum) == 0:
+                continue
             random_generator.shuffle(stratum)
-            training_end = round(training_fraction * len(stratum))
-            validation_end = round(validation_boundary * len(stratum))
-            calibration_end = round(calibration_boundary * len(stratum))
-            training_indices.extend(stratum[:training_end].tolist())
-            validation_indices.extend(stratum[training_end:validation_end].tolist())
-            calibration_indices.extend(stratum[validation_end:calibration_end].tolist())
-            test_indices.extend(stratum[calibration_end:].tolist())
+            strata.append((count_bin, stratum))
+    random_generator.shuffle(strata)
+    strata.sort(key=lambda item: item[0], reverse=True)
+    allocation_order = np.concatenate([stratum for _, stratum in strata])
+
+    contributions = np.column_stack(
+        (counts, counts * proportions, counts * (1 - proportions))
+    )
+    final_targets = allocation_fractions[:, None] * contributions.sum(axis=0)
+    cost_scale = np.where(final_targets > 0, final_targets, 1)
+    processed_contributions = np.zeros(3, dtype=np.float64)
+    partition_contributions = np.zeros((4, 3), dtype=np.float64)
+    partitions: list[list[int]] = [[], [], [], []]
+    for step, name_index in enumerate(allocation_order, start=1):
+        contribution = contributions[name_index]
+        processed_contributions += contribution
+        running_targets = allocation_fractions[:, None] * processed_contributions
+        running_name_targets = allocation_fractions * step
+        candidate_costs = np.full(4, np.inf)
+        for partition_index in range(4):
+            if len(partitions[partition_index]) >= partition_sizes[partition_index]:
+                continue
+            candidate_contributions = partition_contributions.copy()
+            candidate_contributions[partition_index] += contribution
+            candidate_name_counts = np.asarray(
+                [len(partition) for partition in partitions], dtype=np.float64
+            )
+            candidate_name_counts[partition_index] += 1
+            candidate_costs[partition_index] = (
+                np.square(
+                    (candidate_contributions - running_targets) / cost_scale
+                ).sum()
+                + np.square(
+                    (candidate_name_counts - running_name_targets)
+                    / np.maximum(partition_sizes, 1)
+                ).sum()
+            )
+        selected_partition = int(np.argmin(candidate_costs))
+        partitions[selected_partition].append(int(name_index))
+        partition_contributions[selected_partition] += contribution
+    _refine_partition_balance(
+        partitions, contributions, allocation_fractions, random_generator
+    )
 
     split = NameDatasetSplit(
-        training=np.asarray(training_indices, dtype=np.int64),
-        validation=np.asarray(validation_indices, dtype=np.int64),
-        calibration=np.asarray(calibration_indices, dtype=np.int64),
-        test=np.asarray(test_indices, dtype=np.int64),
+        training=np.asarray(partitions[0], dtype=np.int64),
+        validation=np.asarray(partitions[1], dtype=np.int64),
+        calibration=np.asarray(partitions[2], dtype=np.int64),
+        test=np.asarray(partitions[3], dtype=np.int64),
     )
     split.validate(number_of_names)
     return split
@@ -234,51 +403,70 @@ def probability_metrics(
     if len(predicted_probabilities) != len(targets):
         raise ValueError("probabilities, targets, and weights must have equal lengths")
 
-    observed_labels = targets > 0.5
+    majority_name_labels = targets > 0.5
     predicted_labels = predicted_probabilities > 0.5
-    true_positive_weight = weights[predicted_labels & observed_labels].sum()
-    false_positive_weight = weights[predicted_labels & ~observed_labels].sum()
-    false_negative_weight = weights[~predicted_labels & observed_labels].sum()
-    true_negative_weight = weights[~predicted_labels & ~observed_labels].sum()
+    true_positive_weight = (weights[predicted_labels] * targets[predicted_labels]).sum()
+    false_positive_weight = (
+        weights[predicted_labels] * (1 - targets[predicted_labels])
+    ).sum()
+    false_negative_weight = (
+        weights[~predicted_labels] * targets[~predicted_labels]
+    ).sum()
+    true_negative_weight = (
+        weights[~predicted_labels] * (1 - targets[~predicted_labels])
+    ).sum()
 
-    female_precision = _safe_ratio(
+    expected_female_precision = _safe_ratio(
         true_positive_weight, true_positive_weight + false_positive_weight
     )
-    female_recall = _safe_ratio(
+    expected_female_recall = _safe_ratio(
         true_positive_weight, true_positive_weight + false_negative_weight
     )
-    male_recall = _safe_ratio(
+    expected_male_recall = _safe_ratio(
         true_negative_weight, true_negative_weight + false_positive_weight
     )
-    female_f1 = _safe_ratio(
-        2 * female_precision * female_recall, female_precision + female_recall
+    expected_female_f1 = _safe_ratio(
+        2 * expected_female_precision * expected_female_recall,
+        expected_female_precision + expected_female_recall,
     )
-    brier_score = float(
+    aggregate_composition_mean_squared_error = float(
         np.average(np.square(predicted_probabilities - targets), weights=weights)
     )
+    expected_binary_brier_score = float(
+        np.average(
+            np.square(predicted_probabilities - targets) + targets * (1 - targets),
+            weights=weights,
+        )
+    )
     clipped = np.clip(predicted_probabilities, 1e-7, 1 - 1e-7)
-    soft_log_loss = float(
+    expected_binary_log_loss = float(
         np.average(
             -targets * np.log(clipped) - (1 - targets) * np.log(1 - clipped),
             weights=weights,
         )
     )
     return ProbabilityMetrics(
-        majority_label_accuracy=float(
-            np.average(predicted_labels == observed_labels, weights=weights)
+        majority_name_label_accuracy=float(
+            np.average(predicted_labels == majority_name_labels, weights=weights)
         ),
         expected_person_accuracy=float(
             np.average(
                 np.where(predicted_labels, targets, 1 - targets), weights=weights
             )
         ),
-        female_precision=female_precision,
-        female_recall=female_recall,
-        male_recall=male_recall,
-        female_f1=female_f1,
-        brier_score=brier_score,
-        root_brier_score=float(np.sqrt(brier_score)),
-        soft_log_loss=soft_log_loss,
+        expected_female_precision=expected_female_precision,
+        expected_female_recall=expected_female_recall,
+        expected_male_recall=expected_male_recall,
+        expected_female_f1=expected_female_f1,
+        aggregate_composition_mean_squared_error=(
+            aggregate_composition_mean_squared_error
+        ),
+        aggregate_composition_root_mean_squared_error=float(
+            np.sqrt(aggregate_composition_mean_squared_error)
+        ),
+        expected_binary_brier_score=expected_binary_brier_score,
+        expected_binary_root_brier_score=float(np.sqrt(expected_binary_brier_score)),
+        expected_binary_log_loss=expected_binary_log_loss,
         calibration_error_10_bins=expected_calibration_error(
             predicted_probabilities, targets, weights, number_of_bins=10
         ),
@@ -476,6 +664,20 @@ def bootstrap_metric_intervals(
         }
         for metric_name, metric_value in estimate.items()
     }
+
+
+def name_membership_sha256(names: list[str], indices: np.ndarray) -> str:
+    """Return a canonical SHA-256 digest of a name partition's membership."""
+    selected_indices = np.asarray(indices, dtype=np.int64)
+    if selected_indices.ndim != 1 or len(selected_indices) == 0:
+        raise ValueError("indices must be a nonempty one-dimensional array")
+    if selected_indices.min() < 0 or selected_indices.max() >= len(names):
+        raise ValueError("indices contain an out-of-range value")
+    members = sorted(names[index] for index in selected_indices)
+    encoded = json.dumps(members, ensure_ascii=False, separators=(",", ":")).encode(
+        "utf-8"
+    )
+    return hashlib.sha256(encoded).hexdigest()
 
 
 def _probability_array(name: str, values: np.ndarray) -> np.ndarray:

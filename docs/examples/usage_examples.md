@@ -37,6 +37,12 @@ Set `NAAMPY_MODEL_DIR` to a directory containing `gender_lstm.pt` when an offlin
 deployment supplies the checkpoint itself. Standard Hugging Face authentication,
 including `HF_TOKEN`, works automatically for Hub downloads.
 
+These runtime probabilities are raw and uncalibrated. The calibration parameters
+in the developmental evaluation report are used only by the offline evaluation
+tool; the current runtime does not load or apply that JSON. A separately trained
+checkpoint can be served as calibrated only when its accompanying training JSON
+is also loaded and its scale and intercept are applied to the raw model logits.
+
 ## State and year filters
 
 ```python

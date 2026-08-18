@@ -43,6 +43,19 @@ def test_model_command_help_runs(module_name):
     assert "usage:" in completed_process.stdout
 
 
+def test_shipped_checkpoint_split_seed_is_not_configurable():
+    completed_process = subprocess.run(
+        [sys.executable, "-m", "model_training.evaluate_gender_model", "--help"],
+        capture_output=True,
+        check=False,
+        text=True,
+    )
+
+    assert completed_process.returncode == 0, completed_process.stderr
+    assert "--bootstrap-seed" in completed_process.stdout
+    assert "--seed " not in completed_process.stdout
+
+
 def test_balanced_calibration_test_split_preserves_held_out_names():
     proportions = np.linspace(0, 1, 100)
     counts = np.arange(1, 101)
@@ -89,6 +102,107 @@ def test_stratified_split_preserves_support_and_target_composition():
     assert max(female_shares) - min(female_shares) < 0.02
 
 
+@pytest.mark.parametrize("number_of_names", [4, 5, 10])
+def test_stratified_split_keeps_small_partitions_nonempty(number_of_names):
+    proportions = np.linspace(0, 1, number_of_names)
+    counts = np.arange(1, number_of_names + 1)
+
+    split = stratified_name_split(proportions, counts, seed=5)
+
+    split.validate(number_of_names)
+    assert all(
+        len(partition) > 0
+        for partition in (
+            split.training,
+            split.validation,
+            split.calibration,
+            split.test,
+        )
+    )
+
+
+def test_nonempty_quota_adjustment_balances_against_realized_sizes():
+    proportions = np.full(5, 0.5)
+    counts = np.arange(1, 6)
+
+    split = stratified_name_split(proportions, counts, seed=5)
+    support_shares = (
+        np.array(
+            [
+                counts[partition].sum()
+                for partition in (
+                    split.training,
+                    split.validation,
+                    split.calibration,
+                    split.test,
+                )
+            ]
+        )
+        / counts.sum()
+    )
+
+    assert support_shares[0] == pytest.approx(0.40, abs=0.07)
+
+
+@pytest.mark.parametrize("number_of_names", [20, 100, 500])
+def test_stratified_split_respects_global_partition_sizes(number_of_names):
+    proportions = np.linspace(0, 1, number_of_names)
+    counts = np.arange(1, number_of_names + 1)
+
+    split = stratified_name_split(proportions, counts, seed=5)
+
+    assert [
+        len(split.training),
+        len(split.validation),
+        len(split.calibration),
+        len(split.test),
+    ] == pytest.approx(
+        np.array([0.70, 0.10, 0.10, 0.10]) * number_of_names,
+        abs=1,
+    )
+
+
+def test_sparse_strata_do_not_systematically_shift_support():
+    proportions = np.linspace(0, 1, 20)
+    counts = np.arange(1, 21)
+
+    split = stratified_name_split(proportions, counts, seed=5)
+    support_shares = (
+        np.array(
+            [
+                counts[partition].sum()
+                for partition in (
+                    split.training,
+                    split.validation,
+                    split.calibration,
+                    split.test,
+                )
+            ]
+        )
+        / counts.sum()
+    )
+
+    assert support_shares == pytest.approx([0.70, 0.10, 0.10, 0.10], abs=0.02)
+    female_compositions = np.array(
+        [
+            np.average(proportions[partition], weights=counts[partition])
+            for partition in (
+                split.training,
+                split.validation,
+                split.calibration,
+                split.test,
+            )
+        ]
+    )
+    overall_composition = np.average(proportions, weights=counts)
+    assert female_compositions == pytest.approx(overall_composition, abs=0.025)
+
+
+def test_stratified_split_requires_one_name_per_partition():
+    with pytest.raises(ValueError, match="At least four usable unique names"):
+        stratified_name_split(np.array([0.0, 0.5, 1.0]), np.ones(3))
+
+
 def test_probability_metrics_match_hand_calculation():
     probabilities = np.array([0.9, 0.8, 0.4, 0.1])
     proportions = np.array([1.0, 0.25, 0.75, 0.0])
@@ -96,14 +210,21 @@ def test_probability_metrics_match_hand_calculation():
 
     metrics = probability_metrics(probabilities, proportions, weights)
 
-    assert metrics.majority_label_accuracy == pytest.approx(0.5)
+    assert metrics.majority_name_label_accuracy == pytest.approx(0.5)
     assert metrics.expected_person_accuracy == pytest.approx(0.625)
-    assert metrics.female_precision == pytest.approx(0.5)
-    assert metrics.female_recall == pytest.approx(0.5)
-    assert metrics.male_recall == pytest.approx(0.5)
-    assert metrics.female_f1 == pytest.approx(0.5)
-    assert metrics.brier_score == pytest.approx(
+    assert metrics.expected_female_precision == pytest.approx(0.625)
+    assert metrics.expected_female_recall == pytest.approx(0.625)
+    assert metrics.expected_male_recall == pytest.approx(0.625)
+    assert metrics.expected_female_f1 == pytest.approx(0.625)
+    assert metrics.aggregate_composition_mean_squared_error == pytest.approx(
         np.mean(np.square(probabilities - proportions))
+    )
+    expected_binary_brier = np.mean(
+        np.square(probabilities - proportions) + proportions * (1 - proportions)
+    )
+    assert metrics.expected_binary_brier_score == pytest.approx(expected_binary_brier)
+    assert metrics.expected_binary_brier_score > (
+        metrics.aggregate_composition_mean_squared_error
     )
 
 
@@ -128,8 +249,10 @@ def test_logistic_calibration_improves_overconfident_probabilities():
 
     assert calibration.scale < 1
     assert (
-        probability_metrics(calibrated, proportions, weights).soft_log_loss
-        < probability_metrics(probabilities, proportions, weights).soft_log_loss
+        probability_metrics(calibrated, proportions, weights).expected_binary_log_loss
+        < probability_metrics(
+            probabilities, proportions, weights
+        ).expected_binary_log_loss
     )
 
 
