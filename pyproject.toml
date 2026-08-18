@@ -1,5 +1,5 @@
 [build-system]
-requires = ["uv_build>=0.11.32,<0.12"]
+requires = ["uv_build>=0.12.5,<0.13"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]
@@ -36,7 +36,7 @@ dependencies = [
   "pandas>=2.0.0",
   "requests>=2.25.0",
   "tqdm>=4.60.0",
-  "huggingface-hub>=0.23",
+  "huggingface-hub>=1.27.0",
   "pyarrow>=16",
 ]
 license-files = ["LICENSE"]
