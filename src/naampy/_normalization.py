@@ -10,8 +10,8 @@ from typing import TypeAlias
 
 import pandas as pd
 
-NameInput: TypeAlias = str | None
-NameCollection: TypeAlias = NameInput | Sequence[NameInput] | pd.Series
+type NameInput = str | None
+type NameCollection = NameInput | Sequence[NameInput] | pd.Series
 
 _UNICODE_SCRIPT_MARKERS = {
     "BENGALI": "Beng",
