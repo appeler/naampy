@@ -26,7 +26,7 @@ name = "naampy"
 version = "0.11.0"
 description = "Estimate population-level patterns in Indian first names"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 license = "MIT"
 authors = [
   { name = "Gaurav Sood", email = "gsood07@gmail.com" },
@@ -36,7 +36,6 @@ authors = [
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
-  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
@@ -91,7 +90,7 @@ Changelog = "https://github.com/appeler/naampy/blob/master/CHANGELOG.md"
 # Ruff configuration
 [tool.ruff]
 line-length = 88
-target-version = "py311"
+target-version = "py312"
 exclude = [
     "docs",
     "src/naampy/data",
