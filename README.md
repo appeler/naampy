@@ -154,3 +154,14 @@ make build
 
 Naampy is released under the MIT license. The data and artifact manifests state
 their separate source terms and provenance.
+
+<!-- adjacent:start -->
+
+## 🔗 Adjacent Repositories
+
+- [appeler/pranaam](https://github.com/appeler/pranaam) — pranaam: predict religion based on name
+- [appeler/outkast](https://github.com/appeler/outkast) — Using data from over 140M+ Indians from the SECC 2011, we map last names to caste \(SC, ST, Other\)
+
+_Powered by [Adjacent](https://github.com/gojiplus/adjacent)_
+
+<!-- adjacent:end -->
