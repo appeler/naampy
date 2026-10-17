@@ -180,3 +180,6 @@ include = [
     "model_training/train_gender_lstm.py",
 ]
 typeCheckingMode = "standard"
+
+[tool.codespell]
+builtin = "clear,rare,en-GB_to_en-US"
