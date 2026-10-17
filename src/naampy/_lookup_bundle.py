@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import unicodedata
 from dataclasses import dataclass
@@ -14,6 +13,14 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 
 from . import _resources
+from ._manifest import (
+    require_exact_keys,
+    require_integer,
+    require_mapping,
+    require_positive_integer,
+    require_text,
+    verify_sha256,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -258,7 +265,7 @@ def load_lookup_bundle(
     table_path = Path(artifact_resolver(manifest.output.filename))
     if table_path.stat().st_size != manifest.output.size_bytes:
         raise ValueError("Lookup artifact size does not match the manifest")
-    _verify_sha256(table_path, manifest.output.sha256)
+    verify_sha256(table_path, manifest.output.sha256)
     _validate_lookup_table(
         table_path,
         manifest=manifest,
@@ -279,7 +286,7 @@ def parse_lookup_manifest(path: str | Path) -> FirstNameCompositionManifest:
         raise ValueError(f"Cannot read lookup manifest {path!s}") from error
     if not isinstance(payload, dict):
         raise ValueError("Lookup manifest must contain a JSON object")
-    _require_exact_keys(
+    require_exact_keys(
         payload,
         {
             "schema_version",
@@ -299,32 +306,32 @@ def parse_lookup_manifest(path: str | Path) -> FirstNameCompositionManifest:
         },
         "lookup manifest",
     )
-    schema_version = _required_integer(payload, "schema_version")
+    schema_version = require_integer(payload, "schema_version")
     if schema_version != LOOKUP_MANIFEST_SCHEMA_VERSION:
         raise ValueError(
             f"Unsupported lookup manifest schema_version {schema_version!r}"
         )
-    artifact_role = _required_text(payload, "artifact_role")
+    artifact_role = require_text(payload, "artifact_role")
     if artifact_role != LOOKUP_ARTIFACT_ROLE:
         raise ValueError(f"Unsupported lookup artifact_role {artifact_role!r}")
-    artifact_version = _required_text(payload, "artifact_version")
+    artifact_version = require_text(payload, "artifact_version")
     if artifact_version != LOOKUP_ARTIFACT_VERSION:
         raise ValueError(f"Unsupported lookup artifact_version {artifact_version!r}")
-    reference_population = _required_text(payload, "reference_population")
+    reference_population = require_text(payload, "reference_population")
     if reference_population != LOOKUP_REFERENCE_POPULATION:
         raise ValueError("Lookup reference_population is not recognized")
-    label_source = _required_text(payload, "label_source")
+    label_source = require_text(payload, "label_source")
     if label_source != LOOKUP_LABEL_SOURCE:
         raise ValueError("Lookup label_source is not recognized")
 
-    dataset_payload = _required_mapping(payload, "dataset")
-    _require_exact_keys(dataset_payload, set(_EXPECTED_DATASET), "dataset")
+    dataset_payload = require_mapping(payload, "dataset")
+    require_exact_keys(dataset_payload, set(_EXPECTED_DATASET), "dataset")
     if dataset_payload != _EXPECTED_DATASET:
         raise ValueError("Lookup dataset identity is not the published v2_1k source")
     dataset = DatasetIdentity(**dataset_payload)
 
-    label_payload = _required_mapping(payload, "label_contract")
-    _require_exact_keys(label_payload, set(_EXPECTED_LABEL_CONTRACT), "label_contract")
+    label_payload = require_mapping(payload, "label_contract")
+    require_exact_keys(label_payload, set(_EXPECTED_LABEL_CONTRACT), "label_contract")
     if label_payload != _EXPECTED_LABEL_CONTRACT:
         raise ValueError("Lookup source-label contract is not recognized")
     label_contract = LabelContract(
@@ -336,26 +343,26 @@ def parse_lookup_manifest(path: str | Path) -> FirstNameCompositionManifest:
         interpretation=label_payload["interpretation"],
     )
 
-    privacy = _parse_privacy(_required_mapping(payload, "privacy"))
-    source = _parse_source(_required_mapping(payload, "source"))
-    output = _parse_output(_required_mapping(payload, "output"))
+    privacy = _parse_privacy(require_mapping(payload, "privacy"))
+    source = _parse_source(require_mapping(payload, "source"))
+    output = _parse_output(require_mapping(payload, "output"))
     data_contract = _parse_data_contract(
-        _required_mapping(payload, "data_contract"), source=source, output=output
+        require_mapping(payload, "data_contract"), source=source, output=output
     )
 
     if payload["arrow_schema"] != _EXPECTED_ARROW_SCHEMA:
         raise ValueError("Lookup manifest Arrow schema is not recognized")
-    source_code_payload = _required_mapping(payload, "source_code_sha256")
-    _require_exact_keys(
+    source_code_payload = require_mapping(payload, "source_code_sha256")
+    require_exact_keys(
         source_code_payload,
         {"model_training/export_lookup_table.py"},
         "source_code_sha256",
     )
-    source_code_sha256 = _required_sha256(
+    source_code_sha256 = _require_sha256(
         source_code_payload, "model_training/export_lookup_table.py"
     )
-    software_payload = _required_mapping(payload, "software_versions")
-    _require_exact_keys(software_payload, {"pyarrow"}, "software_versions")
+    software_payload = require_mapping(payload, "software_versions")
+    require_exact_keys(software_payload, {"pyarrow"}, "software_versions")
 
     return FirstNameCompositionManifest(
         schema_version=schema_version,
@@ -370,12 +377,12 @@ def parse_lookup_manifest(path: str | Path) -> FirstNameCompositionManifest:
         output=output,
         data_contract=data_contract,
         source_code_sha256=source_code_sha256,
-        pyarrow_version=_required_text(software_payload, "pyarrow"),
+        pyarrow_version=require_text(software_payload, "pyarrow"),
     )
 
 
 def _parse_privacy(payload: dict[str, Any]) -> PrivacyContract:
-    _require_exact_keys(
+    require_exact_keys(
         payload,
         {"classification", "publication_intent", "release_grain", "rationale"},
         "privacy",
@@ -391,7 +398,7 @@ def _parse_privacy(payload: dict[str, Any]) -> PrivacyContract:
 
 
 def _parse_source(payload: dict[str, Any]) -> SourceArtifact:
-    _require_exact_keys(
+    require_exact_keys(
         payload,
         {"local_filename", "format", "size_bytes", "sha256", "md5", "totals"},
         "source",
@@ -400,8 +407,8 @@ def _parse_source(payload: dict[str, Any]) -> SourceArtifact:
         _EXPECTED_SOURCE_IDENTITY
     ):
         raise ValueError("Lookup source identity does not match published v2_1k")
-    totals_payload = _required_mapping(payload, "totals")
-    _require_exact_keys(
+    totals_payload = require_mapping(payload, "totals")
+    require_exact_keys(
         totals_payload,
         {
             "row_count",
@@ -416,22 +423,22 @@ def _parse_source(payload: dict[str, Any]) -> SourceArtifact:
         "source totals",
     )
     label_totals = _parse_label_totals(totals_payload, "source totals")
-    minimum_birth_year = _required_integer(totals_payload, "minimum_birth_year")
-    maximum_birth_year = _required_integer(totals_payload, "maximum_birth_year")
-    state_count = _required_positive_integer(totals_payload, "state_count")
+    minimum_birth_year = require_integer(totals_payload, "minimum_birth_year")
+    maximum_birth_year = require_integer(totals_payload, "maximum_birth_year")
+    state_count = require_positive_integer(totals_payload, "state_count")
     if state_count != 31 or minimum_birth_year != 1887 or maximum_birth_year != 2017:
         raise ValueError("Lookup source scope does not match published v2_1k")
     return SourceArtifact(
-        local_filename=_required_text(payload, "local_filename"),
+        local_filename=require_text(payload, "local_filename"),
         format=payload["format"],
         size_bytes=payload["size_bytes"],
         sha256=payload["sha256"],
         md5=payload["md5"],
-        row_count=_required_positive_integer(totals_payload, "row_count"),
+        row_count=require_positive_integer(totals_payload, "row_count"),
         state_count=state_count,
         minimum_birth_year=minimum_birth_year,
         maximum_birth_year=maximum_birth_year,
-        distinct_source_name_count=_required_positive_integer(
+        distinct_source_name_count=require_positive_integer(
             totals_payload, "distinct_source_name_count"
         ),
         label_totals=label_totals,
@@ -439,19 +446,19 @@ def _parse_source(payload: dict[str, Any]) -> SourceArtifact:
 
 
 def _parse_output(payload: dict[str, Any]) -> OutputArtifact:
-    _require_exact_keys(
+    require_exact_keys(
         payload,
         {"filename", "format", "size_bytes", "sha256", "totals"},
         "output",
     )
-    filename = _required_text(payload, "filename")
+    filename = require_text(payload, "filename")
     if Path(filename).name != filename or not filename.endswith(".parquet"):
         raise ValueError("Lookup output filename must be a bare .parquet name")
-    output_format = _required_text(payload, "format")
+    output_format = require_text(payload, "format")
     if output_format != "parquet_zstd":
         raise ValueError("Lookup output format must be parquet_zstd")
-    totals_payload = _required_mapping(payload, "totals")
-    _require_exact_keys(
+    totals_payload = require_mapping(payload, "totals")
+    require_exact_keys(
         totals_payload,
         {
             "row_count",
@@ -464,9 +471,9 @@ def _parse_output(payload: dict[str, Any]) -> OutputArtifact:
     return OutputArtifact(
         filename=filename,
         format=output_format,
-        size_bytes=_required_positive_integer(payload, "size_bytes"),
-        sha256=_required_sha256(payload, "sha256"),
-        row_count=_required_positive_integer(totals_payload, "row_count"),
+        size_bytes=require_positive_integer(payload, "size_bytes"),
+        sha256=_require_sha256(payload, "sha256"),
+        row_count=require_positive_integer(totals_payload, "row_count"),
         label_totals=_parse_label_totals(totals_payload, "output totals"),
     )
 
@@ -474,7 +481,7 @@ def _parse_output(payload: dict[str, Any]) -> OutputArtifact:
 def _parse_data_contract(
     payload: dict[str, Any], *, source: SourceArtifact, output: OutputArtifact
 ) -> DataContract:
-    _require_exact_keys(
+    require_exact_keys(
         payload,
         {
             "unit_of_observation",
@@ -494,13 +501,13 @@ def _parse_data_contract(
         if payload[field] != expected_value:
             raise ValueError(f"Lookup data_contract {field!r} is not recognized")
 
-    geography = _required_mapping(payload, "geography")
-    _require_exact_keys(
+    geography = require_mapping(payload, "geography")
+    require_exact_keys(
         geography,
         {"source_state_count", "release_level", "published_geography_columns"},
         "geography",
     )
-    source_state_count = _required_positive_integer(geography, "source_state_count")
+    source_state_count = require_positive_integer(geography, "source_state_count")
     if source_state_count != source.state_count:
         raise ValueError("Geography state count does not match source totals")
     if geography["release_level"] != "global_only":
@@ -508,8 +515,8 @@ def _parse_data_contract(
     if geography["published_geography_columns"] != []:
         raise ValueError("Lookup must not publish geography columns")
 
-    birth_year = _required_mapping(payload, "birth_year")
-    _require_exact_keys(
+    birth_year = require_mapping(payload, "birth_year")
+    require_exact_keys(
         birth_year,
         {
             "source_minimum",
@@ -519,8 +526,8 @@ def _parse_data_contract(
         },
         "birth_year",
     )
-    source_minimum = _required_integer(birth_year, "source_minimum")
-    source_maximum = _required_integer(birth_year, "source_maximum")
+    source_minimum = require_integer(birth_year, "source_minimum")
+    source_maximum = require_integer(birth_year, "source_maximum")
     if (
         source_minimum != source.minimum_birth_year
         or source_maximum != source.maximum_birth_year
@@ -531,13 +538,13 @@ def _parse_data_contract(
     if birth_year["published_birth_year_columns"] != []:
         raise ValueError("Lookup must not publish birth-year columns")
 
-    support = _parse_support(_required_mapping(payload, "support"), output=output)
+    support = _parse_support(require_mapping(payload, "support"), output=output)
     return DataContract(
-        unit_of_observation=_required_text(payload, "unit_of_observation"),
+        unit_of_observation=require_text(payload, "unit_of_observation"),
         row_order=payload["row_order"],
-        normalization=_required_text(payload, "normalization"),
+        normalization=require_text(payload, "normalization"),
         supported_scripts=("Latn",),
-        aggregation=_required_text(payload, "aggregation"),
+        aggregation=require_text(payload, "aggregation"),
         source_state_count=source_state_count,
         source_minimum_birth_year=source_minimum,
         source_maximum_birth_year=source_maximum,
@@ -548,7 +555,7 @@ def _parse_data_contract(
 def _parse_support(
     payload: dict[str, Any], *, output: OutputArtifact
 ) -> SupportContract:
-    _require_exact_keys(
+    require_exact_keys(
         payload,
         {
             "minimum_represented_binary_label_records",
@@ -563,7 +570,7 @@ def _parse_support(
     expected_fields = ["female_label_record_count", "male_label_record_count"]
     if support_fields != expected_fields:
         raise ValueError(f"Lookup support_fields must be {expected_fields!r}")
-    minimum_support = _required_positive_integer(
+    minimum_support = require_positive_integer(
         payload, "minimum_represented_binary_label_records"
     )
     if minimum_support != LOOKUP_MINIMUM_BINARY_LABEL_RECORD_COUNT:
@@ -575,10 +582,10 @@ def _parse_support(
     )
     if payload["rule"] != expected_rule:
         raise ValueError("Lookup support rule is not recognized")
-    before_count = _required_positive_integer(
+    before_count = require_positive_integer(
         payload, "normalized_name_count_before_support_filter"
     )
-    excluded_count = _required_nonnegative_integer(
+    excluded_count = _require_nonnegative_integer(
         payload, "normalized_name_count_excluded_below_support"
     )
     if before_count - excluded_count != output.row_count:
@@ -593,9 +600,9 @@ def _parse_support(
 
 
 def _parse_label_totals(payload: dict[str, Any], description: str) -> BinaryLabelTotals:
-    female_count = _required_nonnegative_integer(payload, "female_label_record_count")
-    male_count = _required_nonnegative_integer(payload, "male_label_record_count")
-    represented_count = _required_nonnegative_integer(
+    female_count = _require_nonnegative_integer(payload, "female_label_record_count")
+    male_count = _require_nonnegative_integer(payload, "male_label_record_count")
+    represented_count = _require_nonnegative_integer(
         payload, "represented_binary_label_record_count"
     )
     if female_count + male_count != represented_count:
@@ -659,73 +666,22 @@ def _validate_lookup_table(
         raise ValueError("Lookup table male total does not match the manifest")
 
 
-def _verify_sha256(path: Path, expected_digest: str) -> None:
-    digest = hashlib.sha256()
-    with path.open("rb") as artifact:
-        for block in iter(lambda: artifact.read(1024 * 1024), b""):
-            digest.update(block)
-    actual_digest = digest.hexdigest()
-    if actual_digest != expected_digest:
-        raise ValueError(
-            f"Artifact hash mismatch for {path.name!r}: "
-            f"expected {expected_digest}, found {actual_digest}"
-        )
-
-
-def _require_exact_keys(
-    payload: dict[str, Any], expected: set[str], description: str
-) -> None:
-    actual = set(payload)
-    if actual != expected:
-        raise ValueError(
-            f"{description} keys must be {sorted(expected)!r}; found {sorted(actual)!r}"
-        )
-
-
-def _required_mapping(payload: dict[str, Any], key: str) -> dict[str, Any]:
-    value = payload.get(key)
-    if not isinstance(value, dict):
-        raise ValueError(f"{key!r} must be a JSON object")
-    return value
-
-
-def _required_text(payload: dict[str, Any], key: str) -> str:
-    value = payload.get(key)
-    if not isinstance(value, str) or not value.strip():
-        raise ValueError(f"{key!r} must be non-empty text")
-    return value
-
-
-def _required_integer(payload: dict[str, Any], key: str) -> int:
-    value = payload.get(key)
-    if isinstance(value, bool) or not isinstance(value, int):
-        raise ValueError(f"{key!r} must be an integer")
-    return value
-
-
-def _required_positive_integer(payload: dict[str, Any], key: str) -> int:
-    value = _required_integer(payload, key)
-    if value <= 0:
-        raise ValueError(f"{key!r} must be positive")
-    return value
-
-
-def _required_nonnegative_integer(payload: dict[str, Any], key: str) -> int:
-    value = _required_integer(payload, key)
+def _require_nonnegative_integer(payload: dict[str, Any], key: str) -> int:
+    value = require_integer(payload, key)
     if value < 0:
         raise ValueError(f"{key!r} must be nonnegative")
     return value
 
 
-def _required_sha256(payload: dict[str, Any], key: str) -> str:
-    digest = _required_text(payload, key)
+def _require_sha256(payload: dict[str, Any], key: str) -> str:
+    digest = require_text(payload, key)
     if len(digest) != 64 or set(digest) - set("0123456789abcdef"):
         raise ValueError(f"{key!r} must be 64 lowercase hexadecimal characters")
     return digest
 
 
-def _required_md5(payload: dict[str, Any], key: str) -> str:
-    digest = _required_text(payload, key)
+def _require_md5(payload: dict[str, Any], key: str) -> str:
+    digest = require_text(payload, key)
     if len(digest) != 32 or set(digest) - set("0123456789abcdef"):
         raise ValueError(f"{key!r} must be 32 lowercase hexadecimal characters")
     return digest

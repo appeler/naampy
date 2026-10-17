@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import math
 from dataclasses import dataclass
@@ -13,6 +12,14 @@ import torch
 from safetensors.torch import load_file
 
 from . import _resources
+from ._manifest import (
+    require_exact_keys,
+    require_integer,
+    require_mapping,
+    require_positive_integer,
+    require_text,
+    verify_sha256,
+)
 from .nnets import CharacterBiLSTM
 
 if TYPE_CHECKING:
@@ -123,7 +130,7 @@ def load_model_bundle(
     loaded_models: list[CharacterBiLSTM] = []
     for member in manifest.ensemble_members:
         member_path = Path(artifact_resolver(member.filename))
-        _verify_sha256(member_path, member.sha256)
+        verify_sha256(member_path, member.sha256)
         model = _build_model(manifest.architecture)
         try:
             state_dictionary = load_file(member_path, device="cpu")
@@ -152,7 +159,7 @@ def parse_model_manifest(path: str | Path) -> NamePatternModelManifest:
     if not isinstance(payload, dict):
         raise ValueError("Model manifest must contain a JSON object")
 
-    _require_exact_keys(
+    require_exact_keys(
         payload,
         {
             "schema_version",
@@ -166,14 +173,14 @@ def parse_model_manifest(path: str | Path) -> NamePatternModelManifest:
         },
         "model manifest",
     )
-    schema_version = _require_integer(payload, "schema_version")
+    schema_version = require_integer(payload, "schema_version")
     if schema_version != MODEL_MANIFEST_SCHEMA_VERSION:
         raise ValueError(
             f"Unsupported model manifest schema_version {schema_version!r}"
         )
 
-    architecture_payload = _require_mapping(payload, "architecture")
-    _require_exact_keys(
+    architecture_payload = require_mapping(payload, "architecture")
+    require_exact_keys(
         architecture_payload,
         {
             "vocabulary",
@@ -185,14 +192,14 @@ def parse_model_manifest(path: str | Path) -> NamePatternModelManifest:
         "architecture",
     )
     architecture = ModelArchitecture(
-        vocabulary=_require_text(architecture_payload, "vocabulary"),
-        embedding_dimension=_require_positive_integer(
+        vocabulary=require_text(architecture_payload, "vocabulary"),
+        embedding_dimension=require_positive_integer(
             architecture_payload, "embedding_dimension"
         ),
-        hidden_dimension=_require_positive_integer(
+        hidden_dimension=require_positive_integer(
             architecture_payload, "hidden_dimension"
         ),
-        layer_count=_require_positive_integer(architecture_payload, "layer_count"),
+        layer_count=require_positive_integer(architecture_payload, "layer_count"),
         dropout_probability=_require_probability(
             architecture_payload, "dropout_probability", upper_inclusive=False
         ),
@@ -200,9 +207,9 @@ def parse_model_manifest(path: str | Path) -> NamePatternModelManifest:
     if architecture.vocabulary != "abcdefghijklmnopqrstuvwxyz":
         raise ValueError("Model vocabulary must be exactly lowercase ASCII a-z")
 
-    ensemble_payload = _require_mapping(payload, "ensemble")
-    _require_exact_keys(ensemble_payload, {"method", "members"}, "ensemble")
-    ensemble_method = _require_text(ensemble_payload, "method")
+    ensemble_payload = require_mapping(payload, "ensemble")
+    require_exact_keys(ensemble_payload, {"method", "members"}, "ensemble")
+    ensemble_method = require_text(ensemble_payload, "method")
     if ensemble_method != ENSEMBLE_METHOD:
         raise ValueError(f"Unsupported ensemble method {ensemble_method!r}")
     members_payload = ensemble_payload["members"]
@@ -214,17 +221,17 @@ def parse_model_manifest(path: str | Path) -> NamePatternModelManifest:
     if members[0].training_seed == members[1].training_seed:
         raise ValueError("Ensemble member training seeds must be distinct")
 
-    calibration_payload = _require_mapping(payload, "calibration")
-    _require_exact_keys(
+    calibration_payload = require_mapping(payload, "calibration")
+    require_exact_keys(
         calibration_payload,
         {"method", "slope", "intercept", "population"},
         "calibration",
     )
     calibration = ScoreCalibration(
-        method=_require_text(calibration_payload, "method"),
+        method=require_text(calibration_payload, "method"),
         slope=_require_finite_number(calibration_payload, "slope"),
         intercept=_require_finite_number(calibration_payload, "intercept"),
-        population=_require_text(calibration_payload, "population"),
+        population=require_text(calibration_payload, "population"),
     )
     if calibration.method != CALIBRATION_METHOD:
         raise ValueError(f"Unsupported calibration method {calibration.method!r}")
@@ -233,10 +240,10 @@ def parse_model_manifest(path: str | Path) -> NamePatternModelManifest:
 
     return NamePatternModelManifest(
         schema_version=schema_version,
-        model_version=_require_text(payload, "model_version"),
-        score_target=_require_text(payload, "score_target"),
-        reference_population=_require_text(payload, "reference_population"),
-        label_source=_require_text(payload, "label_source"),
+        model_version=require_text(payload, "model_version"),
+        score_target=require_text(payload, "score_target"),
+        reference_population=require_text(payload, "reference_population"),
+        label_source=require_text(payload, "label_source"),
         architecture=architecture,
         ensemble_method=ensemble_method,
         ensemble_members=cast("tuple[EnsembleMember, EnsembleMember]", members),
@@ -267,17 +274,17 @@ def calibrated_ensemble_score(
 def _parse_member(payload: object) -> EnsembleMember:
     if not isinstance(payload, dict):
         raise ValueError("Each ensemble member must be a JSON object")
-    _require_exact_keys(payload, {"filename", "sha256", "training_seed"}, "member")
-    filename = _require_text(payload, "filename")
+    require_exact_keys(payload, {"filename", "sha256", "training_seed"}, "member")
+    filename = require_text(payload, "filename")
     if Path(filename).name != filename or not filename.endswith(".safetensors"):
         raise ValueError("Ensemble member filename must be a bare .safetensors name")
-    digest = _require_text(payload, "sha256")
+    digest = require_text(payload, "sha256")
     if len(digest) != 64 or set(digest) - set("0123456789abcdef"):
         raise ValueError("Ensemble member sha256 must be 64 lowercase hex characters")
     return EnsembleMember(
         filename=filename,
         sha256=digest,
-        training_seed=_require_integer(payload, "training_seed"),
+        training_seed=require_integer(payload, "training_seed"),
     )
 
 
@@ -290,57 +297,6 @@ def _build_model(architecture: ModelArchitecture) -> CharacterBiLSTM:
         layer_count=architecture.layer_count,
         dropout_probability=architecture.dropout_probability,
     )
-
-
-def _verify_sha256(path: Path, expected_digest: str) -> None:
-    digest = hashlib.sha256()
-    with path.open("rb") as artifact:
-        for block in iter(lambda: artifact.read(1024 * 1024), b""):
-            digest.update(block)
-    actual_digest = digest.hexdigest()
-    if actual_digest != expected_digest:
-        raise ValueError(
-            f"Artifact hash mismatch for {path.name!r}: "
-            f"expected {expected_digest}, found {actual_digest}"
-        )
-
-
-def _require_exact_keys(
-    payload: dict[str, Any], expected: set[str], description: str
-) -> None:
-    actual = set(payload)
-    if actual != expected:
-        raise ValueError(
-            f"{description} keys must be {sorted(expected)!r}; found {sorted(actual)!r}"
-        )
-
-
-def _require_mapping(payload: dict[str, Any], key: str) -> dict[str, Any]:
-    value = payload.get(key)
-    if not isinstance(value, dict):
-        raise ValueError(f"{key!r} must be a JSON object")
-    return value
-
-
-def _require_text(payload: dict[str, Any], key: str) -> str:
-    value = payload.get(key)
-    if not isinstance(value, str) or not value.strip():
-        raise ValueError(f"{key!r} must be non-empty text")
-    return value
-
-
-def _require_integer(payload: dict[str, Any], key: str) -> int:
-    value = payload.get(key)
-    if isinstance(value, bool) or not isinstance(value, int):
-        raise ValueError(f"{key!r} must be an integer")
-    return value
-
-
-def _require_positive_integer(payload: dict[str, Any], key: str) -> int:
-    value = _require_integer(payload, key)
-    if value <= 0:
-        raise ValueError(f"{key!r} must be positive")
-    return value
 
 
 def _require_finite_number(payload: dict[str, Any], key: str) -> float:
