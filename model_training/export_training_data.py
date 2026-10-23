@@ -183,20 +183,20 @@ def _load_usable_names(source_path: Path) -> tuple[pd.DataFrame, dict[str, int]]
     grouped_names = grouped_names[represented_counts > 0].copy()
     usable = grouped_names["first_name"].map(_is_usable_name)
     grouped_names = grouped_names[usable].copy()
-    grouped_names.rename(
+    grouped_names = grouped_names.rename(
         columns={
             "first_name": "normalized_name",
             "n_female": "female_label_record_count",
             "n_male": "male_label_record_count",
         },
-        inplace=True,
     )
     grouped_names["represented_binary_label_record_count"] = (
         grouped_names["female_label_record_count"]
         + grouped_names["male_label_record_count"]
     )
-    grouped_names.sort_values("normalized_name", kind="stable", inplace=True)
-    grouped_names.reset_index(drop=True, inplace=True)
+    grouped_names = grouped_names.sort_values(
+        "normalized_name", kind="stable"
+    ).reset_index(drop=True)
     return grouped_names, source_summary
 
 
