@@ -159,9 +159,9 @@ their separate source terms and provenance.
 
 ## 🔗 Adjacent Repositories
 
-- [appeler/pranaam](https://github.com/appeler/pranaam) — pranaam: predict religion based on name
 - [appeler/instate](https://github.com/appeler/instate) — instate: predict the state of residence from last name using the indian electoral rolls
-- [appeler/outkast](https://github.com/appeler/outkast) — Using data from over 140M+ Indians from the SECC 2011, we map last names to caste \(SC, ST, Other\)
+- [appeler/pranaam](https://github.com/appeler/pranaam) — pranaam: predict religion based on name
+- [appeler/ethnicolr](https://github.com/appeler/ethnicolr) — Canonical package for name-based race and ethnicity estimates using Census, voter-file, and Wikipedia/Wikidata models.
 
 _Powered by [Adjacent](https://github.com/gojiplus/adjacent)_
 
