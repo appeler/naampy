@@ -29,7 +29,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 license = "MIT"
 authors = [
-  { name = "Gaurav Sood", email = "gsood07@gmail.com" },
+  { name = "Gaurav Sood" },
   { name = "Suriyan Laohaprapanon", email = "suriyant@gmail.com" },
   { name = "Rajashekar Chintalapati", email = "rajshekar.ch@gmail.com" }
 ]
