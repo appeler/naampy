@@ -44,11 +44,11 @@ classifiers = [
 ]
 keywords = ["first-names", "india", "name-patterns"]
 dependencies = [
-  "torch>=2.0.0",
-  "numpy>=1.21.0",
-  "pandas>=2.0.0",
+  "torch>=2.5.0",
+  "numpy>=2.1.0",
+  "pandas>=2.2.3",
   "huggingface-hub>=1.27.0",
-  "pyarrow>=16",
+  "pyarrow>=18.0.0",
   "safetensors>=0.8.0",
 ]
 license-files = ["LICENSE"]
